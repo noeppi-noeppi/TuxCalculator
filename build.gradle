@@ -1,0 +1,35 @@
+plugins {
+    id 'java'
+    id 'scala'
+    id 'application'
+}
+
+configurations {
+    shade
+    compile.extendsFrom shade
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    shade 'org.scala-lang:scala-library:2.13.3'
+
+    shade 'org.luaj:luaj-jse:3.0.1'
+
+    compile fileTree(dir: '/usr/share/java/gtk.jar', include: 'gtk.jar')
+}
+
+application {
+    mainClassName = 'io.github.noeppi_noeppi.tux_calculator.Main'
+}
+
+jar {
+    configurations.shade.each { dep -> from(project.zipTree(dep)) { exclude 'META-INF', 'META-INF/**' } }
+
+    manifest {
+        attributes 'Main-Class': application.mainClassName
+        attributes 'Class-Path': '/usr/share/java/gtk.jar'
+    }
+}
