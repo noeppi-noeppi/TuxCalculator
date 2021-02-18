@@ -13,7 +13,7 @@ object MDefault {
     override val name: String = "+"
     override val priority: Priority = Priority.ADDITIVE
     override val rightAssoc: Boolean = false
-    override def apply(op1: Double, op2: Double): Double = op1 + op2
+    override def apply(functionPointers: FuncData, op1: Double, op2: Double): Double = op1 + op2
 
     override val name2: String = "Summe"
     override val doc: String = "Addiert zwei Summanden."
@@ -23,7 +23,7 @@ object MDefault {
     override val name: String = "-"
     override val priority: Priority = Priority.ADDITIVE
     override val rightAssoc: Boolean = false
-    override def apply(op1: Double, op2: Double): Double = op1 - op2
+    override def apply(functionPointers: FuncData, op1: Double, op2: Double): Double = op1 - op2
 
     override val name2: String = "Differenz"
     override val doc: String = "Subtrahiert einen Wert von einem Anderen."
@@ -33,7 +33,7 @@ object MDefault {
     override val name: String = "*"
     override val priority: Priority = Priority.MULTIPLICATIVE
     override val rightAssoc: Boolean = false
-    override def apply(op1: Double, op2: Double): Double = op1 * op2
+    override def apply(functionPointers: FuncData, op1: Double, op2: Double): Double = op1 * op2
 
     override val name2: String = "Produkt"
     override val doc: String = "Multipliziert zwei Werte."
@@ -43,7 +43,7 @@ object MDefault {
     override val name: String = "/"
     override val priority: Priority = Priority.MULTIPLICATIVE
     override val rightAssoc: Boolean = false
-    override def apply(op1: Double, op2: Double): Double = op1 / op2
+    override def apply(functionPointers: FuncData, op1: Double, op2: Double): Double = op1 / op2
 
     override val name2: String = "Quotient"
     override val doc: String = "Dividiert einen Wert durch einen Anderen."
@@ -53,7 +53,7 @@ object MDefault {
     override val name: String = "%"
     override val priority: Priority = Priority.MULTIPLICATIVE
     override val rightAssoc: Boolean = false
-    override def apply(op1: Double, op2: Double): Double = op1 % op2
+    override def apply(functionPointers: FuncData, op1: Double, op2: Double): Double = op1 % op2
 
     override val name2: String = "Modulo"
     override val doc: String = "Berechnet den Divisionsrest der Ganzzahlen-Division mit den beiden Operanden."
@@ -63,7 +63,7 @@ object MDefault {
     override val name: String = "^"
     override val priority: Priority = Priority.POWER
     override val rightAssoc: Boolean = true
-    override def apply(op1: Double, op2: Double): Double = Math.pow(op1, op2)
+    override def apply(functionPointers: FuncData, op1: Double, op2: Double): Double = Math.pow(op1, op2)
 
     override val name2: String = "Potenz"
     override val doc: String = "Potenziert zwei Werte."
@@ -73,7 +73,7 @@ object MDefault {
     override val name: String = "="
     override val priority: Priority = Priority.COMPARISON
     override val rightAssoc: Boolean = false
-    override def apply(op1: Double, op2: Double): Double = if (op1 == op2) 1 else 0
+    override def apply(functionPointers: FuncData, op1: Double, op2: Double): Double = if (op1 == op2) 1 else 0
 
     override val name2: String = "Gleichheit"
     override val doc: String = "Gibt 1 zurück, wenn die Werte gleich sind, sonst 0."
@@ -83,7 +83,7 @@ object MDefault {
     override val name: String = "<"
     override val priority: Priority = Priority.COMPARISON
     override val rightAssoc: Boolean = false
-    override def apply(op1: Double, op2: Double): Double = if (op1 < op2) 1 else 0
+    override def apply(functionPointers: FuncData, op1: Double, op2: Double): Double = if (op1 < op2) 1 else 0
 
     override val name2: String = "Kleiner als"
     override val doc: String = "Gibt 1 zurück, wenn der erste Wert kleiner als der zweite ist, sonst 0."
@@ -93,15 +93,70 @@ object MDefault {
     override val name: String = ">"
     override val priority: Priority = Priority.COMPARISON
     override val rightAssoc: Boolean = false
-    override def apply(op1: Double, op2: Double): Double = if (op1 > op2) 1 else 0
+    override def apply(functionPointers: FuncData, op1: Double, op2: Double): Double = if (op1 > op2) 1 else 0
 
     override val name2: String = "Größer als"
     override val doc: String = "Gibt 1 zurück, wenn der erste Wert größer als der zweite ist, sonst 0."
   }
 
+  object not_equal extends Operator {
+    override val name: String = "≠"
+    override val priority: Priority = Priority.COMPARISON
+    override val rightAssoc: Boolean = false
+
+    override def apply(functionPointers: FuncData, op1: Double, op2: Double): Double = AUtil.fromBool(op1 != op2)
+
+    override val name2: String = "Ungleichheit"
+    override val doc: String = "Gibt 0 zurück, wenn die Werte gleich sind, sonst 1."
+  }
+
+  object lower_equal extends Operator {
+    override val name: String = "≤"
+    override val priority: Priority = Priority.COMPARISON
+    override val rightAssoc: Boolean = false
+
+    override def apply(functionPointers: FuncData, op1: Double, op2: Double): Double = AUtil.fromBool(op1 <= op2)
+
+    override val name2: String = "Kleiner gleich"
+    override val doc: String = "Gibt 1 zurück, wenn der erste Wert kleiner oder gleich dem zweiten ist, sonst 0."
+  }
+
+  object greater_equal extends Operator {
+    override val name: String = "≥"
+    override val priority: Priority = Priority.COMPARISON
+    override val rightAssoc: Boolean = false
+
+    override def apply(functionPointers: FuncData, op1: Double, op2: Double): Double = AUtil.fromBool(op1 >= op2)
+
+    override val name2: String = "Größer gleich"
+    override val doc: String = "Gibt 1 zurück, wenn der erste Wert größer oder gleich dem zweiten ist, sonst 0."
+  }
+
+  object is_element extends Operator {
+    override val name: String = "∈"
+    override val priority: Priority = Priority.ELEMENT
+    override val rightAssoc: Boolean = false
+
+    override def apply(functionPointers: FuncData, op1: Double, op2: Double): Double = MDefault.has.result(functionPointers, op2, op1)
+
+    override val name2: String = "Elemnt"
+    override val doc: String = "Gibt 1 zurück, wenn der erste Wert im zweiten Wert enthalten ist, sonst 0. Der Zweite Wert muss eine Liste sein."
+  }
+
+  object not_element extends Operator {
+    override val name: String = "∉"
+    override val priority: Priority = Priority.ELEMENT
+    override val rightAssoc: Boolean = false
+
+    override def apply(functionPointers: FuncData, op1: Double, op2: Double): Double = AUtil.fromBool(!AUtil.getBool(MDefault.has.result(functionPointers, op2, op1)))
+
+    override val name2: String = "Kein Element"
+    override val doc: String = "Gibt 0 zurück, wenn der erste Wert im zweiten Wert enthalten ist, sonst 1. Der Zweite Wert muss eine Liste sein."
+  }
+
   object negate extends Unary {
     override val name: String = "-"
-    override def apply(op: Double): Double = -op
+    override def apply(functionPointers: FuncData, op: Double): Double = -op
 
     override val name2: String = "Negation"
     override val doc: String = "Negiert einen Wert."
@@ -109,7 +164,7 @@ object MDefault {
 
   object negateTilde extends Unary {
     override val name: String = "~"
-    override def apply(op: Double): Double = -op
+    override def apply(functionPointers: FuncData, op: Double): Double = -op
 
     override val name2: String = "Negation (alternativ)"
     override val doc: String = "Negiert einen Wert. Da die Tilde nicht zusätzlich als Subtraktions-Operator definiert ist, muss eine negative Zahl nicht so häufig geklammert werden."
@@ -117,7 +172,7 @@ object MDefault {
 
   object degreeSign extends PostfixUnary {
     override val name: String = "°"
-    override def apply(op: Double): Double = Math.toRadians(op)
+    override def apply(functionPointers: FuncData, op: Double): Double = Math.toRadians(op)
 
     override val name2: String = "Grad"
     override val doc: String = "Wandelt eine Zahl vom Gradmaß ins Bogenmaß um. Man kann somit schreiben: <tt>sin(90°)</tt>."
@@ -125,12 +180,12 @@ object MDefault {
 
   object factorial extends PostfixUnary {
     override val name: String = "!"
-    override def apply(op: Double): Double = if (op.isPosInfinity)
+    override def apply(functionPointers: FuncData, op: Double): Double = if (op.isPosInfinity)
       Double.PositiveInfinity
     else Math.round(op) match {
       case x if x < 0 => Double.NaN
       case x if x == 0 => 1
-      case x => x.toDouble * apply(x - 1)
+      case x => x.toDouble * apply(functionPointers, (x - 1).toDouble)
     }
 
     override val name2: String = "Fakultät"
@@ -999,7 +1054,7 @@ object MDefault {
     }
 
     override val name2: String = "Function Comprehension"
-    override val doc: String = "<tt>fsplit(a, b, c)</tt> gibt einen Funktionspointer auf eine Funktion zurück, die folgendes tut: Sie ruft zuerst den Funktionspointer a auf. Gibt er ein positives Ergebnis zurück, wird Funktionspointer b aufgerufen und das Ergebnis zurückgegebn. Ist das Ergebnis von a negativ oder null, wird Funktionspointer c aufgerufen und das Ergebnis zurückgegeben."
+    override val doc: String = "Setzt eine Funktion aus mehreren Teilfunktionen zusammen. Erwartet zuerst eine beliebige Anzahl an Paaren von Filter-Funktionen und Ergebnis-Funktionen. Die Filter-Funktionen werden in der angegebenen Reihe aufgerufen. Bei der ersten, die <tt>true</tt> zurück gibt, wird die passende Ergebnis-Funktion aufgerufen, um ein Ergebnis zu erhalten. Ist die Anzahl der Parameter ungerade, wird, falls keine Filter-Funktion gefunden wurde die letzte gegebene Funktion aufgerufen, sonst wird NaN zurück gegeben. Beispiel: <tt>fc(@[x > 0], @[x], @[-x]</tt> entspricht <tt>@abs</tt>"
   }
 
   object lcm extends MFunction {
@@ -1269,7 +1324,7 @@ object MDefault {
   object nPr extends MFunction {
     override val name: String = "nPr"
     override val params: Int = 2
-    override def result(functionPointers: FuncData, param: Double*): Double = factorial.apply(param(0)) / factorial.apply(param(0) - param(1))
+    override def result(functionPointers: FuncData, param: Double*): Double = factorial.apply(functionPointers, param(0)) / factorial.apply(functionPointers, param(0) - param(1))
 
     override val name2: String = "Permutationen"
     override val doc: String = "<tt>nPr(k,n) =</tt> Die Anzahl aller Permutationen bei Auswahl von <tt>k</tt> Objekten aus Insgesamt <tt>n</tt> Objekten."
@@ -1278,7 +1333,7 @@ object MDefault {
   object nCr extends MFunction {
     override val name: String = "nCr"
     override val params: Int = 2
-    override def result(functionPointers: FuncData, param: Double*): Double = nPr.result(functionPointers, param(0), param(1)) / factorial.apply(param(1))
+    override def result(functionPointers: FuncData, param: Double*): Double = nPr.result(functionPointers, param(0), param(1)) / factorial.apply(functionPointers, param(1))
 
     override val name2: String = "Kombinationen"
     override val doc: String = "<tt>nCr(k,n) =</tt> Die Anzahl aller Möglichkeiten bei Auswahl von <tt>k</tt> Objekten aus Insgesamt <tt>n</tt> Objekten ohne Beachtung der Reihenfolge."
@@ -1351,6 +1406,17 @@ object MDefault {
 
     override val name2: String = "Listen-Funktion"
     override val doc: String = "Erstellt eine neue Liste aus allen gegebenen Argumenten und gibt einen Pointer zurück."
+  }
+  
+  object vec extends MFunction {
+    override val name: String = "vec"
+    override val params: Int = Parser.VARARG
+    override def result(functionPointers: FuncData, param: Double*): Double = {
+      functionPointers.add(new MFunctionList(param.toList))
+    }
+
+    override val name2: String = "Vektor"
+    override val doc: String = "Erstellt eine neue Liste aus allen gegebenen Argumenten und gibt einen Pointer zurück. Alternativer Name für <tt>list</tt>"
   }
 
   object lmap extends MFunction {
@@ -1722,9 +1788,30 @@ object MDefault {
     override val doc: String = "Definiert eine Zahlenfolge rekursiv. <tt>seq(2, @[2*x])</tt> gibt einen Funktionspointer zurück für eine Folge mit den Werten 2, 4, 8, 16, ... Der erste Wert hat den Index 1."
   }
 
+  object has extends MFunction {
+    override val name: String = "has"
+    override val params: Int = Parser.VARARG
+    override def result(functionPointers: FuncData, param: Double*): Double = {
+      val list = AUtil.getList(functionPointers, functionPointers.get(param(0).toInt))
+      if (list == null) {
+        Double.NaN
+      } else {
+        for (i <- param.indices) {
+          if (i >= 1 && !list.contains(param(i))) {
+            return AUtil.fromBool(false)
+          }
+        }
+        AUtil.fromBool(true)
+      }
+    }
+
+    override val name2: String = "Enthält"
+    override val doc: String = "Prüft ob die Liste (1. Argument) alle anderen Argumente enthält."
+  }
+  
   val additionalDocumentation: Set[DocumentationObject] = Set[(String, String, String)](
     (".tuxtr.rc", "Init-Datei", "Die Datei <tt>~/.tuxtr.rc</tt> wird beim Start gelesen. Alle Befehle werden ausgeführt und Variablen werden zu Konstanten, eigene Funktionen zu Systemfunktionen gemacht. Man kann dort folgende zusätzliche Dinge mit <tt>def</tt> definieren (Nach dem hier Abgedruckten folgen wie gewöhnlich Funktionsname und Argumente):\n" +
-      "Operatoren: <tt>def op [priority] [isRightAssociative]</tt>\t<tt>[priority]</tt> muss eins der folgenden sein: <tt>additive</tt>, <tt>multiplicative</tt> oder <tt>power</tt>. [isRightAssociative] muss entweder <tt>true</tt> oder <tt>false</tt> sein. 2 Argumente\n" +
+      "Operatoren: <tt>def op [priority] [isRightAssociative]</tt>\t<tt>[priority]</tt> muss eins der folgenden sein: " + Priority.values().map(_.id).map("<tt>" + _ + "</tt>").dropRight(1).mkString(", ") + " oder <tt>" + Priority.values().last.id + "</tt>. [isRightAssociative] muss entweder <tt>true</tt> oder <tt>false</tt> sein. 2 Argumente\n" +
       "Vorzeichen: <tt>def unary</tt>\t1 Argument\n" +
       "Nachgestellte Operatoren: <tt>def postfix</tt>\t1 Argument"),
     (".tuxtr.rc", "LUA", "In der Datei <tt>~/.tuxtr.rc</tt> kann mit <tt>__LUA__</tt> LUA-Code eingeleitet werden. Dieser geht dann bis zum Ende der Datei. Er wird zuerst ausgeführt, sodass andere Definitionen auf die hier definierten Funktionen zugreifen können. Um eine Funktion im Taschenrechner zugreifbar zu machen, muss eine Liste namens <tt>EXPORT</tt> definiert werden. Diese kann nun Funktionsdefinitionen enthalten. Eine Funktionsdefinition ist eine List bestehend aus einem String (Funktionsname), einer LUA-Funktion (auszuführede Funktion), einer ganzen Zahl (Parameteranzahl) und optional einem String, der als Dokumentation angezeigt wird. Eine in LUA-definierte Funktion die exportiert wird, erhält als erstes Argument, also vor den anderen ein <tt>Userdata</tt>. Dieses erlaubt den Zugriff auf Funktionspointer. Folgende Dinge sind bereits definiert:\n" +
@@ -1739,6 +1826,7 @@ object MDefault {
     ("let", "Variablendeklaration", "<tt>let x = 4 + 6</tt> setzt die Variable x auf 10. Sie kann danach wie eine Konstante verwendet werden. Variablen können Konstanten überschreiben."),
     ("def", "Definieren", "Definiert eine Funktion. Beispiel: <tt>def f(x) = 2 * x + 4</tt>. Dabei wird der aktuelle Stand des Parsers als Closure gespeichert (Momentan definierte Variablen werden im auszuwertenden Term zu Konstanten, nachträgliche Umdefinitionen wirken sich nicht darauf aus.) Diese Methode kann eingebaute Funktionen umdefinieren. Funktionen können sich nicht selbst aufrufen, da das Closure erstellt wird bevor die Funktion dem Parser hinzugefügt wird."),
     ("defp", "Pointer-Definieren", "Definiert eine Funktion. Beispiel: <tt>defp f = @sin</tt>. Dabei wird <tt>f(x)=sin(x)</tt> definiert."),
+    ("list...", "Argument-Splatting", "Bei einem Funktionsaufruf können an einen Listen-Pointer 3 Punkte angehängt werden. Dann wird nicht der Pointer an die Funktion übergeben, sondern die Liste aufgelöst und jedes Element der Liste als einzelnes Argument übergeben. Ein Argument mit 3 Punkten ist also unter Umständen mehrere Argumente wert."),
     ("clear", "Zurücksetzen", "Setzt einen Wert zurück. Löscht alle Variablen unter diesem Namen, macht alle <tt>undef</tt> Aufrufe mit diesem Namen rückgängig und löscht alle eigenen Funktionen unter diesem Namen. Ausgenommen sind Definitionen aus <tt>.tuxtr.rc</tt>. Beispiel: <tt>clear x</tt>"),
     ("clearall", "Alles Zurücksetzten", "Setzt alles zurück. Löscht alle Variablen, macht alle Aufrufe von <tt>undef</tt> Rückgängig und löscht alle eigenen Funktionen. Ausgenommen sind Definitionen aus <tt>.tuxtr.rc</tt>."),
     ("undef", "Undefinieren", "Macht diesen Namen unverwendbar. Nach einem Aufruf von <tt>undef x</tt> können Variablen, Konstanten, Funktionen, Operatoren, Vorzeichen und Nachgestellte Operatoren mit dem Namen x nicht mehr verwendet werden. Mit <tt>undef +</tt> würde der Ausdruck <tt>1 + 1</tt> eine Fehlermeldung produzieren."),

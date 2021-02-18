@@ -2,9 +2,8 @@ package io.github.noeppi_noeppi.tux_calculator.math.parser
 
 import java.nio.file.Paths
 import io.github.noeppi_noeppi.tux_calculator.LuaManager
-import io.github.noeppi_noeppi.tux_calculator.math.{Constant, DocumentationObject, MDerivedFunction, MFunction, Operator, PostfixUnary, Priority, Unary}
+import io.github.noeppi_noeppi.tux_calculator.math.{AUtil, Constant, DocumentationObject, MDerivedFunction, MFunction, Operator, PostfixUnary, Priority, Unary}
 
-import scala.collection.immutable.ArraySeq
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.control.Breaks._
@@ -14,11 +13,15 @@ class Parser private(val const: Map[String, Constant], val func: Map[Int, Map[St
 
   private val vars = mutable.Map[String, Double]()
   private val checkOp = new CheckOperator(this)
+  //noinspection ScalaUnnecessaryParentheses
   private val unaries = "[" + (unary.foldLeft("")((s, kv) => if (kv._1.length == 1 && !kv._1.charAt(0).isLetterOrDigit) s + kv._1 else s).replace("^", "\\^").replace("-", "\\-").replace("[", "\\[").replace("]", "\\]")) + "]"
+  //noinspection ScalaUnnecessaryParentheses
   private val postfixUnaries = "[" + (postfixUnary.foldLeft("")((s, kv) => if (kv._1.length == 1 && !kv._1.charAt(0).isLetterOrDigit) s + kv._1 else s).replace("^", "\\^").replace("-", "\\-").replace("[", "\\[").replace("]", "\\]")) + "]"
+  //noinspection ScalaUnnecessaryParentheses
   private val charOperators = "[" + (op.foldLeft("")((s, kv) => if (kv._1.forall(c => !c.isLetterOrDigit)) s + kv._1 else s).replace("^", "\\^").replace("-", "\\-").replace("[", "\\[").replace("]", "\\]")) + "]"
   private val charOperatorStr = op.foldLeft("")((s, kv) => if (kv._1.forall(c => !c.isLetterOrDigit)) s + kv._1 else s) + "`"
 
+  private val R_OPERATOR_DECLARATION = ("^\\s*def\\s+op\\s+(" + Priority.values().map(_.id).mkString("", "|", "") + ")\\s+(true|false)\\s+([`+\\-*/%~^!°A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\(\\s*([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*,\\s*([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\)\\s*=\\s*(.*)$").r
   private val R_UNARY = if (unary.isEmpty) { "$a".r } else { M.UNARY.replace("%%", unaries).r }
   private val R_POSTFIX_UNARY = if (postfixUnary.isEmpty) { "$a".r } else { M.POSTFIX_UNARY.replace("%%", postfixUnaries).r }
   private val R_OPERATOR = if (op.isEmpty) { "$a".r } else { M.OPERATOR.replace("%%", charOperators).r }
@@ -76,9 +79,7 @@ class Parser private(val const: Map[String, Constant], val func: Map[Int, Map[St
       if (eq.contains("{") || eq.contains("}"))
         throw new IllegalArgumentException("eq contained one of { and }")
       last = eq match {
-        case M.OPERATOR_DECLARATION_A(ra, name, pp1, pp2, term) => addOp(name, Priority.ADDITIVE, ra.toBoolean, pp1, pp2, term); 0
-        case M.OPERATOR_DECLARATION_M(ra, name, pp1, pp2, term) => addOp(name, Priority.MULTIPLICATIVE, ra.toBoolean, pp1, pp2, term); 0
-        case M.OPERATOR_DECLARATION_P(ra, name, pp1, pp2, term) => addOp(name, Priority.POWER, ra.toBoolean, pp1, pp2, term); 0
+        case R_OPERATOR_DECLARATION(priority, rightAssociative, name, pp1, pp2, term) => addOp(name, Priority.values().find(_.id == priority).get, rightAssociative.toBoolean, pp1, pp2, term); 0
         case M.UNARY_DECLARATION(name, pp1, term) => addUnary(name, pp1, term); 0
         case M.POSTUNARY_DECLARATION(name, pp1, term) => addPostfixUnary(name, pp1, term); 0
         case _ => parse(eq)
@@ -109,7 +110,7 @@ class Parser private(val const: Map[String, Constant], val func: Map[Int, Map[St
         } else {
           val func = new MDerivedFunction(fname, baseFunc)
           customFunc.getOrElseUpdate(baseFunc.params, mutable.Map()) += func.name -> func
-          last = fp
+          last = funcData.add(func)
         }
       } else {
         last = eq match {
@@ -169,7 +170,7 @@ class Parser private(val const: Map[String, Constant], val func: Map[Int, Map[St
             case ')' => open -= 1;
             case _ =>
           }; if (open <= 0) {
-            end = begin + i; break();
+            end = begin + i; break()
           }
         }
       }
@@ -189,9 +190,9 @@ class Parser private(val const: Map[String, Constant], val func: Map[Int, Map[St
       case M.ANON_SHORT_POINTER(impl) => addFunc("", "x", impl)
       case M.FUNCTION(name, q) if hasFunc(name, q) => applyFunc(name, q)
       case M.POINTER(not, _) => getFuncPointer(not)
-      case R_UNARY(name, q) if unary.contains(name) && !undefinedSym.contains(name) => unary(name).apply(doParse(q))
-      case checkOp(q1, name, q2) => op(name).apply(doParse(q1), doParse(q2))
-      case R_POSTFIX_UNARY(q, name) if postfixUnary.contains(name) && !undefinedSym.contains(name) => postfixUnary(name).apply(doParse(q))
+      case R_UNARY(name, q) if unary.contains(name) && !undefinedSym.contains(name) => unary(name).apply(funcData, doParse(q))
+      case checkOp(q1, name, q2) => op(name).apply(funcData, doParse(q1), doParse(q2))
+      case R_POSTFIX_UNARY(q, name) if postfixUnary.contains(name) && !undefinedSym.contains(name) => postfixUnary(name).apply(funcData, doParse(q))
       case M.LAST() => last
       case M.VARIABLE(name) if vars.contains(name) && !undefinedSym.contains(name) => vars(name)
       case M.CONST(name) if const.contains(name) && !undefinedSym.contains(name) => const(name).value
@@ -215,29 +216,77 @@ class Parser private(val const: Map[String, Constant], val func: Map[Int, Map[St
       }
     }
     lb += eq.substring(lastIdx, eq.length)
-    lb.filter(str => str.nonEmpty).map(str => doParse(str).toString).mkString("{", ",", "}")
+    lb.filter(str => str.nonEmpty).map(_.trim).map(str => {
+      if (str.endsWith("...")) {
+        doParse(str.substring(0, str.length - 3)).toString + "..."
+      } else {
+        doParse(str).toString
+      }
+    }).mkString("{", ",", "}")
   }
 
-  private def hasFunc(name: String, precalc: String): Boolean = {
-    val params = if (precalc.trim.isEmpty) { 0 } else { precalc.count(c => c == ',') + 1 }
-    if (params == 0) {
-      (func.getOrElse(params, Map()).contains(name) || customFunc.getOrElse(params, mutable.Map()).contains(name)) && !undefinedSym.contains(name)
+  def hasFunc(name: String, precalc: String): Boolean = {
+    funcParams(precalc).exists(params => {
+      if (params.isEmpty) {
+        (func.getOrElse(params.size, Map()).contains(name) || customFunc.getOrElse(params.size, mutable.Map()).contains(name)) && !undefinedSym.contains(name)
+      } else {
+        (func.getOrElse(params.size, Map()).contains(name) || customFunc.getOrElse(params.size, mutable.Map()).contains(name)
+          || func.getOrElse(Parser.VARARG, Map()).contains(name) || customFunc.getOrElse(Parser.VARARG, mutable.Map()).contains(name)) && !undefinedSym.contains(name)
+      }
+    })
+  }
+  
+  def getFunc(name: String, precalc: String): MFunction = {
+    funcParams(precalc).map(params => {
+      var f = customFunc.getOrElse(params.size, mutable.Map()).getOrElse(name, func.getOrElse(params.size, Map()).getOrElse(name, null))
+      if (f == null && params.nonEmpty)
+        f = customFunc.getOrElse(Parser.VARARG, mutable.Map()).getOrElse(name, func.getOrElse(Parser.VARARG, Map()).getOrElse(name, null))
+      f
+    }).orNull
+  }
+  
+  private def applyFunc(name: String, precalc: String): Double = {
+    funcParams(precalc).map(params => {
+      var f = customFunc.getOrElse(params.size, mutable.Map()).getOrElse(name, func.getOrElse(params.size, Map()).getOrElse(name, null))
+      if (f == null && params.nonEmpty)
+        f = customFunc.getOrElse(Parser.VARARG, mutable.Map()).getOrElse(name, func.getOrElse(Parser.VARARG, Map()).getOrElse(name, null))
+      if (f == null)
+        Double.NaN
+      else
+        f.result(funcData, params: _*)
+    }).getOrElse(Double.NaN)
+  }
+  
+  private def funcParams(precalc: String): Option[Seq[Double]] = {
+    if (precalc.trim.isEmpty) {
+      Some(List())
+    } else if (!precalc.contains(",") && precalc.trim.endsWith("...")) {
+      Option(AUtil.getList(funcData, funcData.get(precalc.trim.substring(0, precalc.trim.length - 3).toDouble.toInt)))
     } else {
-      (func.getOrElse(params, Map()).contains(name) || customFunc.getOrElse(params, mutable.Map()).contains(name)
-        || func.getOrElse(Parser.VARARG, Map()).contains(name) || customFunc.getOrElse(Parser.VARARG, mutable.Map()).contains(name)) && !undefinedSym.contains(name)
+      try {
+        Some(precalc.split(',').toIndexedSeq.map(_.trim).flatMap(str => {
+          if (str.endsWith("...")) {
+            val list = AUtil.getList(funcData, funcData.get(str.substring(0, str.length - 3).toDouble.toInt))
+            if (list == null) { throw new NoSuchElementException() }
+            list
+          } else {
+            List(str.toDouble)
+          }
+        }))
+      } catch {
+        case _: NoSuchElementException => None
+      }
     }
   }
-  private def applyFunc(name: String, precalc: String): Double = {
-    val params = if (precalc.trim.isEmpty) { 0 } else { precalc.count(c => c == ',') + 1 }
-    var f = customFunc.getOrElse(params, mutable.Map()).getOrElse(name, func.getOrElse(params, Map()).getOrElse(name, null))
-    if (f == null && params != 0)
-      f = customFunc.getOrElse(Parser.VARARG, mutable.Map()).getOrElse(name, func.getOrElse(Parser.VARARG, Map()).getOrElse(name, null))
-    if (f == null)
-      0
-    else
-      f.result(funcData, ArraySeq.from(precalc.split(",").filter(s => s.nonEmpty).map(s => s.trim.toDouble)): _*)
-  }
+  
   private def addFunc(fname: String, pp1: String, term: String): Int = {
+    val (func, args) = simulateAddFunc(fname, pp1, term)
+    if (fname.nonEmpty)
+      customFunc.getOrElseUpdate(args.size, mutable.Map()) += fname -> func
+    funcData.add(func)
+  }
+  
+  def simulateAddFunc(fname: String, pp1: String, term: String): (MFunction, List[String]) = {
     val closure = createClosure()
     val args = List.from(pp1.split(",").filter(s => s.nonEmpty).map(s => s.trim))
     val func = new MFunction {
@@ -252,13 +301,21 @@ class Parser private(val const: Map[String, Constant], val func: Map[Int, Map[St
         closure.vars.clear()
         r
       }
+
+      override val name2: String = {
+        val fdef = s"(${pp1.trim}) = ${term.trim}"
+        if (fdef.length > 20) {
+          fdef.substring(0, 16) + " ... " + fdef.substring(fdef.length - 3)
+        } else {
+          fdef
+        }
+      }
+      override val doc: String = s"${fname.trim}(${pp1.trim}) = ${term.trim}"
     }
-    if (fname.nonEmpty)
-      customFunc.getOrElseUpdate(args.size, mutable.Map()) += fname -> func
-    funcData.add(func)
+    (func, args)
   }
 
-  private def getFuncPointer(not: String): Int = {
+  def getFuncPointer(not: String): Int = {
     if (not.contains("#")) {
       val params = not.substring(not.indexOf("#") + 1).toInt
       val name = not.substring(0, not.indexOf("#"))
@@ -297,7 +354,7 @@ class Parser private(val const: Map[String, Constant], val func: Map[Int, Map[St
       override val name: String = fname
       override val priority: Priority = pr
       override val rightAssoc: Boolean = ra
-      override def apply(op1: Double, op2: Double): Double = {
+      override def apply(functionPointers: FuncData, op1: Double, op2: Double): Double = {
         closure.vars.clear()
         closure.vars.put(pp1, op1)
         closure.vars.put(pp2, op2)
@@ -313,7 +370,7 @@ class Parser private(val const: Map[String, Constant], val func: Map[Int, Map[St
     val closure = createClosure()
     val func = new Unary {
       override val name: String = fname
-      override def apply(op: Double): Double = {
+      override def apply(functionPointers: FuncData, op: Double): Double = {
         closure.vars.clear()
         closure.vars.put(pp1, op)
         val r = closure.parse(term)
@@ -328,7 +385,7 @@ class Parser private(val const: Map[String, Constant], val func: Map[Int, Map[St
     val closure = createClosure()
     val func = new PostfixUnary {
       override val name: String = fname
-      override def apply(op: Double): Double = {
+      override def apply(functionPointers: FuncData, op: Double): Double = {
         closure.vars.clear()
         closure.vars.put(pp1, op)
         val r = closure.parse(term)
@@ -419,47 +476,53 @@ class Parser private(val const: Map[String, Constant], val func: Map[Int, Map[St
     .addAll(func.values.flatten.map(entry => entry._1))
     .result().removedAll(undefinedSym).toList.sorted((x: String, y: String) => x.toLowerCase().compareTo(y.toLowerCase))
 
-  private object M {
-    val BBW = "[A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]".r
-    val BBWO = "[A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_+\\-*/%^~]".r
-    val BBWN = "[A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9]".r
-    val BBWNO = "[A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9+\\-*/%^~]".r
-    val OP = "([+\\-*/%^~]|`[A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_+\\-*/%^~][A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9+\\-*/%^~]*)`".r
-
-    val VARIABLE_DECLARATION: Regex = "^\\s*let\\s+([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*=\\s*(.*)$".r
-    val NOARG_FUNCTION_DECLARATION: Regex = "^\\s*def\\s+([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\(\\s*\\)\\s*=\\s*(.*)$".r
-    val FUNCTION_DECLARATION: Regex = "^\\s*def\\s+([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\((\\s*([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*(,\\s*([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*)*)\\)\\s*=\\s*(.*)$".r
-    val FUNCTION_POINTER_DECLARATION: Regex = "^\\s*defp\\s+([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*=\\s*(.*)$".r
-    val OPERATOR_DECLARATION_A: Regex = "^\\s*def\\s+op\\s+additive\\s+(true|false)\\s+([`+\\-*/%~^!°A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\(\\s*([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*,\\s*([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\)\\s*=\\s*(.*)$".r
-    val OPERATOR_DECLARATION_M: Regex = "^\\s*def\\s+op\\s+multiplicative\\s+(true|false)\\s+([`+\\-*/%~^!°A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\(\\s*([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*,\\s*([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\)\\s*=\\s*(.*)$".r
-    val OPERATOR_DECLARATION_P: Regex = "^\\s*def\\s+op\\s+power\\s+(true|false)\\s+([`+\\-*/%~^!°A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\(\\s*([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*,\\s*([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\)\\s*=\\s*(.*)$".r
-    val UNARY_DECLARATION: Regex = "^\\s*def\\s+unary\\s+([+\\-*/%~^!°A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\(\\s*([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\)\\s*=\\s*(.*)$".r
-    val POSTUNARY_DECLARATION: Regex = "^\\s*def\\s+postfix\\s+([+\\-*/%~^!°A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\(\\s*([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\)\\s*=\\s*(.*)$".r
-
-    val VARIABLE_CLEAR: Regex = "^\\s*clear\\s+(.+?)\\s*$".r
-    val UNDEFINE: Regex = "^\\s*undef\\s+(.+?)\\s*$".r
-    val RESET: Regex = "^\\s*clearall\\s*$".r
-
-    val SPACES1: Regex = "^\\s+(.*)$".r
-    val SPACES2: Regex = "^(.*?)\\s+".r
-    val NUMBER: Regex = "^(-?\\d+(\\.\\d+)?([Ee]-?\\d+)?)$".r
-    val PRECALC_NUMBER: Regex = "^\\{((-?\\d+(\\.\\d+)?([Ee]-?\\d+)?)|(NaN|Infinity|-Infinity))\\}$".r
-    val FUNCTION: Regex = "^([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_][A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9+\\-*/%^~]*)\\s*\\{([^{]*?)\\}$".r
-    val UNARY: String = "^(%%)\\s*(.+)$"
-    val POSTFIX_UNARY: String = "^(.+?)\\s*(%%)$"
-    val POINTER: Regex = "^@([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_][A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9+\\-*/%^~]*(#\\d+)?)$".r
-    val ANON_POINTER: Regex = "^@\\[\\s*(.*?)\\s*=\\s*(.*)\\s*\\]$".r
-    val ANON_SHORT_POINTER: Regex = "^@\\[\\s*(.*)\\s*\\]$".r
-    val ANON_POINTER_IDENTITY: Regex = "^@\\[\\s*\\]$".r
-    val LAST: Regex = "^ans$".r
-    val CONST: Regex = "^([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_][A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9]*)$".r
-    val VARIABLE: Regex = "^([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_][A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9]*)$".r
-
-    val OPERATOR: String = "^(%%|`[A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_+\\-*/%^~][A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9+\\-*/%^~]*?`).+?$"
-  }
+  def isUndefined(name: String): Boolean = undefinedSym.contains(name)
+  
+  def hasVariable(variable: String): Boolean = vars.contains(variable)
+  def getVariable(variable: String): Double = vars(variable)
 }
 
 object Parser {
-
   val VARARG: Int = -1
+}
+
+object M {
+  val BBW: Regex = "[A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]".r
+  val BBWO: Regex = "[A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_+\\-*/%^~]".r
+  val BBWN: Regex = "[A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9]".r
+  val BBWNO: Regex = "[A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9+\\-*/%^~]".r
+  val OP: Regex = "([+\\-*/%^~]|`[A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_+\\-*/%^~][A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9+\\-*/%^~]*)`".r
+
+  val VARIABLE_DECLARATION: Regex = "^\\s*let\\s+([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_][A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9]*)\\s*=\\s*(.*)$".r
+  val NOARG_FUNCTION_DECLARATION: Regex = "^\\s*def\\s+([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\(\\s*\\)\\s*=\\s*(.*)$".r
+  val FUNCTION_DECLARATION: Regex = "^\\s*def\\s+([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\((\\s*([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*(,\\s*([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*)*)\\)\\s*=\\s*(.*)$".r
+  val FUNCTION_POINTER_DECLARATION: Regex = "^\\s*defp\\s+([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*=\\s*(.*)$".r
+  val UNARY_DECLARATION: Regex = "^\\s*def\\s+unary\\s+([+\\-*/%~^!°A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\(\\s*([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\)\\s*=\\s*(.*)$".r
+  val POSTUNARY_DECLARATION: Regex = "^\\s*def\\s+postfix\\s+([+\\-*/%~^!°A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\(\\s*([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\)\\s*=\\s*(.*)$".r
+
+  val VARIABLE_CLEAR: Regex = "^\\s*clear\\s+(.+?)\\s*$".r
+  val UNDEFINE: Regex = "^\\s*undef\\s+(.+?)\\s*$".r
+  val RESET: Regex = "^\\s*clearall\\s*$".r
+
+  val SPACES1: Regex = "^\\s+(.*)$".r
+  val SPACES2: Regex = "^(.*?)\\s+".r
+  val NUMBER: Regex = "^(-?\\d+(\\.\\d+)?([Ee]-?\\d+)?)$".r
+  //noinspection RegExpRedundantEscape
+  val PRECALC_NUMBER: Regex = "^\\{((-?\\d+(\\.\\d+)?([Ee]-?\\d+)?)|(NaN|Infinity|-Infinity))\\}$".r
+  //noinspection RegExpRedundantEscape
+  val FUNCTION: Regex = "^([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_][A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9+\\-*/%^~]*)\\s*\\{([^{]*?)\\}$".r
+  val UNARY: String = "^(%%)\\s*(.+)$"
+  val POSTFIX_UNARY: String = "^(.+?)\\s*(%%)$"
+  val POINTER: Regex = "^@([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_][A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9+\\-*/%^~]*(#\\d+)?)$".r
+  //noinspection RegExpRedundantEscape
+  val ANON_POINTER: Regex = "^@\\[\\s*(.*?)\\s*=\\s*(.*)\\s*\\]$".r
+  //noinspection RegExpRedundantEscape
+  val ANON_SHORT_POINTER: Regex = "^@\\[\\s*(.*)\\s*\\]$".r
+  //noinspection RegExpRedundantEscape
+  val ANON_POINTER_IDENTITY: Regex = "^@\\[\\s*\\]$".r
+  val LAST: Regex = "^ans$".r
+  val CONST: Regex = "^([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_][A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9]*)$".r
+  val VARIABLE: Regex = "^([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_][A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9]*)$".r
+
+  val OPERATOR: String = "^(%%|`[A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_+\\-*/%^~][A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9+\\-*/%^~]*?`).+?$"
 }

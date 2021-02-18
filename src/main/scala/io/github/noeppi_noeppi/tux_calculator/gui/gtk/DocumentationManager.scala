@@ -22,7 +22,7 @@ object DocumentationManager {
       lb += defaultDocWidget(quoteText(x.name) + "   " + x.name2, "Typ: " + DocType.GENERAL.rep, x.doc)
     }
     for (x <- dd.filter(d => d.dtype == DocType.OPERATOR).sorted) {
-      lb += defaultDocWidget(quoteText(x.name) + "   " + x.name2, "Typ: " + DocType.OPERATOR.rep + ", Priorität: " + x.asInstanceOf[Operator].priority.rep, x.doc)
+      lb += defaultDocWidget(quoteText(x.name) + "   " + x.name2, "Typ: " + DocType.OPERATOR.rep + ", Priorität: " + x.asInstanceOf[Operator].priority.rep + " (" + (x.asInstanceOf[Operator].priority.ordinal() + 1) + ")", x.doc)
     }
     for (x <- dd.filter(d => d.dtype == DocType.UNARY).sorted) {
       lb += defaultDocWidget(quoteText(x.name) + "   " + x.name2, "Typ: " + DocType.UNARY.rep, x.doc)
