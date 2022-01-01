@@ -487,42 +487,42 @@ object Parser {
 }
 
 object M {
-  val BBW: Regex = "[A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]".r
-  val BBWO: Regex = "[A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_+\\-*/%^~]".r
-  val BBWN: Regex = "[A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9]".r
-  val BBWNO: Regex = "[A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9+\\-*/%^~]".r
-  val OP: Regex = "([+\\-*/%^~]|`[A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_+\\-*/%^~][A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9+\\-*/%^~]*)`".r
 
-  val VARIABLE_DECLARATION: Regex = "^\\s*let\\s+([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_][A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9]*)\\s*=\\s*(.*)$".r
-  val NOARG_FUNCTION_DECLARATION: Regex = "^\\s*def\\s+([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\(\\s*\\)\\s*=\\s*(.*)$".r
-  val FUNCTION_DECLARATION: Regex = "^\\s*def\\s+([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\((\\s*([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*(,\\s*([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*)*)\\)\\s*=\\s*(.*)$".r
-  val FUNCTION_POINTER_DECLARATION: Regex = "^\\s*defp\\s+([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*=\\s*(.*)$".r
-  val UNARY_DECLARATION: Regex = "^\\s*def\\s+unary\\s+([+\\-*/%~^!°A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\(\\s*([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\)\\s*=\\s*(.*)$".r
-  val POSTUNARY_DECLARATION: Regex = "^\\s*def\\s+postfix\\s+([+\\-*/%~^!°A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\(\\s*([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_]+)\\s*\\)\\s*=\\s*(.*)$".r
+  val OP_CHARS: String = "[+\\-*/%^~!°]"
+  val IDENT: String = "(?:[\\w&&[^\\d]]\\w*)"
+  val IDENT_OP: String = s"(?:[[\\w+\\-*/%^~]&&[^\\d]][\\w${OP_CHARS}]*)"
+  val OP: String = s"(?:${OP_CHARS}|`${IDENT_OP}`)"
+  
+  val VARIABLE_DECLARATION: Regex = s"(?U)^\\s*let\\s+(${IDENT})\\s*=\\s*(.*)$$".r
+  val NOARG_FUNCTION_DECLARATION: Regex = s"(?U)^\\s*def\\s+(${IDENT})\\s*\\(\\s*\\)\\s*=\\s*(.*)$$".r
+  val FUNCTION_DECLARATION: Regex = s"(?U)^\\s*def\\s+(${IDENT})\\s*\\((\\s*(${IDENT})\\s*(,\\s*(${IDENT})\\s*)*)\\)\\s*=\\s*(.*)$$".r
+  val FUNCTION_POINTER_DECLARATION: Regex = s"(?U)^\\s*defp\\s+(${IDENT})\\s*=\\s*(.*)$$".r
+  val UNARY_DECLARATION: Regex = s"(?U)^\\s*def\\s+unary\\s+(${IDENT_OP})\\s*\\(\\s*(${IDENT})\\s*\\)\\s*=\\s*(.*)$$".r
+  val POSTUNARY_DECLARATION: Regex = s"(?U)^\\s*def\\s+postfix\\s+(${IDENT_OP})\\s*\\(\\s*(${IDENT})\\s*\\)\\s*=\\s*(.*)$$".r
 
-  val VARIABLE_CLEAR: Regex = "^\\s*clear\\s+(.+?)\\s*$".r
-  val UNDEFINE: Regex = "^\\s*undef\\s+(.+?)\\s*$".r
-  val RESET: Regex = "^\\s*clearall\\s*$".r
+  val VARIABLE_CLEAR: Regex = "(?U)^\\s*clear\\s+(.+?)\\s*$".r
+  val UNDEFINE: Regex = "(?U)^\\s*undef\\s+(.+?)\\s*$".r
+  val RESET: Regex = "(?U)^\\s*clearall\\s*$".r
 
-  val SPACES1: Regex = "^\\s+(.*)$".r
-  val SPACES2: Regex = "^(.*?)\\s+".r
-  val NUMBER: Regex = "^(-?\\d+(\\.\\d+)?([Ee]-?\\d+)?)$".r
+  val SPACES1: Regex = "(?U)^\\s+(.*)$".r
+  val SPACES2: Regex = "(?U)^(.*?)\\s+".r
+  val NUMBER: Regex = "(?U)^(-?\\d+(\\.\\d+)?([Ee]-?\\d+)?)$".r
   //noinspection RegExpRedundantEscape
-  val PRECALC_NUMBER: Regex = "^\\{((-?\\d+(\\.\\d+)?([Ee]-?\\d+)?)|(NaN|Infinity|-Infinity))\\}$".r
+  val PRECALC_NUMBER: Regex = "(?U)^\\{((-?\\d+(\\.\\d+)?([Ee]-?\\d+)?)|(NaN|Infinity|-Infinity))\\}$".r
   //noinspection RegExpRedundantEscape
-  val FUNCTION: Regex = "^([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_][A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9+\\-*/%^~]*)\\s*\\{([^{]*?)\\}$".r
-  val UNARY: String = "^(%%)\\s*(.+)$"
-  val POSTFIX_UNARY: String = "^(.+?)\\s*(%%)$"
-  val POINTER: Regex = "^@([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_][A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9+\\-*/%^~]*(#\\d+)?)$".r
+  val FUNCTION: Regex = s"(?U)^(${IDENT})\\s*\\{([^{]*?)\\}$$".r
+  val UNARY: String = "(?U)^(%%)\\s*(.+)$"
+  val POSTFIX_UNARY: String = "(?U)^(.+?)\\s*(%%)$"
+  val POINTER: Regex = s"(?U)^@(${IDENT}(#\\d+)?)$$".r
   //noinspection RegExpRedundantEscape
-  val ANON_POINTER: Regex = "^@\\[\\s*(.*?)\\s*=\\s*(.*)\\s*\\]$".r
+  val ANON_POINTER: Regex = "(?U)^@\\[\\s*(.*?)\\s*=\\s*(.*)\\s*\\]$".r
   //noinspection RegExpRedundantEscape
-  val ANON_SHORT_POINTER: Regex = "^@\\[\\s*(.*)\\s*\\]$".r
+  val ANON_SHORT_POINTER: Regex = "(?U)^@\\[\\s*(.*)\\s*\\]$".r
   //noinspection RegExpRedundantEscape
-  val ANON_POINTER_IDENTITY: Regex = "^@\\[\\s*\\]$".r
-  val LAST: Regex = "^ans$".r
-  val CONST: Regex = "^([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_][A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9]*)$".r
-  val VARIABLE: Regex = "^([A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_][A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9]*)$".r
-
-  val OPERATOR: String = "^(%%|`[A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_+\\-*/%^~][A-Za-zÀ-ž\\u0370-\\u03FF\\u0400-\\u04FF_0-9+\\-*/%^~]*?`).+?$"
+  val ANON_POINTER_IDENTITY: Regex = "(?U)^@\\[\\s*\\]$".r
+  val LAST: Regex = "(?U)^ans$".r
+  val CONST: Regex = s"(?U)^(${IDENT})$$".r
+  val VARIABLE: Regex = s"(?U)^(${IDENT})$$".r
+  
+  val OPERATOR: String = s"(?U)^(%%|`${IDENT_OP}`).+?$$"
 }

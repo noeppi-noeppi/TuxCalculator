@@ -123,7 +123,7 @@ class TermManager(private val parser: Parser, val in: TextView, private val out:
       term = term.substring(term.indexOf('?') + 1).trim
       mode = DisplayMode.LIST
     }
-    if (term.isEmpty && !last.isEmpty)
+    if (term.isEmpty && last.nonEmpty)
       term = "ans"
 
     var result = ""
@@ -157,12 +157,12 @@ class TermManager(private val parser: Parser, val in: TextView, private val out:
       val str = in.getBuffer.getText(in.getBuffer.getIterStart, in.getBuffer.getIter(in.getBuffer.getInsert), true)
       val tabbedStr = str.substring(str.lastIndexWhere(c => !c.isLetter && c != '_') + 1)
       tabList = if (str.length > tabbedStr.length && str.charAt(str.length - tabbedStr.length - 1) == '@') {
-        if (tabbedStr.length == 0)
+        if (tabbedStr.isEmpty)
           parser.functionTabComplete.filter(p => p.toLowerCase().startsWith(tabbedStr.toLowerCase())).prepended("[]")
         else
           parser.functionTabComplete.filter(p => p.toLowerCase().startsWith(tabbedStr.toLowerCase()))
       } else {
-        if (tabbedStr.length == 0)
+        if (tabbedStr.isEmpty)
           parser.allTabComplete.filter(p => p.toLowerCase().startsWith(tabbedStr.toLowerCase())).prepended("()")
         else
           parser.allTabComplete.filter(p => p.toLowerCase().startsWith(tabbedStr.toLowerCase()))
@@ -209,7 +209,7 @@ class TermManager(private val parser: Parser, val in: TextView, private val out:
         if (result.isNaN || result.isInfinite) {
           result.toString
         } else {
-          NumberStringer.toString(result.toString)
+          NumberStringer.toString(BigDecimal.valueOf(result).underlying().toPlainString)
         }
       case DisplayMode.FUNCTION =>
         if (result.isNaN || result.isInfinite) {
@@ -219,7 +219,7 @@ class TermManager(private val parser: Parser, val in: TextView, private val out:
         if (mf == null) {
           return "Invalid Function: " + result.toString
         }
-        s"Function(Name:'${mf.name}', Params:${mf.params}, Descriptive:'${mf.name2}')"
+        s"Function(Name:'${mf.name}', Params:${if (mf.params == Parser.VARARG) "V" else mf.params}, Descriptive:'${mf.name2}')"
       case DisplayMode.LIST =>
         if (result.isNaN || result.isInfinite) {
           return "Invalid Pointer: " + result.toString

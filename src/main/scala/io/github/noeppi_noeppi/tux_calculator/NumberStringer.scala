@@ -13,10 +13,13 @@ object NumberStringer {
   val TRAILING_ZERO: Regex = "^(.+?)0+$".r
 
   def toString(number: String): String = {
-    val str = if (number.contains(".")) {
+    var str = if (number.contains(".")) {
       intToString(number.substring(0, number.indexOf('.'))) + toFloatString(number.substring(number.indexOf('.') + 1, number.length))
     } else {
       intToString(number)
+    }
+    while (str.startsWith("minus minus ")) {
+      str = str.substring(12)
     }
     if (str == "minus null")
       "null"

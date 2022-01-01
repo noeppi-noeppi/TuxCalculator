@@ -1603,6 +1603,7 @@ object MDefault {
         Double.NaN
       } else vec1.size match {
         case 3 =>
+          //noinspection ZeroIndexToHead
           functionPointers.add(new MFunctionList(List(
             (vec1(1) * vec2(2)) - (vec1(2) * vec2(1)),
             (vec1(2) * vec2(0)) - (vec1(0) * vec2(2)),
@@ -1700,6 +1701,7 @@ object MDefault {
       if (vec == null || vec.size != 2) {
         Double.NaN
       } else {
+        //noinspection ZeroIndexToHead
         Math.atan2(vec(1), vec(0))
       }
     }
@@ -1807,6 +1809,27 @@ object MDefault {
 
     override val name2: String = "Enthält"
     override val doc: String = "Prüft ob die Liste (1. Argument) alle anderen Argumente enthält."
+  }
+  
+  object lerp extends MFunction {
+    override val name: String = "lerp"
+    override val params: Int = 3
+    override def result(functionPointers: FuncData, param: Double*): Double = {
+      if (param(1) == param(2)) {
+        param(1)
+      } else if (param(0) == 0) {
+        param(1)
+      } else if (param(0) == 1) {
+        param(2)
+      } else if (param(1) * param(2) < 0) {
+        ((1 - param(0)) * param(1)) + (param(0) * param(2))
+      } else {
+        param(1) + (param(0) * (param(2) - param(1)))
+      }
+    }
+
+    override val name2: String = "Lineare Interpolation"
+    override val doc: String = "<tt>lerp(x, a, b)</tt> berechnet Funktionswert einer Geraden durch die Punkte (0 | a) und (1 | b)."
   }
   
   val additionalDocumentation: Set[DocumentationObject] = Set[(String, String, String)](
