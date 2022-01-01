@@ -49,7 +49,6 @@ object LuaManager {
       var i = 1
       while (!export.get(i).isnil()) {
         fadd(funcFromLuaDesc(export.get(i)))
-
         i += 1
       }
     } catch {

@@ -180,12 +180,11 @@ object MDefault {
 
   object factorial extends PostfixUnary {
     override val name: String = "!"
-    override def apply(functionPointers: FuncData, op: Double): Double = if (op.isPosInfinity)
-      Double.PositiveInfinity
-    else Math.round(op) match {
+    override def apply(functionPointers: FuncData, op: Double): Double = op match {
+      case x if x.isPosInfinity => Double.PositiveInfinity
       case x if x < 0 => Double.NaN
-      case x if x == 0 => 1
-      case x => x.toDouble * apply(functionPointers, (x - 1).toDouble)
+      case x if x <= 1 => 1
+      case x => (BigInt(1) to BigInt(x.toLong)).product.toDouble
     }
 
     override val name2: String = "Fakultät"
@@ -1324,7 +1323,12 @@ object MDefault {
   object nPr extends MFunction {
     override val name: String = "nPr"
     override val params: Int = 2
-    override def result(functionPointers: FuncData, param: Double*): Double = factorial.apply(functionPointers, param(0)) / factorial.apply(functionPointers, param(0) - param(1))
+    override def result(functionPointers: FuncData, param: Double*): Double = {
+      val lowerBound = BigInt(param(1).toLong)
+      val upperBound = BigInt(param.head.toLong)
+      if (lowerBound > upperBound) return 0
+      ((upperBound - lowerBound + 1) to upperBound).product.toDouble
+    }
 
     override val name2: String = "Permutationen"
     override val doc: String = "<tt>nPr(k,n) =</tt> Die Anzahl aller Permutationen bei Auswahl von <tt>k</tt> Objekten aus Insgesamt <tt>n</tt> Objekten."
@@ -1333,7 +1337,12 @@ object MDefault {
   object nCr extends MFunction {
     override val name: String = "nCr"
     override val params: Int = 2
-    override def result(functionPointers: FuncData, param: Double*): Double = nPr.result(functionPointers, param(0), param(1)) / factorial.apply(functionPointers, param(1))
+    override def result(functionPointers: FuncData, param: Double*): Double = {
+      val lowerBound = BigInt(param(1).toLong)
+      val upperBound = BigInt(param.head.toLong)
+      if (lowerBound > upperBound) return 0
+      (((upperBound - lowerBound + 1) to upperBound).product / (BigInt(1) to lowerBound).product).toDouble
+    }
 
     override val name2: String = "Kombinationen"
     override val doc: String = "<tt>nCr(k,n) =</tt> Die Anzahl aller Möglichkeiten bei Auswahl von <tt>k</tt> Objekten aus Insgesamt <tt>n</tt> Objekten ohne Beachtung der Reihenfolge."
