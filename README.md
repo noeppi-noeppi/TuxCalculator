@@ -25,3 +25,5 @@ You should read the [manual](https://github.com/noeppi-noeppi/TuxCalculator/rele
   * Unicode: `[1,2,3] ∪ [2,3,4]`, `(false ⇒ true) = true`
 
 For more examples, take a look at the [plain.tuxc](./TuxCore/src/dev/resources/tuxcalculator/plain.tuxc) file, which defines all the builtin functions and operators.
+
+![](https://user-images.githubusercontent.com/63002502/233791457-543e8c06-f2d1-4b71-ae08-b0a8a9ad5f89.png)
