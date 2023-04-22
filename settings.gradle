@@ -1,0 +1,17 @@
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+        google()
+    }
+}
+
+rootProject.name = 'TuxCalculator'
+
+include ':core'
+include ':desktop'
+include ':android'
+
+project(':core').projectDir = file('TuxCore')
+project(':desktop').projectDir = file('TuxDesktop')
+project(':android').projectDir = file('TuxAndroid')

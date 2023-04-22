@@ -1,0 +1,51 @@
+apply plugin: 'java-library'
+apply plugin: 'scala'
+
+configurations {
+    devOnly.extendsFrom implementation
+    devOnlyResolvable.extendsFrom devOnly
+    devOnlyRuntime.extendsFrom devOnly
+}
+
+sourceSets {
+    dev {
+        compileClasspath = configurations.devOnlyResolvable
+        runtimeClasspath = configurations.devOnlyRuntime
+    }
+}
+
+dependencies {
+    devOnly sourceSets.main.output
+    devOnlyRuntime sourceSets.dev.output
+    
+    api 'org.scala-lang:scala-library:2.13.10'
+    api 'org.scala-lang.modules:scala-parser-combinators_2.13:2.1.1'
+    api 'ch.obermuhlner:big-math:2.3.2'
+    api 'org.apache.commons:commons-text:1.10.0'
+    
+    devOnly 'commons-io:commons-io:2.11.0'
+}
+
+task buildDevResources(type: JavaExec) {
+    classpath = sourceSets.dev.runtimeClasspath
+    mainClass = 'tuxcalculator.dev.Main'
+    systemProperties += [
+            'tuxcalculator.dev.version': project.version,
+            'tuxcalculator.dev.source': project.file('src/dev/resources').toPath().toAbsolutePath().normalize().toString(),
+            'tuxcalculator.dev.target': project.file('build/buildDevResources').toPath().toAbsolutePath().normalize().toString()
+    ]
+    sourceSets.dev.allSource.srcDirs.each { if (it.exists()) inputs.dir(it) }
+    sourceSets.dev.resources.srcDirs.each { if (it.exists()) inputs.dir(it) }
+}
+
+processResources {
+    from rootProject.file('LICENSE')
+    from rootProject.file('tex/tuxcalculator.tex')
+}
+
+jar {
+    dependsOn buildDevResources
+    archiveBaseName = rootProject.name
+    classifier "core"
+    from fileTree(project.file('build/buildDevResources'))
+}

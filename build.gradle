@@ -1,0 +1,50 @@
+allprojects {
+    group 'io.github.noeppi_noeppi.tools'
+
+    afterEvaluate {
+        if (project.plugins.hasPlugin('java-library')) java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+    }
+    
+    repositories {
+        mavenCentral()
+        maven {
+            url = 'https://noeppi-noeppi.github.io/m'
+            content { includeGroup 'net.sourceforge.java-gnome' }
+        }
+    }
+}
+
+evaluationDependsOnChildren()
+
+task clean(type: Delete) {
+    delete rootProject.file('build')
+}
+
+task buildManual(type: Exec) {
+    doFirst {
+        rootProject.file('tex/version.txt').write(rootProject.version)
+    }
+    workingDir rootProject.file('tex')
+    commandLine 'arara', 'tuxcalculator.tex'
+}
+
+task release(type: Zip) {
+    dependsOn buildManual
+    subprojects { dependsOn build }
+    
+    destinationDirectory = rootProject.file('build/releases')
+    archiveBaseName = rootProject.name
+    version rootProject.version
+    duplicatesStrategy = DuplicatesStrategy.FAIL
+    
+    from(rootProject.file('tex/tuxcalculator.pdf'))
+    from(project(':core').jar.archiveFile)
+    from(project(':desktop').jar.archiveFile)
+    from(project(':desktop').fatjar.archiveFile)
+    from(project(':desktop').sourcesJar.archiveFile)
+    project(':android').android.applicationVariants.all { variant -> if (variant.name == 'release') {
+        variant.outputs.each { output ->
+            from(output.outputFile, { rename { "TuxCalculator-${rootProject.version}.apk" } })
+        }
+    }}
+}

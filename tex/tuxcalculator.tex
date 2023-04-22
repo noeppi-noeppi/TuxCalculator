@@ -1,0 +1,763 @@
+% arara: clean: { extensions: [ aux, toc, dvi, pdf ] }
+% arara: latex
+% arara: latex until !found('log', 'Rerun to get cross-references right.')
+% arara: halt if found('log', 'There were undefined references.')
+% arara: dvipdfmx
+\documentclass[10pt]{article}
+\usepackage[a4paper,margin=2.5cm,bottom=3.5cm]{geometry}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[parfill]{parskip}
+\usepackage{longtable}
+
+\renewcommand{\arraystretch}{1.3}
+\newcommand{\argument}[1]{{${\big<}\mathrm{#1}{\big>}$}}
+\newcommand{\tabgap}{\vspace{3mm}\\}
+\newenvironment{code}{\begin{quote}\ttfamily}{\end{quote}}
+\setcounter{tocdepth}{2}
+\let\~=\allowbreak
+
+\begin{document}
+    \begin{center}
+        {\Huge\fontsize{37pt}{37pt}\selectfont T\kern-0.425exu\kern-0.069exx\kern0.075exCalculator}\hspace*{12pt}{\footnotesize Version \texttt{\input{version.txt}}}
+        
+        \vspace*{24pt}
+        \verb|https://github.com/noeppi-noeppi/TuxCalculator|
+    \end{center}
+    \vspace*{48pt}
+    
+    \textit{TuxCalculator} is a text-based calculator written in \textsl{Scala}.
+    It can be used from the terminal or as a graphical application with a minimal GUI\@.
+    \vspace*{12pt}
+    
+    \tableofcontents
+    \clearpage
+    
+    \section{Introduction}\label{sec:introduction}
+    \textit{TuxCalculator} is a text-based calculator.
+    That means, expressions are typed in as text and then evaluated to give a result.
+    You can get TuxCalculator at \verb|https://github.com/noeppi-noeppi/TuxCalculator|.
+    
+    TuxCalculator is written in Scala and uses the following external libraries:
+    \begin{itemize}
+        \item The scala library as well as the scala combinator parsing module.\\
+              \texttt{https://\~www.scala-\~lang.org/}
+        \item \textsl{JOpt Simple}: \texttt{https://\~jopt-\~simple.github.io\~/jopt-simple/}
+        \item \textsl{big-math}: \texttt{https://\~eobermuhlner.github.io\~/big-math/}
+        \item \textsl{commons-text}: \texttt{https://\~commons.apache.org\~/text/}
+        \item \textsl{java-gnome}: \texttt{https://\~java\~-gnome.sourceforge.net/}
+        \item \textsl{jline3}: \texttt{https://\~github.com\~/jline\~/jline3/}
+        \item \textsl{jansi}: \texttt{https://\~fusesource.github.io\~/jansi/}
+    \end{itemize}
+    
+    To start the calculator, simply execute the \verb|JAR|-file using at least Java 17.
+    It accepts the following options:
+    \begin{center}
+        \begin{tabular}{p{0.25\textwidth}p{0.65\textwidth}}
+            \verb|--help|                                            & Show help.                                                                                                    \\
+            \verb|--version|                                         & Print version information and exit.                                                                           \\
+            \verb|--licenses|                                        & Print licenses of used open source libraries and exit.                                                        \\
+            \verb|--gui=|\argument{gui} \newline \verb|--nogui|      & Set the frontend to use. \verb|--nogui| is an alias for \verb|--gui=text|. See section~\ref{subsec:frontends} \\
+            \verb|--ini|                                             & Don't load default definitions. See section~\ref{subsec:inimode}                                              \\
+            \verb|--fmt=|\argument{format}                           & Specify a format to use. See section~\ref{subsec:inimode}                                                     \\
+            \verb|--no-rc| \newline \verb|--rc-file=|\argument{path} & Control whether to load an RC-file. See Section~\ref{subsec:rcfile}                                           \\
+        \end{tabular}
+    \end{center}
+    Once the calculator is running, statements can be entered and will be evaluated.
+    For example, if you enter \verb|1 + 1| the calculator responds \verb|2|.
+    
+    \subsection{Frontends}\label{subsec:frontends}
+    TuxCalculator can run on different frontends.
+    The frontend can be set using the \verb|--gui| or \verb|--nogui| command line options.
+
+    \paragraph{The text frontend} can be set using \verb|--gui=text| or \verb|--nogui| and is then default if Java is running in \textsl{headless} mode or \textit{TuxCalculator} was started in \verb|ini|-mode (see section~\ref{subsec:inimode}).
+    It reads from the standard input and outputs the result after each line until \verb|EOF| is reached.
+    
+    \paragraph{The GTK frontend} can be set using \verb|--gui=gtk| and is the default if TuxCalculator can find \textsl{java-gnome} bindings.
+    These have to be located at \texttt{/usr\~/share\~/java\~/gtk.jar} and are part of the \texttt{libjava-gnome-java} package on Ubuntu.
+    It uses \textsl{GTK} to create the window, which makes it look like a native application on linux.
+    
+    \paragraph{The swing frontend} can be set using \verb|--gui=swing| and is the default if TuxCalculator can't use \verb|gtk| and is not running in headless mode.
+    It uses Java-Swing to create the window, which doesn't look like a native application at all but is platform independent.
+    
+    \subsection{RC-File}\label{subsec:rcfile}
+    Whenever TuxCalculator starts, it tries to load definitions from a \textit{rc-file} unless the \verb|--no-rc| option is given.
+    The default location for that file is \verb|~/.init.tuxc|.
+    The \textit{rc-file} can, for example, define frequently used functions or constants or set the decimal separator to a comma (See section~\ref{subsec:decimal-comma}).
+
+    \subsection{Android}
+    There is also a TuxCalculator android app.
+    It loads the \verb|plain| format by default, however a different format file can be placed in \texttt{\string~/Android\~/media\~/tuxcalculator.android\~/init.tuxf}.
+    Format file creation is not supported on Android though.
+    An RC-file can also be loaded from \texttt{\string~/Android\~/media\~/tuxcalculator.android\~/init.tuxc}.
+    
+    \section{Entering input}\label{sec:entering-input}
+    This section explains the language, the calculator understands.
+    Input is read line by line.
+    Each line contains exactly zero or one statement{\small(s)}.
+    There are no multiline statements, and multiple statements can't go into one line.
+    
+    \subsection{Void}\label{subsec:void}
+    \verb|void| is a special value that causes every expression, it is used in to evaluate to \verb|void|.
+    It is used as a result for commands which have no result.
+    
+    \subsection{Numbers}\label{subsec:numbers}
+    All numbers are complex decimals rounded to 24 significant places by default, where only 16 decimal places are shown.
+    The precision can be changed by setting the \verb|precision| property (see section~\ref{subsec:precision}).
+    All entered numbers need an integral part which can be zero.
+    Then, a dot and a fractional part and/or an \verb|e| and an exponent can follow.
+    
+    Examples for valid numbers:
+    \begin{verbatim}
+        127   0.126   2e10   0.3E-8
+    \end{verbatim}
+    Note that \verb|-1| is not a number, but the negation operator applied to the number one.
+    It is not possible to type in negative or complex numbers on their own, both require usage of operators and/or constants.
+    
+    \subsection{Booleans}\label{subsec:booleans}
+    There are two boolean values: \verb|true| and \verb|false|.
+    They are used for logic but in most cases behave like the numbers $ 1 $ and $ 0 $ respectively.
+    When using a non-boolean value where a boolean value is expected, in most cases every value will behave like \verb|true|, except the value \verb|false|, the number $ 0 $ and the empty list.
+    
+    \subsection{Variables}\label{subsec:variables}
+    Variables start with a letter and are followed by zero or more letters and digits.
+    They hold a value and can be used instead of that value.
+    For example, \verb|e^3| is the constant $ e $ raised to the third power.
+    
+    As functions are values, variables can also hold functions, in which case they are callable.
+    An example is the identity function, which is available as the variable \verb|id|.
+    \verb|id(3)| gives $ 3 $ for example.
+    
+    Note that a global function and a variable can coexist with the same name.
+    Suppose you have a variable and a global function named \verb|f|.
+    Just the string \verb|f| gives the content of the variable.
+    \verb|f()| however, would call the global function.
+    To call the variable, use \verb|(f)()|.
+    
+    \subsubsection{Character escaping}
+    Sometimes, it's desirable to use a character in an identifier that has a different meaning.
+    In that case, any characters can be put between two backticks to form an identifier.
+    \verb|`+`| for example, is a variable named \verb|+|.
+    
+    \subsubsection{Answer}
+    The special variable \verb|ans| stores the result of the last evaluated expression that was not an error.
+    Initially, it is \verb|void|.
+    \verb|ans| can also be used in functions to reference the last answer at the point, the function is called.
+    
+    \subsection{Error handling}\label{subsec:error-handling}
+    To support error handling, there is a type of value called \textsl{error}.
+    An error value can be created by placing arbitrary text between single quotation marks.
+    Any expression that contains an error value will have that error value as a result, so the error propagates down and causes the whole expression to result in an error.
+    Errors are created when trying to evaluate invalid expressions, like division by zero.
+    
+    \subsection{Lists}\label{subsec:lists}
+    Lists are ordered collections of values and can be written like this:
+    \begin{verbatim}
+        [1, 2, 3]   [1, l..., 2]
+    \end{verbatim}
+    In the second example, the list \verb|l| is \textsl{splatted} into the new list, meaning all its elements get individual elements in the new list.
+    
+    List elements can be accessed by applying the list to some argument: \verb|l(1)|.
+    Indices start at $ 0 $, so \verb|l(1)| gives the lists \textsl{second} element.
+    
+    \subsection{Vectors \& Matrices}\label{subsec:vectors-matrices}
+    Matrices are non-empty rectangular tables of values.
+    They are defined like this:
+    \[
+        \verb|#[1,3;2,4]| \;\; = \;\; \biggl(\kern-\nulldelimiterspace\begin{array}{cc}
+            1 & 2 \\
+            3 & 4 \\
+        \end{array}\kern-\nulldelimiterspace\biggr)
+        \qquad\qquad
+        \verb|#[5,9]| \;\; = \;\; \biggl(\kern-\nulldelimiterspace\begin{array}{c}
+            5 \\ 9
+        \end{array}\kern-\nulldelimiterspace\biggr)
+    \]
+    Vectors are matrices with a single column.
+    Elements of a matrix can be accessed by \verb|M(row, column)|.
+    If the matrix is a vector, its elements can also be accessed by \verb|M(row)|.
+    Unlike with lists, indices start at 1.
+
+    \subsection{Functions \& Lambdas}\label{subsec:lambdas}
+    Lambdas are anonymous functions that take zero or more parameters and return a value.
+    A lambda is defined like this:
+    \begin{verbatim}
+        \a, b -> a + b
+    \end{verbatim}
+    which is a function that takes two arguments and adds them up.
+    
+    The function body is lazily bound unless the \verb|eager| property is set (see section~\ref{subsec:eager}).
+    That means the result of applying the function \verb|\-> a| changes whenever the value of \verb|a| changes.
+    
+    The last argument to a function can be \textsl{vararg}.
+    In that case, all arguments that are left are packed into a list and passed to the function as a single arguments.
+    The function \verb|\a... -> a| creates a list of all its arguments.
+    
+    \subsubsection{Calling functions}
+    Functions are called using parentheses with their arguments.
+    It is possible to \textsl{splat} a list or vector into multiple arguments:
+    \verb|f(l...)| passes all elements of the list \verb|l| to the function as separate arguments.
+    
+    A global function with a single argument that does not contain binary operators can also be called without parentheses like \verb|ln 2|.
+    However, \verb|ln -2| does not work, it is parsed as $ 2 $ subtracted from the variable \verb|ln|.
+
+    \subsubsection{References to functions}
+    Using the reference notation, it's possible to convert global functions as well as operators into function values.
+    \begin{verbatim}
+        @sqrt     \x -> sqrt(x)
+        @-        \x -> -x       \a, b -> a - b
+    \end{verbatim}
+    The first value is the square root function, which is equivalent to the lambda on the right.
+    The second value is the minus function.
+    Depending on whether it's applied to one or two arguments, it's equivalent to one of the lambdas on the right.
+    
+    \subsubsection{Match functions}
+    A match function is a function that matches its arguments against multiple patterns and applies the expression associated with the first matching pattern.
+    Suppose you have a function \verb|iseven| that checks whether a number is even.
+    You can the define:
+    \begin{verbatim}
+        let collatz = @[x: @iseven -> x/2 ; x -> 3*x+1]
+    \end{verbatim}
+    \[
+        \mathrm{collatz}(x) = \left\{\kern-\nulldelimiterspace\begin{array}{ll}
+            \frac{n}{2}   & \textrm{if}\;x\;\textrm{is even} \\
+            3 \cdot x + 1 & \textrm{if}\;x\;\textrm{is odd}
+        \end{array} \right.
+    \]
+    A colon marks a guard.
+    A match succeeds only if all guards yield \verb|true|.
+    There are two types of guards: Argument guards come directly after an argument.
+    They must evaluate to a function that is applied to a single value (the argument).
+    Function guards come after the whole argument list.
+    They are an expression where all the values from the argument list can be used.
+    For example:
+    \begin{verbatim}
+        @[(a,b): a>b -> 42 ; (a,b) -> 0]
+    \end{verbatim}
+    This function evaluates to $ 42 $ whenever the first argument is larger than the second, $ 0 $ otherwise.
+    
+    \subsection{Partial application}\label{subsec:partial-application}
+    Functions can be partially applied.
+    This fixes some arguments in place and creates a new function that expects the remaining arguments and calls the old function, adding all the partially applied arguments as well.
+    Take the \verb|log| function: \verb|log(b,a)| computes the logarithm of $ a $ to the base of $ b $.
+    A partial application can fix the base in place and produce a new function:
+    \verb|log_(e)| is a function which takes a single argument and calculates the natural logarithm.
+    
+    Partial application can also take splatted arguments.
+    If a function is partially applied to a single argument that consists of only a number or a variable, the parentheses can be omitted.
+    Thus, the above example could also be written as \verb|log_e|.
+    
+    \subsection{Operators}\label{subsec:sign-operators}
+    \paragraph{Sign operators} are unary operators written in front of an expression.
+    Most notably, \verb|+| {\small(does nothing)} and \verb|-| {\small(negates its argument)}.
+
+    \paragraph{Postfix operators} are the opposite.
+    They are written after an expression.
+    The factorial for example, gives $ 120 $ when applied to the number five like this: \verb|5!|.
+    
+    \paragraph{Binary operators} are written between expressions.
+    They can be either left-associative or right-associative.
+    \begin{verbatim}
+        1+2+3     (1+2)+3
+        1^2^3     1^(2^3)
+    \end{verbatim}
+    A left-associative operator {\small(like \verb|+|)} evaluates from left to right, applying the first two operands and then the result with the third.
+    A right-associative operator {\small(like \verb|^|)} instead evaluates from right to left, first applying the last and second-to-last elements.
+
+    \subsection{Order of operations}\label{subsec:order-of-operations}
+    The order of operations is defined as follows:
+    \begingroup
+    \setlength{\parskip}{0pt}
+    \begin{enumerate}
+        \item Parentheses
+        \item Applications and partial application to a value
+        \item Sign operators
+        \item Postfix operators
+        \item Binary operators ordered by their \textsl{priority} value from highest to lowest.
+    \end{enumerate}
+    \endgroup
+    
+    \section{Commands}\label{sec:commands}
+    Besides expressions, TuxCalculator knows a few commands that can mutate state, such as defining variables or functions.
+    
+    \subsection{\texttt{let}}\label{subsec:cmd-let}
+    The \verb|let| command {\small(re)}defines variables.
+    The syntax is
+    \begin{code}
+        let \argument{name} = \argument{expression}
+    \end{code}
+    For example after \verb|let pi = 3|, the variable \verb|pi| is equal to $ 3 $.
+    
+    \subsection{\texttt{def}}\label{subsec:cmd-def}
+    The \verb|def| command {\small(re)}defines global functions and operators.
+    The syntax is
+    \begin{code}
+        def \argument{name}(\argument{args}) = \argument{expression} \\
+        def[\argument{priority}] \argument{name}(\argument{args}) = \argument{expression}
+    \end{code}
+    If \verb|name| is a sign, an operator or postfix name, that operator is redefined.
+    Binary operators must be defined using exactly two arguments, unary operators using exactly one argument.
+    The priority is optional and may only be added when defining binary operators.
+    It is an expression for an integer setting that operators' priority.
+    Higher priorities are evaluated first.
+    Also \textsl{even} priorities cause the operator to be left-associative, while \textsl{odd} priorities cause it to be right associative.
+    
+    If \verb|name| is an identifier, \verb|def| defines a function.
+    A function is different to a variable in that it cannot be used as a value.
+    It can be invoked directly using its name.
+    A value corresponding to a global function can be obtained using a reference: \verb|@sqrt|.
+    
+    The syntax of \verb|def| is pretty much equal to the syntax of lambdas (see section~\ref{subsec:lambdas}).
+    Just like with lambdas, vararg functions are possible.
+    
+    It is possible to define multiple functions with the same name.
+    When the function is applied to $ n $ arguments, the calculator decides which function to call based on the following rules:
+    \begingroup
+    \setlength{\parskip}{0pt}
+    \begin{enumerate}
+        \item If a non-vararg function with exactly $ n $ arguments is defined, use it.
+        \item If there are vararg functions that can apply to $ n $ arguments, pick the one with the most non-vararg parameters.
+        \item Produce an error.
+    \end{enumerate}
+    \endgroup
+    For example with the following definitions, the first function is called for exactly 1 argument.
+    The second function is called for 0 or 2 arguments.
+    For 3 or more arguments, the third function is called.
+    \begin{verbatim}
+        def f(x)          = 1
+        def f(a...)       = 2
+        def f(a,b,c,l...) = 3
+    \end{verbatim}
+    
+    \subsection{\texttt{rem}}\label{subsec:cmd-rem}
+    The \verb|rem| command undefines variables and global functions.
+    The syntax is
+    \begin{code}
+        rem \argument{name}
+    \end{code}
+    Its result is an integer stating how many definitions have been removed.
+    
+    \subsection{\texttt{set}}\label{subsec:cmd-set}
+    Sets a calculator property.
+    The syntax is
+    \begin{code}
+        set \argument{name} = \argument{expression}
+    \end{code}
+    See section~\ref{sec:calculator-properties} for details.
+    
+    \subsection{\texttt{cat} \& \texttt{tok}}\label{subsec:cmd-cat-tok}
+    Commands to manipulate catcodes.
+    See section~\ref{subsec:catcodes} for more information.
+    
+    \subsection{\texttt{dump}}\label{subsec:cmd-dump}
+    Command to create format files.
+    See section~\ref{subsec:inimode} for more information.
+
+    \section{Calculator Properties}\label{sec:calculator-properties}
+    TuxCalculator knows a few properties that alter the behaviour of the calculator itself.
+    These can be changed using the \verb|set| command (section~\ref{subsec:cmd-set}).
+    
+    \subsection{\texttt{precision}}\label{subsec:precision}
+    The \verb|precsision| is a positive integer that defines the number of significant places used for numeric computations.
+    It defaults to $ 24 $ however, it can be arbitrarily large.
+    Note that this affects any computation.
+    Consider the following two commands executed in order:
+    \begin{verbatim}
+        set precision = 1
+        set precision = 16
+    \end{verbatim}
+    The first command sets the precision to $ 1 $ meaning every number has only one significant place.
+    The second command evaluates the expression $ 16 $ which when rounded to a single decimal place gives $ 2 \cdot 10^1 $.
+    So after executing both commands, the precision will actually have a value of $ 20 $.
+    
+    \subsection{\texttt{output}}\label{subsec:output}
+    The \verb|output| property sets the precision used for printing results.
+    It defaults to $ 16 $ however, it can be arbitrarily large.
+    If \verb|output| is larger than \verb|precision|, the value of \verb|precision| is used for the output as well.
+    Performing calculations on a higher precision internally than outputting to the user helps to mitigate rounding errors.
+    
+    \subsection{\texttt{truncate}}\label{subsec:truncate}
+    \verb|truncate| is a non-negative integer that defaults to $ 0 $.
+    If set to a value greater than $ 0 $, this is the maximum length of output when formatting a result.
+    If the formatted result is longer than the value of \verb|truncate|, it is truncated and \verb|[...]| is added to mark truncation.
+    
+    \subsection{\texttt{eager}}\label{subsec:eager}
+    \verb|eager| is a boolean value that starts out at \verb|false|.
+    The value of \verb|eager| affects, how the calculator binds values to free variables and operators.
+    
+    By default, binding roughly takes place when a piece of code is executed.
+    There is an exception, which is a lambda body.
+    Lambda bodies are fully bound whenever the lambda is executed which means values in a nested lambda returned by an outer lambda freeze once the outer lambda is computed.
+    For example:
+    \begin{verbatim}
+        let a = 1
+        let l = \-> \x -> a * x
+        let l1 = l()
+        let a = 2
+        let l2 = l()
+        l1(3)                         3
+        l2(3)                         6
+    \end{verbatim}
+    When \verb|eager| is \verb|true|, every free value in every expression will be bound the moment, the expression is typed in.
+    For example the following statements behave differently depending on the value of \verb|eager|:
+    \begin{verbatim}
+        let a = 1
+        def f() = a
+        let a = 2
+        f()
+    \end{verbatim}
+    Without eager binding, the call to \verb|f()| gives $ 2 $ as usual.
+    However, if eager binding is enabled, it gives $ 1 $ as \verb|a| is bound to $ 1 $ the moment, the function is defined.
+    Eager binding also affects lambda bodies, \verb|ans|, function references and operators.
+    
+    \section{Advanced}\label{sec:advanced}
+    This section describes advanced features of TuxCalculator that are not necessary but still useful for using TuxCalculator and provide greater insight in how it works.
+    
+    \subsection{Catcodes}\label{subsec:catcodes}
+    When the calculator is parsing input, it reads the text character by character, assigning each character a \TeX-inspired \textit{catcode}.
+    TuxCalculator also knows the concept of a \textit{tokcode} which assigns a catcode to a sequence of characters.
+    Tokcodes are matched before catcodes, however, if at any point multiple tokcodes match, the calculator will immediately emit a parser error.
+    TuxCalculator knows about the following catcodes:
+    \begin{longtable}{p{0.2\textwidth}p{\dimexpr0.8\textwidth-3\tabcolsep\relax}}
+        \verb|letter|       & Part of an identifier. \\
+        \verb|space|        & Breaks numbers and identifiers, otherwise ignored. \\
+        \verb|digit|        & Makes up numbers together with \verb|decimal sep| and \verb|exp| \\
+        \verb|decimal sep|  & Decimal separator in a number. \\
+        \verb|element sep|  & Element separator in lists, vectors and applications. \\
+        \verb|group sep|    & Group separator in matrices. \\
+        \verb|exp|          & Behaves as letter, except when used inside a number, where it marks the start of an exponent. \\
+        \verb|operator|     & A binary operator is composed of one or multiple characters of \verb|operator| catcode, or a single character of \verb|sign| catcode. \\
+        \verb|assign|       & Behaves like \verb|operator| except that it can be used as assignment operator in commands. \\
+        \verb|sign|         & A sign operator that can be used in front of an expression. These can also be binary operators, but only as a single character. \\
+        \verb|post|         & A postfix operator that can be used after an expression. \\
+        \verb|reference|    & Start of a function or operator reference. \\
+        \verb|error|        & Start and end of an error value. \\
+        \verb|open|         & Start of a group. \\
+        \verb|close|        & End of a group. \\
+        \verb|start list|   & Start of a list. \\
+        \verb|start vector| & Start of a matrix. \\
+        \verb|start match|  & Start of a match function. \\
+        \verb|end|          & End of a list, matrix or match function. \\
+        \verb|lambda|       & Start of a lambda. \\
+        \verb|follow|       & Separator for lambda parameters and body. \\
+        \verb|guard |       & Start of a guard. \\
+        \verb|escape|       & Causes every character until the next escape to be parsed as letter catcode. \\
+        \verb|special|      & Access to builtin specials. See section~\ref{subsec:inimode}. \\
+        \verb|comment|      & Start of a line comment. \\
+        \verb|vararg|       & Vararg token for splatting and definition of vararg functions. \\
+        \verb|partial|      & Partial application. \\
+        \verb|answer|       & Last result. \\
+        \verb|invalid|      & Produces an error when encountered. \\
+    \end{longtable}
+    Catcodes are frozen once a statement has been typed in.
+    All changes made to the catcodes will only affect later lines.
+    Changing catcodes in accomplished by the \verb|cat| and \verb|tok| commands.
+    They have the following syntax:
+    \begin{code}
+        cat '\argument{character}' = \argument{catcode} \\
+        tok '\argument{sequence}' = \argument{catcode}
+    \end{code}
+    Note that actually the commands, like all the other language constructs expect an error and an assignment token, so with different catcodes, they may look different.
+    Also note that it is easily possible to lock yourself out of the calculator, for example by removing the \verb|error| catcode from \verb|'| without setting a replacement as it won't be possible to change catcodes any longer.
+    
+    While each character always has a catcode (if nothing was set, its \verb|invalid|), only specific sequences of characters have a tokcode.
+    A tokcode can be unset by assigning it the \verb|invalid| catcode.
+    
+    \subsection{\texttt{ini}-Mode}\label{subsec:inimode}
+    Most functions and variables described so far, are actually not built into the core TuxCalculator itself.
+    They are part of the default format named \verb|plain| which is defined in a file named \verb|plain.tuxc| and bundled with the calculator.
+    
+    Using the command line option \verb|--ini| stops TuxCalculator from loading any formats and puts it into \verb|--nogui| mode if no other frontend is specified.
+    In \texttt{ini}-mode, only a few catcodes are set:
+    \begin{center}
+        \begin{tabular}{p{0.3\textwidth}p{0.5\textwidth}}
+            \verb|letter|  & All unicode letters.                \\
+            \verb|space|   & All unicode space characters.       \\
+            \verb|digit|   & The digits \verb|0| to \verb|9|     \\
+            \verb|error|   & The single quotation mark \verb|'|. \\
+            \verb|assign|  & The equals sign \verb|=|.           \\
+            \verb|special| & The hash symbol \verb|#|.           \\
+        \end{tabular}
+    \end{center}
+    There are no variables or functions defined.
+    Everything is defined on some specials that can be accessed using a \verb|special| catcode followed by an identifier.
+    (for example, \verb|#pi| is the value of $ \pi $).
+    
+    Specials are built into the calculator and can't be redefined.
+    However, usually, there is no need to use them.
+    That's why \verb|plain.tuxc| assigns the \verb|invalid| catcode to \verb|#| when it's done.
+    
+    A list of all available specials can be found in section~\ref{sec:reference-special}.
+    
+    Besides that, \verb|ini|-mode has a new (also \TeX-inspired) command named \verb|dump| which expects an error token specifying a file name.
+    It will save the current state of the calculator into a binary file that can be used with the \verb|--fmt| option to load it back when starting the calculator.
+    Note that format files are not compatible across versions of \textit{TuxCalculator} and need to be rebuilt whenever \textit{TuxCalculator} is updated.
+    
+    \subsection{Decimal comma}\label{subsec:decimal-comma}
+    There are languages that use the comma as a decimal separator.
+    By changing the catcodes, TuxCalculator can do this as well.
+    However, if comma is assigned the decimal separator, a new character is needed for the element separator.
+    A possible solution looks like this:
+    \begin{verbatim}
+        cat '.'  = invalid
+        cat ','  = decimal sep
+        cat ';'  = element sep
+        tok ';;' = group sep
+    \end{verbatim}
+    
+    \subsection{Defining new operators}\label{subsec:new-operators}
+    In order to define new operators instead of just redefining existing ones, you need to change catcodes.
+    For example, the question mark has catcode \verb|invalid| by default.
+    It can easily be turned into an operator:
+    \begin{verbatim}
+        cat '?' = operator
+        def ?(a, b) = a %% b
+    \end{verbatim}
+
+    \section{Reference of standard definitions}\label{sec:reference-def}
+
+    \subsection{Constants}
+    Lists all constants defined by the \textit{plain} format.
+    \begin{longtable}{p{0.2\textwidth}p{\dimexpr0.8\textwidth-3\tabcolsep\relax}}
+        $ pi $, $ \pi $    & The ratio of a circle's circumference to its diameter. \\
+        $ e $               & The euler number $ e $. \\
+        $ i $               & The imaginary unit $ i $. \\
+        $ void $            & The void value. \\
+        $ true $, $ \top $  & The true value $ \top $. \\
+        $ false $, $ \bot $ & The false value $ \bot $. \\
+        $ id $              & The identity function. \\
+    \end{longtable}
+    
+    \subsection{Sign operators}
+    Lists all sign operators defined by the \textit{plain} format.
+    \begin{longtable}{p{0.2\textwidth}p{\dimexpr0.8\textwidth-3\tabcolsep\relax}}
+        $ + $                   & The identity function. Does nothing. \\
+        $ - $                   & The negation function. $ -a $ computes $ 0 - a $. \\
+        $ \sim $, $ \neg $      & The logical or bitwise not function. \\
+        $ \bar{\;} $            & The complex conjugate function. $ \bar{\;}(a + b \cdot i) = a - b \cdot i $. \\
+        $ \sqrt{\vphantom{0}} $ & The square root of a value.
+    \end{longtable}
+    
+    \subsection{Postfix operators}
+    Lists all postfix operators defined by the \textit{plain} format.
+    \begin{longtable}{p{0.2\textwidth}p{\dimexpr0.8\textwidth-3\tabcolsep\relax}}
+        $ ! $      & The factorial. $ n! = \Gamma(n + 1) $. \\
+        $ !! $     & The double factorial. $ n!! = \prod\limits_{k=1}^{\lceil n/2 \rceil} n -2 \cdot k + 2 $. \\
+        $ ^\circ $ & Converts a number from degrees to radians. $ 180^\circ = \pi $.
+    \end{longtable}
+    
+    \subsection{Binary operators}
+    Lists all binary operators defined by the \textit{plain} format and their priorities.
+    \begin{longtable}{p{0.18\textwidth}p{0.02\textwidth}p{\dimexpr0.8\textwidth-3\tabcolsep\relax}}
+        $ \angle $                   & \makebox[0pt][r]{$  100 $} & $ radius \angle magnitude $ specifies a complex number in polar form. \\
+        $ \hat{\;} $                 & \makebox[0pt][r]{$  -99 $} & $ a \hat{\;} n $ raises $ a $ to the $ n $th power.  \\
+        $ \sqrt{\vphantom{0}} $      & \makebox[0pt][r]{$  -99 $} & $ n \sqrt{\vphantom{0}} a $ computes the $ n $th root of $ a $.  \\
+        $ * $, $ \cdot $             & \makebox[0pt][r]{$ -200 $} & If either argument is a list and the other is a real number $ n $, repeats the list $ n $ times. Otherwise multiplies two numbers. \\
+        $ / $                        & \makebox[0pt][r]{$ -200 $} & If the first argument is a list, reduce the list from the right using the second argument: $ [ 1, 2, 3, 4 ]/f = f(1,f(2,f(3,4)))$. Otherwise divides two numbers. \\
+        $ // $                       & \makebox[0pt][r]{$ -200 $} & Performs truncating integer division. \\
+        $ \div $                     & \makebox[0pt][r]{$ -200 $} & Divides two numbers. \\
+        $ \% $                       & \makebox[0pt][r]{$ -200 $} & Calculates the signed modulo (remainder) of two numbers. \\
+        $ \%\% $                     & \makebox[0pt][r]{$ -200 $} & Calculates the unsigned modulo of two numbers. \\
+        $ ** $, $ \bullet $          & \makebox[0pt][r]{$ -200 $} & Calculates a scalar product of two vectors. \\
+        $ \times $                   & \makebox[0pt][r]{$ -200 $} & Calculates a cross product of two $ 3 $-dimensional vectors. \\
+        $ + $                        & \makebox[0pt][r]{$ -300 $} & Adds two numbers or concatenates two lists. \\
+        $ - $                        & \makebox[0pt][r]{$ -300 $} & Subtracts two numbers. \\
+        $ \in $                      & \makebox[0pt][r]{$ -400 $} & $ a \in l $ checks whether the list $ l $ contains the element $ a $. \\
+        $ \notin $                   & \makebox[0pt][r]{$ -400 $} & $ a \notin l $ checks whether the list $ l $ does not contain the element $ a $.\\
+        $ \circ $                    & \makebox[0pt][r]{$ -400 $} & $ f \circ g $ chains the functions f and g to $ f(g(x)) $ \\
+        $ = $                        & \makebox[0pt][r]{$ -500 $} & Gets whether two values are equal. \\
+        $ <> $, $ \neq $             & \makebox[0pt][r]{$ -500 $} & Gets whether two values are different. \\
+        $ < $                        & \makebox[0pt][r]{$ -500 $} & $ a < b $ gets whether the real number $ a $ is strictly smaller than $ b $. Always \verb|false| for non-real numbers. \\
+        $ > $                        & \makebox[0pt][r]{$ -500 $} & $ a > b $ gets whether the real number $ a $ is strictly greater than $ b $. Always \verb|false| for non-real numbers. \\
+        $ <= $, $ \leq $             & \makebox[0pt][r]{$ -500 $} & $ a \leq b $ gets whether the real number $ a $ is smaller or equal to $ b $. Always \verb|false| for non equal, non-real numbers. \\
+        $ >= $, $ \geq $             & \makebox[0pt][r]{$ -500 $} & $ a \geq b $ gets whether the real number $ a $ is greater or equal to $ b $. Always \verb|false| for non equal, non-real numbers. \\
+        $ => $, $ \Rightarrow $      & \makebox[0pt][r]{$ -600 $} & Logical implication. $ a \Rightarrow b $ is equivalent to $ \neg a \vee b $. \\
+        $ \& $                       & \makebox[0pt][r]{$ -700 $} & Logical or bitwise \verb|AND| or deduplicated intersection of lists. \\
+        $ \wedge $                   & \makebox[0pt][r]{$ -700 $} & Logical or bitwise \verb|AND|. \\
+        $ \overline{\wedge} $        & \makebox[0pt][r]{$ -700 $} & Logical or bitwise \verb|NAND|. \\
+        $ \cap $                     & \makebox[0pt][r]{$ -700 $} & Deduplicated intersection of lists. \\
+        $ | $                        & \makebox[0pt][r]{$ -800 $} & Logical or bitwise \verb|OR| or deduplicated union of lists. \\
+        $ \vee $                     & \makebox[0pt][r]{$ -800 $} & Logical or bitwise \verb|OR|. \\
+        $ \overline{\vee} $          & \makebox[0pt][r]{$ -800 $} & Logical or bitwise \verb|NOR|. \\
+        $ \cup $                     & \makebox[0pt][r]{$ -800 $} & Deduplicated union of lists. \\
+        $ \uplus $                   & \makebox[0pt][r]{$ -800 $} & List concatenation. \\
+        $ \sim $, $\underline{\vee}$ & \makebox[0pt][r]{$ -800 $} & Logical or bitwise \verb|XOR|. \\
+    \end{longtable}
+    
+    \subsection{Functions}
+    Lists all functions defined by the \textit{plain} format.
+    \begin{longtable}{p{0.2\textwidth}p{\dimexpr0.8\textwidth-3\tabcolsep\relax}}
+        $ \mathrm{re}(z) $, $ \Re(z) $             & Gets the real part of $ z $. \\
+        $ \mathrm{im}(z) $, $ \Im(z) $             & Gets the imaginary part of $ z $ as a real number. \\
+        $ \mathrm{conj}(z) $                       & The complex conjugate of $ z $. \\
+        $ \mathrm{polar}(r, a) $                   & A complex number in polar form: $ r\angle a $. \tabgap
+        $ \mathrm{has}(l, v) $                     & Gets whether the list $ l $ contains $ v $. \\
+        $ \mathrm{sort}(l) $                       & Sorts the list $ l $. \\
+        $ \mathrm{sort}(l, f) $                    & Sorts the list $ l $ using an ordering $ f $ that holds $ f(a, b) \iff a < b $. \\
+        $ \mathrm{distinct}(l) $                   & Removes duplicates from the list $ f $. \tabgap
+        $ \mathrm{sqrt}(x) $                       & Calculates the square root of $ x $. \\
+        $ \mathrm{cbrt}(x) $                       & Calculates the cube root of $ x $. \\
+        $ \mathrm{root}(n, x) $                    & Calculates the $ n $th root of $ x $. \tabgap
+        $ \mathrm{abs}(x) $                        & Calculates the absolute value of $ x $ which for a number $ a + bi$ is $ \sqrt{a^2 + b^2} $. \\
+        $ \mathrm{sgn}(x) $                        & Calculates the sign of $ x $ which is the point on the unit circle that holds $ \mathrm{abs}(x) \cdot \mathrm{sgn}(x) = x $. The sign of $ 0 $ is $ 0 $. \tabgap
+        $ \mathrm{gcd}(a, b) $                     & Calculates the greatest common divisor of $ a $ and $ b $. \\
+        $ \mathrm{lcm}(a, b) $                     & Calculates the lowest common multiple of $ a $ and $ b $. \tabgap
+        $ \mathrm{round}(x) $                      & Rounds $ x $ to a whole number. \\
+        $ \mathrm{round}(x, p) $                   & Rounds $ x $ to $ p $ decimal places ($ p $ may be negative). \\
+        $ \mathrm{ceil}(x) $                       & Rounds $ x $ to a whole number, always rounding towards $ \infty $. \\
+        $ \mathrm{ceil}(x, p) $                    & Rounds $ x $ to $ p $ decimal places, always rounding towards $ \infty $ ($ p $ may be negative). \\
+        $ \mathrm{floor}(x) $                      & Rounds $ x $ to a whole number, always rounding towards $ -\infty $. \\
+        $ \mathrm{floor}(x, p) $                   & Rounds $ x $ to $ p $ decimal places, always rounding towards $ -\infty $ ($ p $ may be negative). \\
+        $ \mathrm{trunc}(x) $                      & Rounds $ x $ to a whole number, always rounding towards $ 0 $ ($ p $ may be negative). \\
+        $ \mathrm{trunc}(x, p) $                   & Rounds $ x $ to $ p $ decimal places, always rounding towards $ 0 $ ($ p $ may be negative). \tabgap
+        $ \mathrm{min}(l\dots) $                   & Gets the smallest of its arguments. $ \mathrm{min}() $ without any arguments produces an error. \\
+        $ \mathrm{max}(l\dots) $                   & Gets the largest of its arguments. $ \mathrm{max}() $ without any arguments produces an error. \\
+        $ \mathrm{mean}(l\dots) $                  & Gets the arithmetic mean of its arguments. $ \mathrm{mean}() $ without any arguments produces an error. \\
+        $ \mathrm{med}(l\dots) $                   & Gets the median of its arguments. $ \mathrm{med}() $ without any arguments produces an error. \tabgap
+        $ \mathrm{clamp}(x, l, u) $                & Gets $ x $ if it lies between $ l $ and $ u $, otherwise the bound that is closer to the value of $ x $. \\
+        $ \mathrm{lerp}(p, a, b) $                 & Linearly interpolates from $ a $ to $ b $ using the percentage $ p \in [0;1] $. \tabgap
+        $ \mathrm{take}(l, n) $                    & Gets the first $ n $ elements of the list $ l $. \\
+        $ \mathrm{drop}(l, n) $                    & Gets all elements except the first $ n $ from the list $ l $. \\
+        $ \mathrm{slice}(l, a, b) $                & Gets all elements from the list $ l $ with indices satisfying $ a \leq idx < b $. \\
+        $ \mathrm{filter}(l, f) $                  & Gets a new list that consists of all elements from the list $ l $ for which the function $ f $ yields \verb|true|. \\
+        $ \mathrm{fold}(l, s, f) $                 & Folds the list $ l $ using a starting value $ s $ and a combination function $ f $. $ \mathrm{fold}([1,2,3,4],0,f) = f(f(f(f(0, 1), 2), 3), 4) $. \\
+        $ \mathrm{join}(l\dots) $                  & Takes some lists as arguments and concatenates them to a single list. \\
+        $ \mathrm{chain}(f\dots) $                 & Takes some functions and chains them in order: $ \mathrm{chain}(f, g, h) $ yields $ f(g(h(x))) $. $ \mathrm{chain} $ without any arguments yields the identity function. \\
+        $ \mathrm{map}(l, f) $                     & Applies the function $ f $ to each element in the list $ l $ and creates a new list with all the results. \\
+        $ \mathrm{flatMap}(l, f) $                 & Applies the function $ f $ to each element in the list $ l $. $ f $ is expected to produce a list. All the lists produced by $ f $ are flattened into one single result list. \\
+        $ \mathrm{rev}(l) $                        & Reverses the list $ l $. \tabgap
+        $ \mathrm{range}(n) $                      & Creates a list with all integers in the interval $ [1;n] $. \\
+        $ \mathrm{range}(a, b) $                   & Creates a list with all integers in the interval $ [a;b] $. Giving bounds in reverse order causes the order of the elements to be reversed. \tabgap
+        $ \mathrm{sum}(n, f) $                     & Applies $ f $ to all integers in the interval $ [1;n] $ and sums up the results. \\
+        $ \mathrm{sum}(a, b, f) $                  & Applies $ f $ to all integers in the interval $ [a;b] $ and sums up the results. \\
+        $ \mathrm{prod}(n, f) $                    & Applies $ f $ to all integers in the interval $ [1;n] $ and multiplies the results. \\
+        $ \mathrm{prod}(a, b, f) $                 & Applies $ f $ to all integers in the interval $ [a;b] $ and multiplies the results. \\
+        $ \mathrm{count}(n, f) $                   & Applies $ f $ to all integers in the interval $ [1;n] $ and counts for how many of them $ f $ yields \verb|true|. \\
+        $ \mathrm{count}(a, b, f) $                & Applies $ f $ to all integers in the interval $ [a;b] $ and counts for how many of them $ f $ yields \verb|true|. \tabgap
+        $ \mathrm{deg}(x) $                        & Converts $ x $ from radians to degrees. \\
+        $ \mathrm{rad}(x) $                        & Converts $ x $ from degrees to radians. \tabgap
+        $ \mathrm{sf}(x) $                         & Calculates the subfactorial: $ !x $. \\
+        $ \mathrm{Gamma}(x) $, $ \Gamma(x) $       & Computes $ \Gamma(x) $. \\
+        $ \mathrm{Gamma}(p, x) $, $ \Gamma(p, x) $ & The incomplete Gamma-function $ \Gamma(p, x) $. \\
+        $ \mathrm{gamma}(p, x) $, $ \gamma(p, x) $ & Computes $ \gamma(p, x) = \Gamma(p) - \Gamma(p, x) $. \\
+        $ \mathrm{Beta}(a, b) $                    & Computes the beta function $ \mathrm{B}(a, b) = \frac{\Gamma(a) \cdot \Gamma(b)}{\Gamma(a + b)} $. \\
+        $ \mathrm{Beta}(a_1, a...) $               & Computes the multivariate beta function $ \mathrm{B}(a_1, \dots, a_n) = \Big(\Gamma\big(\sum_k a_k\big)\Big)^{-1} \cdot \prod_k \Gamma(a_k) $. \\
+        $ \mathrm{H}(n) $                          & Computes the $ n $th harmonic number. \tabgap
+        $ \mathrm{nCr}(n, k) $                     & Computes $ \footnotesize\Bigl(\kern-2\nulldelimiterspace\begin{array}{c}n\\k\end{array}\kern-2\nulldelimiterspace\Bigr) $ \\
+        $ \mathrm{nPr}(n, k) $                     & Computes $ \footnotesize\frac{n!}{(n-k)!} $ \\
+        $ \mathrm{fib}(n) $                        & Computes the $ n $th element of the fibonacci-sequence. Indices start at $ 1 $. \\
+        $ \mathrm{ln}(x) $                         & Computes the natural logarithm of $ x $. \\
+        $ \mathrm{W}(x) $                          & Computes $ W(x) $ such that $ W(x) \cdot e^{W(x)} = x $. \\
+        $ \mathrm{ld}(x) $                         & Computes the logarithm base $ 2 $ of $ x $. \\
+        $ \mathrm{lg}(x) $                         & Computes the logarithm base $ 10 $ of $ x $. \\
+        $ \mathrm{log}(n, x) $                     & Computes the logarithm base $ n $ of $ x $. \tabgap
+        $ \mathrm{li}(x) $                         & Computes the logarithmic integral $ \int_0^x \mathrm{ln}(u)^{-1}\,du $. \\
+        $ \mathrm{Li}(x) $                         & Computes the eulerian offset logarithmic integral $ \mathrm{li}(x) - \mathrm{li}(2) $. \\
+        $ \mathrm{Ei}(x) $                         & Computes the exponential integral $ \int_{-\infty}^x u^{-1}\,e^u\,du $. \tabgap
+        $ \mathrm{prime}(n) $                      & Gets whether $ n $ is a prime number. \\
+        $ \mathrm{totient}(n) $                    & Computer the euler totient function $ \phi(n) $. \tabgap
+        $ \mathrm{vec}(l\dots) $                   & Creates a vector from all arguments. $ \mathrm{vec}() $ without any arguments produces an error. \\
+        $ \mathrm{T}(a) $                          & Gets the transpose of the matrix $ a $. \\
+        $ \mathrm{IM}(n) $                         & Gets the identity matrix of size $ n\times n $. \\
+        $ \mathrm{NM}(n) $                         & Gets the zero matrix of size $ n\times n $ \\
+        $ \mathrm{NM}(n,m) $                       & Gets the zero matrix of size $ n\times m $. \\
+        $ \mathrm{cross}(a, b) $                   & Computes the cross product of two $ 3 $-dimensional vectors. \\
+        $ \mathrm{adj}(a) $                        & Computes the adjugate matrix of the square matrix $ a $. \\
+        $ \mathrm{det}(a) $                        & Computes the determinant of the square matrix $ a $. \tabgap
+        $ \mathrm{sin}(x) $                        & Computes the sine of $ x $. \\
+        $ \mathrm{sinc}(x) $                       & The $ \mathrm{sinc} $ function $ \frac{\sin x}{x} $. $ \mathrm{sinc}(0) = 1 $. \\
+        $ \mathrm{cos}(x) $                        & Computes the cosine of $ x $. \\
+        $ \mathrm{tan}(x) $                        & Computes the tangent of $ x $. \\
+        $ \mathrm{sec}(x) $                        & Computes the secant of $ x $. \\
+        $ \mathrm{csc}(x) $                        & Computes the cosecant of $ x $. \\
+        $ \mathrm{cot}(x) $                        & Computes the cotangent of $ x $. \\
+        $ \mathrm{asin}(x) $                       & Computes the arc sine of $ x $. \\
+        $ \mathrm{acos}(x) $                       & Computes the arc cosine of $ x $. \\
+        $ \mathrm{atan}(x) $                       & Computes the arc tangent of $ x $. \\
+        $ \mathrm{atan}(y, x) $                    & Computes the arc tangent with two arguments. $ \mathrm{atan}(y, x) $ is the angle between the $ x $-axis and the line connecting the origin with the point $ (x, y) $. \\
+        $ \mathrm{asec}(x) $                       & Computes the arc secant of $ x $. \\
+        $ \mathrm{acsc}(x) $                       & Computes the arc cosecant of $ x $. \\
+        $ \mathrm{acot}(x) $                       & Computes the arc cotangent of $ x $. \\
+        $ \mathrm{sinh}(x) $                       & Computes the hyperbolic sine of $ x $. \\
+        $ \mathrm{cosh}(x) $                       & Computes the hyperbolic cosine of $ x $. \\
+        $ \mathrm{tanh}(x) $                       & Computes the hyperbolic tangent of $ x $. \\
+        $ \mathrm{sech}(x) $                       & Computes the hyperbolic secant of $ x $. \\
+        $ \mathrm{csch}(x) $                       & Computes the hyperbolic cosecant of $ x $. \\
+        $ \mathrm{coth}(x) $                       & Computes the hyperbolic cotangent of $ x $. \\
+        $ \mathrm{asinh}(x) $                      & Computes the hyperbolic arc sine of $ x $. \\
+        $ \mathrm{acosh}(x) $                      & Computes the hyperbolic arc cosine of $ x $. \\
+        $ \mathrm{atanh}(x) $                      & Computes the hyperbolic arc tangent of $ x $. \\
+        $ \mathrm{asech}(x) $                      & Computes the hyperbolic arc secant of $ x $. \\
+        $ \mathrm{acsch}(x) $                      & Computes the hyperbolic arc cosecant of $ x $. \\
+        $ \mathrm{acoth}(x) $                      & Computes the hyperbolic arc cotangent of $ x $. \\
+    \end{longtable}
+    
+    \section{Reference of specials}\label{sec:reference-special}
+    Lists all specials known to \textit{TuxCalculator}.
+    \begin{longtable}{p{0.2\textwidth}p{\dimexpr0.8\textwidth-3\tabcolsep\relax}}
+        \verb|#abs|    & A function that computes the absolute value of its argument. \\
+        \verb|#add|    & A function that adds two numbers or matrices together. \\
+        \verb|#adj|    & A function that computes the adjugate of a matrix. \\
+        \verb|#and|    & A function that computes logic or bitwise \verb|AND| of two booleans or integers. \\
+        \verb|#asin|   & The arc sine function. \\
+        \verb|#atan|   & The \verb|atan2| function. \\
+        \verb|#car|    & A function that gets the first element of a list. \\
+        \verb|#cdr|    & A function that gets all except the first element of a list. \\
+        \verb|#cl|     & $ \mathrm{cl}(n,p) $ ceils $ n $ to precision $ p $. \\
+        \verb|#cosh|   & The hyperbolic cosine function. \\
+        \verb|#det|    & A function that computes the determinant of a matrix. \\
+        \verb|#div|    & A function that divides two numbers or matrices. \\
+        \verb|#e|      & The value of the constant $ e $ for the current precision. \\
+        \verb|#eq|     & Takes two values and yields whether they are equal. \\
+        \verb|#f|      & The \verb|false| value. \\
+        \verb|#fib|    & A function for the fibonacci sequence. Indices start at $ 1 $. \\
+        \verb|#fill|   & $ \mathrm{fill}(m,f) $ applies $ f $ to each number from $ 0 $ (inclusive) to $ m $ (exclusive) and puts the results in a list.
+                         $ \mathrm{fill}(h,w,f) $ makes a matrix with height $ h $ and width $ w $, where each element is obtained by calling $ f(row,col) $. \\
+        \verb|#filter| & $ \mathrm{filter}(l,f) $ applies $ f $ to each element in the list $ l $ and its index.
+                         Returns a new list with every element in $ l $ for that $ f $ returned \verb|true|. \\
+        \verb|#fl|     & $ \mathrm{fl}(n,p) $ floors $ n $ to precision $ p $. \\
+        \verb|#fold|   & $ \mathrm{fold}(l,s,f) $ yields $ s $ for an empty list $ l $.
+                         For a non-empty list, apply $ f $ to $ s, l(0) $ and fold it with the tail of $ l $. \\
+        \verb|#gamma|  & The incomplete gamma function $ \Gamma(p, x) $. \\
+        \verb|#gcd|    & Yields the greatest common divisor of two integers. \\
+        \verb|#ht|     & Takes a matrix and returns its height. \\
+        \verb|#i|      & The imaginary unit. \\
+        \verb|#idx|    & $ \mathrm{idx}(l,f) $ gets the index of the first element in the list $ l $ for that $ f $ yields \verb|true|.
+                         \verb|-1| if no element matches. \\
+        \verb|#if|     & $ \mathrm{if}(p,a,b) $ results in $ a $ if $ p $ is \verb|true|, $ b $ otherwise. \\
+        \verb|#im|     & A function that gets the imaginary part of a number. \\
+        \verb|#isb|    & A function that tests whether it's argument is a boolean value. \\
+        \verb|#isl|    & A function that tests whether it's argument is a list. \\
+        \verb|#ism|    & A function that tests whether it's argument is a vector or matrix. \\
+        \verb|#isr|    & A function that tests whether it's argument is a real number. \\
+        \verb|#isv|    & A function that tests whether it's argument is a vector. \\
+        \verb|#len|    & A function that yields the length of a list or a vector. \\
+        \verb|#li|     & The logarithmic integral. \\
+        \verb|#ln|     & The natural logarithm. \\
+        \verb|#lt|     & Takes two values and yields whether the first is smaller than the second.
+                         If either of the arguments is not a real number, the result is \verb|false|. \\
+        \verb|#map|    & $ \mathrm{map}(l,f) $ applies $ f $ to each element in the list or vector  $ l $ and produces a new list or vector with the new results. \\
+        \verb|#mod|    & A function that computes the modulo of two numbers. \\
+        \verb|#mul|    & A function that multiplies two numbers or matrices. \\
+        \verb|#or|     & A function that computes logic or bitwise \verb|OR| of two booleans or integers. \\
+        \verb|#pi|     & The value of the constant $ \pi $ for the current precision. \\
+        \verb|#polar|  & A function that creates a complex number from radius and angle. \\
+        \verb|#pow|    & A function that raises a number or matrix to a power. \\
+        \verb|#re|     & A function that gets the real part of a number. \\
+        \verb|#rev|    & A function that reverses a list or a vector. \\
+        \verb|#rd |    & $ \mathrm{rd}(n,p) $ rounds $ n $ to precision $ p $. \\
+        \verb|#sin|    & The sine function. \\
+        \verb|#sinh|   & The hyperbolic sine function. \\
+        \verb|#sort|   & $ \mathrm{sort}(l,f) $ sorts the list $ l $ given a function $ f $ which holds $ f(a,b) \iff a < b $ \\
+        \verb|#sub|    & A function that subtracts two numbers or matrices. \\
+        \verb|#t|      & The \verb|true| value. \\
+        \verb|#v|      & The \verb|void| value. \\
+        \verb|#w|      & The lambert $ W $ function. \\
+        \verb|#wd|     & Takes a matrix and returns its width. \\
+        \verb|#xor|    & A function that computes logic or bitwise \verb|XOR| of two booleans or integers. \\
+        \verb|#zip|    & $ \mathrm{zip}(a,b,f) $ Given the two lists or vectors $ a $ and $ b $, iterates over every index from $ 0 $ to the length of the shorter list.
+                         Applies $ f $ to the value from $ a $ at that index and the value of $ b $ at that index.
+                         Produces a new list containing all the results. \\
+    \end{longtable}
+\end{document}

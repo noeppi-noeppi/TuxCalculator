@@ -1,3 +1,8 @@
+local.properties
 .gradle
 build
 .idea
+*.hprof
+/doc
+/tex/*
+!/tex/*.tex
