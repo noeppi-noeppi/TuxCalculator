@@ -52,7 +52,7 @@
                     android:inputType="textVisiblePassword"
                     android:hint="@string/term"
                     android:textSize="@dimen/text_size"
-                    android:imeOptions="actionGo"
+                    android:imeOptions="actionGo|flagForceAscii"
                     android:completionThreshold="0"/>
             <Button
                     android:layout_width="wrap_content"
