@@ -124,7 +124,7 @@ let temp = @[(a:#isl,b):#eq(#len(a),0)->'Reduce on an empty list.';(a:#isl,b)->#
 def[-200] /(a,b) = temp(a,b)
 def[-200] ÷(a,b) = #div(a,b)
 def[-200] %(a,b) = #mod(a,b)
-def[-200] %%(a,b) = (a % b + b) % b
+def[-200] %%(a,b) = (a % b + #abs(b)) % b
 def[-99] ^(a,b) = #pow(a,b)
 def[100] ∠(r,a) = polar(r,a)
 
