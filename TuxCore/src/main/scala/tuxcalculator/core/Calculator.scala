@@ -59,7 +59,7 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
   
   private def formatNum(value: BigDecimal): String = value.round(outputMathContext) match {
     case v if v.abs < 1000000 && v.abs >= 0.0001 => v.bigDecimal.stripTrailingZeros.toPlainString
-    case v => v.bigDecimal.stripTrailingZeros.toString.toLowerCase(Locale.ROOT)
+    case v => v.bigDecimal.stripTrailingZeros.toString.toLowerCase(Locale.ROOT).replace("e+", "e")
   }
   
   private def formatNoTrunc(value: MathValue): String = value match {
