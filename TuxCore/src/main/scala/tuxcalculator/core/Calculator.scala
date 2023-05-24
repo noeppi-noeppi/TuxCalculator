@@ -8,7 +8,7 @@ import tuxcalculator.core.format.FormatIO
 import tuxcalculator.core.lexer.{CatCode, Lexer, PartialTokenStream, TokenStream}
 import tuxcalculator.core.parser.{Parser, ParsingContext}
 import tuxcalculator.core.resolution.{BindLogic, ComputationLogic, ResolutionTable}
-import tuxcalculator.core.util.Result
+import tuxcalculator.core.util.{Result, Util}
 import tuxcalculator.core.value._
 
 import java.io.DataOutputStream
@@ -58,8 +58,8 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
   }
   
   private def formatNum(value: BigDecimal): String = value.round(outputMathContext) match {
-    case v if v.abs < 1000000 && v.abs >= 0.0001 => v.bigDecimal.stripTrailingZeros.toPlainString
-    case v => v.bigDecimal.stripTrailingZeros.toString.toLowerCase(Locale.ROOT).replace("e+", "e")
+    case v if v.abs < 1000000 && v.abs >= 0.0001 => Util.safeStripTrailingZeros(v).toPlainString
+    case v => Util.safeStripTrailingZeros(v).toString.toLowerCase(Locale.ROOT).replace("e+", "e")
   }
   
   private def formatNoTrunc(value: MathValue): String = value match {
