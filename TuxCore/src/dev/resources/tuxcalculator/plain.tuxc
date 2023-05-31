@@ -146,7 +146,8 @@ def root(n,x) = x^(1/n)
 
 let temp = @[(v:#isv)->sqrt(#fold([#map(v,\x->x*x)...],0,#add));(x)->#abs(x)]
 def abs(x) = temp(x)
-let temp = @[(x:#isl)->'sgn of list';(x):x=0->0;(x:#isr):x>0->1;(x:#isr):x<0->-1;(x)->x/abs(x)]
+let temp = \x->#eq(#idx([x...],\elem->#if(#eq(elem,0),false,true)),-1)
+let temp = @[(x:#isl)->'sgn of list';(x):x=0->0;(x:#isv):temp(x)->x;(x:#isr):x>0->1;(x:#isr):x<0->-1;(x)->x/abs(x)]
 def sgn(x) = temp(x)
 def gcd(a,b) = #gcd(a,b)
 def lcm(a,b) = (a*b)/#gcd(a,b)
