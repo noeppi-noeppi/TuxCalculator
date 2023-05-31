@@ -29,7 +29,6 @@ object LambdaFunction {
     case _ => None
   }
 
-
   def makeArgValueMap(sig: Signature, args: Vector[MathValue]): Option[Map[String, MathValue]] = makeArgValues(sig, args) match {
     case Some(argValues) => Some((sig.names zip argValues).toMap)
     case None => None
