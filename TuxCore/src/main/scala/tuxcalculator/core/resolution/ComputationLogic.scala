@@ -11,7 +11,7 @@ object ComputationLogic {
     def processArg(arg: Ast.Argument): Seq[MathValue] = arg match {
       case Ast.SplattedArgument(listExpr) => normalize(process(listExpr)) match {
         case MathList(values) => values
-        case MathMatrix(values) if values.length == 1=> values.head
+        case MathMatrix(values) if values.length == 1 => values.head
         case res: MathError => res :: Nil
         case res => MathError("Can't splat value: '" + calc.format(res) + "'") :: Nil
       }
@@ -42,19 +42,21 @@ object ComputationLogic {
     
     def doApply(value: MathValue, args: Vector[MathValue], partial: Boolean): MathValue = {
       val normArgs = args.map(normalize)
-      if (value == MathVoid || normArgs.contains(MathVoid)) MathVoid else value match {
+      def resultOrVoid(result: => MathValue): MathValue = if (normArgs.contains(MathVoid)) MathVoid else result
+
+      if (value == MathVoid) MathVoid else value match {
         case err: MathError => err.trace("Applied to " + args.map(calc.format).mkString("(", ", ", ")"))
         case _ => normArgs.flatMap[MathError] {
           case err: MathError => Some(err)
           case _ => None
         }.headOption match {
           case Some(err) => err.trace("Passed as " + (if (partial) "partial " else "") + "argument to " + calc.format(value))
-          case None if partial && normArgs.isEmpty => value
+          case None if partial && normArgs.isEmpty => resultOrVoid(value)
           case None if partial => value match {
             case err: MathError => err.trace("Partially applied to (" + normArgs.mkString(", ") + ")")
-            case _ => PartialAppliedFunction.create(value, normArgs)
+            case _ => resultOrVoid(PartialAppliedFunction.create(value, normArgs))
           }
-          case None => value.applyTo(calc, normArgs)
+          case None => resultOrVoid(value.applyTo(calc, normArgs))
         }
       }
     }
