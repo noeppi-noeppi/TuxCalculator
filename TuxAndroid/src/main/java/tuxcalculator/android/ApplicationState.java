@@ -37,8 +37,7 @@ public class ApplicationState {
         }
     }
 
-    @Nullable
-    private File mediaDir = null;
+    @Nullable private File mediaDir = null;
     private WeakReference<MainActivity> activity;
     private final List<TextEntry> text;
     private final ScheduledExecutorService executor;
@@ -163,8 +162,10 @@ public class ApplicationState {
             try {
                 TuxCalculator.Result result = this.calculator.parse(effectiveFinalTerm);
                 activity.getMainExecutor().execute(() -> {
-                    TextEntry inputText = new TextEntry(effectiveFinalTerm, false, true, false);
-                    TextEntry outputText = new TextEntry(result.toString(), true, true, result instanceof TuxCalculator.Error);
+                    TextEntry inputText = new TextEntry(effectiveFinalTerm, false, true, false, null);
+                    String detail = null;
+                    if (result instanceof TuxCalculator.Error err && !err.trace().isEmpty()) detail = String.join("\n", err.trace());
+                    TextEntry outputText = new TextEntry(result.toString(), true, true, result instanceof TuxCalculator.Error, detail);
 
                     this.text.add(inputText);
                     this.text.add(outputText);

@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout layout = this.findViewById(R.id.text_output);
         layout.removeAllViews();
 
-        this.addTextView(new TextEntry(text, false, false, false));
+        this.addTextView(new TextEntry(text, false, false, false, null));
     }
 
     public void addTextView(TextEntry entry) {
@@ -108,6 +108,12 @@ public class MainActivity extends AppCompatActivity {
             view.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_END);
         } else {
             view.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
+        }
+        if (entry.detail != null) {
+            view.setOnLongClickListener(v -> {
+                this.showErrorPopup(entry.text + "\n\n" + entry.detail);
+                return true;
+            });
         }
 
         LinearLayout layout = this.findViewById(R.id.text_output);

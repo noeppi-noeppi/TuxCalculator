@@ -1,12 +1,14 @@
 package tuxcalculator.desktop;
 
 import org.gnome.gdk.Keyval;
+import org.gnome.gdk.Rectangle;
 import org.gnome.gtk.*;
 import org.gnome.pango.Scale;
 import org.gnome.pango.Weight;
 import tuxcalculator.api.TuxCalculator;
 import tuxcalculator.api.TuxCalculatorAPI;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -110,6 +112,34 @@ public class GtkFrontend extends GraphicalFrontend {
 
             enter.connect((Button.Clicked) button -> this.perform(Action.SUBMIT));
             this.out.connect((Widget.SizeAllocate) (widget, rectangle) -> this.scrollPane.getVAdjustment().setValue(this.scrollPane.getVAdjustment().getUpper()));
+            this.out.connect((Widget.MotionNotifyEvent) (source, event) -> {
+                int x = this.out.convertWindowToBufferCoordsX(TextWindowType.TEXT, (int) event.getX());
+                int y = this.out.convertWindowToBufferCoordsY(TextWindowType.TEXT, (int) event.getY());
+                TextIter iter = this.out.getIterAtLocation(x, y);
+                
+                // Check that the cursor is actually roughly in the iters bounds.
+                // If no text is hovered, we'll just get the closest iter but don't want to show a tooltip then.
+                Rectangle bounds = this.out.getLocation(iter);
+                if (bounds.getX() - 3 > x || bounds.getX() + bounds.getWidth() + 3 < x || bounds.getY() - 3 > y || bounds.getY() + bounds.getHeight() + 3 < y) {
+                    this.out.setTooltipText("");
+                    return false;
+                }
+                
+                int cursor = iter.getOffset();
+                String tooltip = null;
+                for (TextTagKey key : this.resultTags) {
+                    if (key.start < cursor && key.end > cursor) {
+                        tooltip = key.tooltip();
+                    }
+                }
+                for (TextTagKey key : this.errorTags) {
+                    if (key.start < cursor && key.end > cursor) {
+                        tooltip = key.tooltip();
+                    }
+                }
+                this.out.setTooltipText(tooltip == null ? "" : tooltip);
+                return false;
+            });
             
             this.grabInputFocus();
             window.showAll();
@@ -178,10 +208,12 @@ public class GtkFrontend extends GraphicalFrontend {
         this.out.getBuffer().setText(this.out.getBuffer().getText() + "\n" + result);
         int end = this.out.getBuffer().getCharCount();
         
-        if (result instanceof TuxCalculator.Error) {
-            this.errorTags.add(new TextTagKey(start, end));
+        if (result instanceof TuxCalculator.Error err) {
+            String tooltip = null;
+            if (!err.trace().isEmpty()) tooltip = String.join("\n", err.trace());
+            this.errorTags.add(new TextTagKey(start, end, tooltip));
         } else {
-            this.resultTags.add(new TextTagKey(start, end));
+            this.resultTags.add(new TextTagKey(start, end, null));
         }
         
         for (TextTagKey tag : this.resultTags) {
@@ -194,5 +226,5 @@ public class GtkFrontend extends GraphicalFrontend {
         this.scrollPane.getVAdjustment().setValue(this.scrollPane.getVAdjustment().getUpper());
     }
 
-    private record TextTagKey(int start, int end) {}
+    private record TextTagKey(int start, int end, @Nullable String tooltip) {}
 }
