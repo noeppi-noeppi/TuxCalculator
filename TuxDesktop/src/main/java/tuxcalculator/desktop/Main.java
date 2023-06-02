@@ -83,11 +83,11 @@ public class Main {
             }
             
             if (!set.has(specNoRc)) {
-              if (set.has(specRcFile)) {
-                builder.load(set.valueOf(specRcFile).toAbsolutePath().normalize());
-              } else if (Files.isRegularFile(defaultRcFile)) {
-                builder.load(defaultRcFile);
-              }
+                if (set.has(specRcFile)) {
+                  builder.load(set.valueOf(specRcFile).toAbsolutePath().normalize());
+                } else if (Files.isRegularFile(defaultRcFile)) {
+                  builder.load(defaultRcFile);
+                }
             }
             
             List<String> errors = builder.checkError();

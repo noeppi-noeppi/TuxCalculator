@@ -40,7 +40,7 @@ public final class TextFrontEnd extends DesktopFrontend {
     private void runText(TuxCalculator calc) throws IOException {
         System.out.println("This is TuxCalculator, Version " + TuxCalculatorAPI.VERSION + (calc.ini() ? " (INI)" : ""));
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        while(true) {
+        while (true) {
             String line = reader.readLine();
             if (line == null) return;
             TuxCalculator.Result result = calc.parse(line);
