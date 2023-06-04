@@ -47,5 +47,9 @@ jar {
     dependsOn buildDevResources
     archiveBaseName = rootProject.name
     archiveClassifier = 'core'
+    manifest.attributes([
+            'Automatic-Module-Name': 'tuxcalculator.core',
+            'Implementation-Version': project.version
+    ])
     from fileTree(project.file('build/buildDevResources'))
 }
