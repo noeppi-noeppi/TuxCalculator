@@ -1,5 +1,6 @@
 package tuxcalculator.core.util
 
+import java.io.{PrintWriter, StringWriter}
 import java.math.{BigDecimal => BigDec}
 
 object Util {
@@ -15,5 +16,13 @@ object Util {
     num.stripTrailingZeros()
   } catch {
     case _: ArithmeticException => num.setScale(Int.MinValue)
+  }
+  
+  def getStacktrace(t: Throwable): Vector[String] = {
+    val writer = new StringWriter()
+    val printer = new PrintWriter(writer)
+    t.printStackTrace(printer)
+    printer.close()
+    writer.toString.split("\n").toVector.filter(_.nonEmpty)
   }
 }

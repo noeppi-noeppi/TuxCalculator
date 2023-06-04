@@ -83,7 +83,7 @@ object AstIO {
       val head = ctx.ast.get(in.readInt())
       val tail = for (_ <- 0 until len) yield ctx.strings.get(in.readInt()) -> ctx.ast.get(in.readInt())
       Ast.OperatorApplication(head, tail.toVector)
-    case b => throw new IllegalStateException("Corrupted format: " + b)
+    case b => throw new InvalidFormatException("Corrupted format: Unknown AST type: " + b)
   }
   
   def write(ctx: FormatContext, ast: Ast.Expression, out: DataOutput): Unit = ast match {

@@ -51,7 +51,7 @@ class SymbolTable[T] private(private[this] val isMutable: Boolean, val name: Str
       items(id)
     } else if (id >= 0 && id < maxLen) {
       if (readingAhead) {
-        throw new IllegalStateException("Invalid symbol table order: Forward reference in " + name)
+        throw new InvalidFormatException("Invalid symbol table order: Forward reference in " + name)
       } else {
         // Read ahead until id
         readingAhead = true
@@ -64,7 +64,7 @@ class SymbolTable[T] private(private[this] val isMutable: Boolean, val name: Str
         items(id)
       }
     } else {
-      throw new IllegalStateException("Invalid " + name + " symbol table entry: " + id)
+      throw new InvalidFormatException("Invalid " + name + " symbol table entry: " + id + " (max is " + maxLen + ")")
     }
   }
   

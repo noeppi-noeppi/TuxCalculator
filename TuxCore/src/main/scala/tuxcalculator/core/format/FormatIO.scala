@@ -9,11 +9,12 @@ import java.io.{DataInput, DataOutput}
 
 object FormatIO {
   
+  @throws[InvalidFormatException]
   def load(frontend: TuxFrontend, in: DataInput): Calculator = {
     val magic = in.readInt()
-    if (magic != 0x40956A19) throw new IllegalStateException("Invalid format file")
+    if (magic != 0x40956A19) throw new InvalidFormatException("Invalid format file")
     val ver = in.readUTF()
-    if (ver != TuxCalculatorAPI.VERSION) throw new IllegalStateException("Format file was made for version " + ver +  ". Can't use it on version " + TuxCalculatorAPI.VERSION + ".")
+    if (ver != TuxCalculatorAPI.VERSION) throw new InvalidFormatException("Format file was made for version " + ver +  ". Can't load it on version " + TuxCalculatorAPI.VERSION + ".")
     
     val calc = new Calculator(frontend, ini = false)
     

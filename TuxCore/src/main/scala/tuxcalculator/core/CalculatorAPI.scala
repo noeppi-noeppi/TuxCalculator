@@ -1,16 +1,13 @@
 package tuxcalculator.core
 
 import tuxcalculator.api.{TuxCalculator, TuxCalculatorAPI, TuxFrontend}
-import tuxcalculator.core.format.{FileLoader, FormatIO}
-import tuxcalculator.core.lexer.CatCode
+import tuxcalculator.core.format.{FileLoader, FormatIO, InvalidFormatException}
 import tuxcalculator.core.util.{Result, TabCompleter, Util}
 import tuxcalculator.core.value.{MathError, MathVoid}
 
-import java.io.{ByteArrayInputStream, DataInputStream, IOException, InputStream, InputStreamReader, Reader}
+import java.io._
 import java.nio.file.{Files, Path}
-import java.text.Normalizer
 import java.util
-import java.util.Locale
 import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters._
 
@@ -40,6 +37,8 @@ object CalculatorAPI extends TuxCalculatorAPI {
       new CalculatorBuilderWrapper(FormatIO.load(frontend, in))
     } catch {
       case e: IOException => new ErroredCalculatorBuilder(Vector("IO error: " + e.getMessage))
+      case e: InvalidFormatException => new ErroredCalculatorBuilder(Vector(e.getMessage))
+      case e: Exception => new ErroredCalculatorBuilder(Vector("Error while loading format file.") ++ Util.getStacktrace(e))
     } finally {
       fmt.close()
     }

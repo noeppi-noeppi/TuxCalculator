@@ -31,7 +31,7 @@ object ValueIO {
       val values = for (_ <- 0 until height) yield (for (_ <- 0 until width) yield ctx.values.get(in.readInt())).toVector
       MathMatrix(values.toVector)
     case 8 => ctx.functions.get(in.readInt());
-    case b => throw new IllegalStateException("Corrupted format: " + b)
+    case b => throw new InvalidFormatException("Corrupted format: Unknown value type: " + b)
   }
 
   def write(ctx: FormatContext, value: MathValue, out: DataOutput): Unit = value match {
@@ -62,7 +62,7 @@ object ValueIO {
   private def readNumber(ctx: FormatContext, in: DataInput): BigDec = {
     val scale = in.readInt()
     val len = in.readInt()
-    if (len < 0) throw new IllegalStateException("Corrupted format: Negative array length")
+    if (len < 0) throw new InvalidFormatException("Corrupted format: Negative array length while reading number.")
     val data = new Array[Byte](len)
     in.readFully(data)
     new BigDec(new BigInteger(data), scale)
@@ -80,7 +80,7 @@ object ValueIO {
       val name = ctx.strings.get(in.readInt())
       ctx.specials(name) match {
         case func: MathFunction => func
-        case value => throw new IllegalStateException("Corrupted format: special does not yield a function: " + value)
+        case value => throw new InvalidFormatException("Corrupted format: Special does not yield a function: " + value)
       }
     case 1 =>
       val sig = ctx.signatures.get(in.readInt())
@@ -118,7 +118,7 @@ object ValueIO {
       }
       val defCode = ctx.ast.get(in.readInt())
       new MatchFunction(entries.toVector, defCode)
-    case b => throw new IllegalStateException("Corrupted format: " + b)
+    case b => throw new InvalidFormatException("Corrupted format: Unknown function type: " + b)
   }
   
   def writeFunction(ctx: FormatContext, func: MathFunction, out: DataOutput): Unit = func match {
