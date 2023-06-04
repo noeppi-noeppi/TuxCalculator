@@ -6,9 +6,12 @@ import tuxcalculator.core.value.ValueHelper
 import java.math.{MathContext, RoundingMode, BigDecimal => BigDec}
 
 object IncompleteGamma {
+  
+  private val C_TWO = BigComplex.valueOf(2)
 
   def gamma(p: BigComplex, x: BigComplex, mc: MathContext): BigComplex = {
     if (BigComplex.ZERO.equals(x)) return gammaC(p, mc)
+    if (BigComplex.ZERO.equals(p)) return gammaP0(x, mc)
     val theMc = new MathContext(mc.getPrecision << 1, RoundingMode.HALF_EVEN)
     val gammaP: BigComplex = gammaC(p, theMc)
     val sum = gammaSum(p, x, mc, theMc)
@@ -48,5 +51,19 @@ object IncompleteGamma {
     } else {
       BigComplexMath.gamma(p, mc)
     }
+  }
+  
+  private def gammaP0(x: BigComplex, mc: MathContext): BigComplex = {
+    if (BigComplex.ZERO.equals(x)) ValueHelper.plainError("Gamma(" + x + ") is undefined")
+    // Special case: Our usual approach does not work when p=0 as Gamma(0) and such Gamma(p) is undefined.
+    // Use the exponential integral instead.
+    val theMc = new MathContext(mc.getPrecision << 1, RoundingMode.HALF_EVEN)
+    val neg: BigComplex = x.negate()
+    val expInt: BigComplex = LogarithmicIntegral.logarithmicIntegral(BigComplexMath.exp(neg, theMc), mc) // regular mc
+    println(BigComplexMath.exp(neg, theMc))
+    println(expInt)
+    val ln = BigComplexMath.log(x, theMc)
+    val rLog: BigComplex = BigComplexMath.log(neg, theMc).subtract(BigComplexMath.log(BigComplexMath.reciprocal(neg, theMc), theMc), theMc)
+    expInt.negate().add(rLog.divide(C_TWO, theMc)).subtract(ln)
   }
 }
