@@ -46,6 +46,6 @@ processResources {
 jar {
     dependsOn buildDevResources
     archiveBaseName = rootProject.name
-    classifier "core"
+    archiveClassifier = 'core'
     from fileTree(project.file('build/buildDevResources'))
 }

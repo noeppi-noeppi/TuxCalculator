@@ -4,7 +4,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'org.moddingx:LegacyJavaConverter:1.0.2'
+        classpath 'org.moddingx:LegacyJavaConverter:1.1.0'
     }
 }
 
@@ -12,7 +12,7 @@ plugins {
     id 'com.android.application' version '7.3.0'
 }
 
-apply plugin: 'org.moddingx.lcj'
+apply plugin: 'org.moddingx.ljc'
 
 repositories {
     google()
@@ -58,7 +58,7 @@ task convertDependencies(type: org.moddingx.ljc.gradle.LjcConfigurationTask) {
     project(':core').afterEvaluate {
         dependsOn project(':core').jar
     }
-    input = configurations.legacy
+    input configurations.legacy
     languageLevel = 11
     project(':core').afterEvaluate {
         inputs.file(project(':core').jar.archiveFile)

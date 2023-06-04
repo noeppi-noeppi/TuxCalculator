@@ -12,7 +12,7 @@ dependencies {
     compileOnly 'net.sourceforge.java-gnome:java-gnome:4.1.3'
 }
 
-application.mainClassName = 'tuxcalculator.desktop.Main'
+application.mainClass = 'tuxcalculator.desktop.Main'
 
 processResources {
     from rootProject.file('LICENSE')
@@ -21,9 +21,9 @@ processResources {
 jar {
     dependsOn project(':core').jar
     archiveBaseName = rootProject.name
-    classifier "desktop"
+    archiveClassifier = 'desktop'
     manifest.attributes([
-            'Main-Class': application.mainClassName,
+            'Main-Class': application.mainClass.get(),
             'Automatic-Module-Name': 'tuxcalculator',
             'Implementation-Version': project.version,
             'Class-Path': '/usr/share/java/gtk.jar'
@@ -36,7 +36,7 @@ jar {
 task fatjar(type: Jar) {
     dependsOn jar
     archiveBaseName = rootProject.name
-    classifier "fatjar"
+    archiveClassifier = 'fatjar'
     manifest = jar.manifest
     with jar
 }
@@ -57,7 +57,7 @@ fatjar.dependsOn configureFatJar
 
 task sourcesJar(type: Jar) {
     archiveBaseName = rootProject.name
-    classifier 'sources'
+    archiveClassifier = 'sources'
     manifest = jar.manifest
     from sourceSets.main.allSource
     from project(':core').sourceSets.main.allSource
