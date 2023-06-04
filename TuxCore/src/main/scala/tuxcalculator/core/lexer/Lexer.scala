@@ -81,6 +81,8 @@ class Lexer {
                    | Some(_: Token.Application) | Some(_: Token.List) | Some(_: Token.Vector) | Some(_: Token.Lambda)
                    | Some(Token.Answer) =>
                 tokens.addOne(Token.Operator(Util.makeString(content)))
+              case Some(_: Token.Sign) | Some(_: Token.Operator) | Some(_: Token.Post) if tokens.init.lastOption.contains(Token.Reference) =>
+                tokens.addOne(Token.Operator(Util.makeString(content)))
               case _ =>
                 tokens.addOne(Token.Sign(Util.makeString(content)))
             }
