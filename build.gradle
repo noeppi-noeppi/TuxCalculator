@@ -34,7 +34,7 @@ task release(type: Zip) {
     
     destinationDirectory = rootProject.file('build/releases')
     archiveBaseName = rootProject.name
-    version rootProject.version
+    archiveVersion = rootProject.version.toString()
     duplicatesStrategy = DuplicatesStrategy.FAIL
     
     from(rootProject.file('tex/tuxcalculator.pdf'))
