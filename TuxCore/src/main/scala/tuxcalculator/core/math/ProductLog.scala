@@ -11,7 +11,7 @@ object ProductLog {
   private val REAl_SEP = BigDec.valueOf(-0.3678794411716)
   
   def productLog(value: BigComplex, mc: MathContext): BigComplex = {
-    if (BigComplex.ZERO.eq(value)) return BigComplex.ZERO
+    if (BigComplex.ZERO.equals(value)) return BigComplex.ZERO
     
     // Calculate on higher precision and compare against requested
     val theMc = new MathContext(mc.getPrecision << 1, RoundingMode.HALF_EVEN)
@@ -41,7 +41,7 @@ object ProductLog {
 
         if (guess.scale() < discard) guess = BigDec.ZERO
 
-        if (guess.multiply(BigDecimalMath.exp(guess, theMc), theMc).round(mc).equals(value.re)) {
+        if (guess.multiply(BigDecimalMath.exp(guess, theMc), theMc).round(mc).compareTo(value.re) == 0) {
           return BigComplex.valueOf(guess.round(mc))
         }
       }
