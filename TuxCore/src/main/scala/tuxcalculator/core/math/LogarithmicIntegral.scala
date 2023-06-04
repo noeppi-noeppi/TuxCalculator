@@ -1,17 +1,27 @@
 package tuxcalculator.core.math
 
-import ch.obermuhlner.math.big.{BigComplex, BigComplexMath}
+import ch.obermuhlner.math.big.{BigComplex, BigComplexMath, BigDecimalMath}
 
 import java.math.{MathContext, RoundingMode, BigDecimal => BigDec}
 
 object LogarithmicIntegral {
   
   def logarithmicIntegral(x: BigComplex, mc: MathContext): BigComplex = {
+    if (BigComplex.ZERO.equals(x)) return BigComplex.ZERO
     val theMc = new MathContext(mc.getPrecision << 2, RoundingMode.HALF_EVEN)
     val checkMc = new MathContext(mc.getPrecision << 1, RoundingMode.HALF_UP)
     val log: BigComplex = BigComplexMath.log(x, theMc)
-    val llog: BigComplex = BigComplexMath.log(log, theMc)
-    val sqrt: BigComplex = BigComplexMath.sqrt(x, theMc)
+    val llog: BigComplex = if (BigDec.ZERO.compareTo(x.im) == 0 && BigDec.ZERO.compareTo(x.re) <= 0 && BigDec.ONE.compareTo(x.re) >= 0) {
+      BigComplexMath.log(log.re(), theMc).re() // li(x) has no imaginary value for real numbers in range 0 < x <= 1
+    } else {
+      BigComplexMath.log(log, theMc)
+    }
+    
+    // Workaround for https://github.com/eobermuhlner/big-math/issues/66
+    val sqrt: BigComplex = x match {
+      case x if x.im.compareTo(BigDec.ZERO) == 0 && x.re.compareTo(BigDec.ZERO) <= 0 => BigComplex.I.multiply(BigDecimalMath.sqrt(x.re.negate(), theMc))
+      case x => BigComplexMath.sqrt(x, theMc)
+    }
     
     var sum: BigComplex = BigComplex.ZERO
     var current: BigComplex = BigComplex.ZERO
