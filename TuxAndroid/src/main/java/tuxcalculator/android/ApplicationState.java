@@ -164,7 +164,9 @@ public class ApplicationState {
                 activity.getMainExecutor().execute(() -> {
                     TextEntry inputText = new TextEntry(effectiveFinalTerm, false, true, false, null);
                     String detail = null;
-                    if (result instanceof TuxCalculator.Error err && !err.trace().isEmpty()) detail = String.join("\n", err.trace());
+                    if (result instanceof TuxCalculator.Error err) {
+                        detail = err.trace().isEmpty() ? "" : String.join("\n", err.trace());
+                    }
                     TextEntry outputText = new TextEntry(result.toString(), true, true, result instanceof TuxCalculator.Error, detail);
 
                     this.text.add(inputText);

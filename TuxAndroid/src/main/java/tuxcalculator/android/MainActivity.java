@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
         view.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.getResources().getDimensionPixelSize(R.dimen.text_size));
         if (entry.focusable) {
             view.setTextIsSelectable(true);
-            view.setSelectAllOnFocus(true);
+            if (entry.detail == null) view.setSelectAllOnFocus(true);
             view.setFocusedByDefault(false);
             view.setOnFocusChangeListener((v, hasFocus) -> {if (hasFocus) {
                 InputMethodManager mgr = this.getSystemService(InputMethodManager.class);
@@ -110,10 +110,14 @@ public class MainActivity extends AppCompatActivity {
             view.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
         }
         if (entry.detail != null) {
-            view.setOnLongClickListener(v -> {
-                this.showErrorPopup(entry.text + "\n\n" + entry.detail);
-                return true;
-            });
+            if (entry.detail.isEmpty()) {
+                view.setOnLongClickListener(v -> true);
+            } else {
+                view.setOnLongClickListener(v -> {
+                    this.showErrorPopup(entry.text + "\n\n" + entry.detail);
+                    return true;
+                });
+            }
         }
 
         LinearLayout layout = this.findViewById(R.id.text_output);
