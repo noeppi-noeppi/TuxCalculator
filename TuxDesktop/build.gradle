@@ -1,5 +1,14 @@
-apply plugin: 'java-library'
-apply plugin: 'application'
+plugins {
+    id 'java-library'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.14'
+}
+
+configurations {
+    shadeClasspath.extendsFrom(api)
+    shadeClasspath.canBeResolved = true
+    shadeClasspath.canBeConsumed = false
+}
 
 dependencies {
     api project(':core')
@@ -10,6 +19,11 @@ dependencies {
     api 'org.jline:jline-reader:3.22.0'
     api 'org.fusesource.jansi:jansi:2.4.0'
     compileOnly 'net.sourceforge.java-gnome:java-gnome:4.1.3'
+}
+
+javafx {
+    version = '17.0.7'
+    modules = [ 'javafx.base', 'javafx.graphics', 'javafx.controls', 'javafx.fxml' ]
 }
 
 application.mainClass = 'tuxcalculator.desktop.Main'
@@ -44,12 +58,13 @@ build.dependsOn fatjar
 
 task configureFatJar {
     doLast {
-        configurations.runtimeClasspath.each { dep ->
-            fatjar.from(project.zipTree(dep)) {
-                exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'module-info.class', 'LICENSE', 'NOTICE'
-                duplicatesStrategy DuplicatesStrategy.INCLUDE
+        configurations.shadeClasspath.each { dep -> fatjar.from(project.zipTree(dep)) {
+            exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'module-info.class', 'LICENSE*', 'NOTICE*', 'META-INF/LICENSE*', 'META-INF/NOTICE*'
+            filesMatching('javafx/**') {
+                throw new IllegalStateException("JavaFX should not appear in fatjar.")
             }
-        }
+            duplicatesStrategy DuplicatesStrategy.INCLUDE
+        }}
     }
     outputs.upToDateWhen { false }
 }

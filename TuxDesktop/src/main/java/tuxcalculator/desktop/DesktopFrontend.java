@@ -35,6 +35,7 @@ public abstract class DesktopFrontend implements TuxFrontend {
         return switch (id.toLowerCase(Locale.ROOT)) {
             case "text" -> new TextFrontEnd();
             case "gtk" -> new GtkFrontend();
+            case "jfx" -> new JavaFxFrontend();
             case "swing" -> new SwingFrontend();
             default -> throw new IllegalArgumentException("Unknown gui: " + id);
         };
@@ -46,8 +47,11 @@ public abstract class DesktopFrontend implements TuxFrontend {
         } else try {
             Class.forName("org.gnome.gtk.Gtk");
             return get("gtk");
-        } catch (ClassNotFoundException e) {
-           return get("swing");
-        }
+        } catch (ClassNotFoundException e1) {try {
+            Class.forName("javafx.application.Platform");
+            return get("jfx");
+        } catch (ClassNotFoundException e2) {
+            return get("swing");
+        }}
     }
 }

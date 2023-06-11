@@ -75,10 +75,14 @@
     It reads from the standard input and outputs the result after each line until \verb|EOF| is reached.
     
     \paragraph{The GTK frontend} can be set using \verb|--gui=gtk| and is the default if TuxCalculator can find \textsl{java-gnome} bindings.
-    These have to be located at \texttt{/usr\~/share\~/java\~/gtk.jar} and are part of the \texttt{libjava-gnome-java} package on Ubuntu.
+    These have to be located at \texttt{/usr\~/share\~/java\~/gtk.jar} and are part of the \texttt{libjava-\~gnome-\~java} package on Ubuntu.
     It uses \textsl{GTK} to create the window, which makes it look like a native application on linux.
     
-    \paragraph{The swing frontend} can be set using \verb|--gui=swing| and is the default if TuxCalculator can't use \verb|gtk| and is not running in headless mode.
+    \paragraph{The JavaFX frontend} can be set using \verb|--gui=jfx| and is the default if TuxCalculator can't use \verb|gtk| but can find \textsl{JavaFX} on the module path.
+    Some JDK distributions don't include JavaFX by default.
+    In that case, the JavaFX modules must be manually added to the module path in order to use the JavaFX frontend.
+    
+    \paragraph{The swing frontend} can be set using \verb|--gui=swing| and is the default if TuxCalculator can neither use \verb|gtk| nor \verb|jfx| and is not running in headless mode.
     It uses Java-Swing to create the window, which doesn't look like a native application at all but is platform independent.
     
     \subsection{RC-File}\label{subsec:rcfile}
