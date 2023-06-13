@@ -59,7 +59,8 @@ def conj(x) = #sub(#re(x),#mul(#i,#im(x)))
 def polar(r,a) = #polar(r,a)
 
 ? Basic functions for dealing with lists
-def has(l,v) = #if(#lt(#idx(l,#eq_v),0),false,true)
+let temp=#sub(0,1)
+def has(l,v) = #if(#eq(#idx(l,#eq_v),temp),false,true)
 def distinct(l) = #fold(l,[],(\n,e->#if(has(n,e),n,[n...,e])))
 
 ? Signs
@@ -143,6 +144,8 @@ def °(x) = x * #pi / 180
 ? Functions
 def sort(l) = #sort(l,@<)
 def sort(l,f) = #sort(l,f)
+let temp = @[(x):#eq(x,-1)->'element not found in list';(x)->x]
+def index(l,v) = temp(#idx(l,(\e->#eq(e,v))))
 
 def sqrt(x) = x^0.5
 def cbrt(x) = x^(1/3)
@@ -234,7 +237,7 @@ def li(x) = #li(x)
 def Li(x) = #li(x) - #li(2)
 def Ei(x) = #li(#e^x)
 
-let temp = @[(n:#isr):n<=1->false;(n):n=2->true;(n:#isr):n=3->true;(n:#isr)->#idx(#fill(ceil(sqrt(n)),@+_2),\d->gcd(n,d)<>1)=-1;(n)->false]
+let temp = @[(n:#isr):n<=1->false;(n):n=2->true;(n:#isr):n=3->true;(n:#isr)->#eq(#idx(#fill(ceil(sqrt(n)),@+_2),\d->gcd(n,d)<>1),-1);(n)->false]
 def prime(n) = temp(n)
 let temp = @[(n:#isr):n<=0->0;(n)->count(n,\d->#eq(gcd(n,d),1))]
 def totient(n) = temp(n)
