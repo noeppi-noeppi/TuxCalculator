@@ -119,7 +119,8 @@ def[-500] >(a,b) = #lt(b,a)
 def[-500] >=(a,b) = #or(#eq(b,a),#lt(b,a))
 let temp = @[(a:#isl,b:#isl)->[a...,b...];(a,b)->#add(a,b)]
 def[-300] +(a,b) = temp(a,b)
-def[-300] -(a,b) = #sub(a,b)
+let temp = @[(a:#isl,b:#isl)->#filter(a,(\e,i->#eq(#idx(b,#eq_e),-1)));(a,b)->#sub(a,b)]
+def[-300] -(a,b) = temp(a,b)
 let temp = \l,n->#fill(#mul(#len(l),n),\i->l(#mod(i,#len(l))))
 let temp = @[(a:#isl,b:#isr)->temp(a,b);(a:#isr,b:#isl)->temp(b,a);(a,b)->#mul(a,b)]
 def[-200] *(a,b) = temp(a,b)
@@ -145,7 +146,7 @@ def °(x) = x * #pi / 180
 def sort(l) = #sort(l,@<)
 def sort(l,f) = #sort(l,f)
 let temp = @[(x):#eq(x,-1)->'element not found in list';(x)->x]
-def index(l,v) = temp(#idx(l,(\e->#eq(e,v))))
+def index(l,v) = temp(#idx(l,#eq_v))
 
 def sqrt(x) = x^0.5
 def cbrt(x) = x^(1/3)
