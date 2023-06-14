@@ -289,7 +289,11 @@ class Lexer {
       case Some(currentChar) => this.catCodes.tokCode(source) match {
         case CharacterMapping(matchCode, content) if code == matchCode =>
           source.advance(content.length)
-          return Left(UNESCAPE.translate(sb.toString()))
+          try {
+            return Left(UNESCAPE.translate(sb.toString()))
+          } catch {
+            case e: IllegalArgumentException => return Right(Result.Error(e.getMessage))
+          }
         case _ =>
           sb.append(Character.toString(currentChar))
           source.advance(1)
