@@ -1,6 +1,7 @@
 package tuxcalculator.core.util
 
 import java.io.{PrintWriter, StringWriter}
+import java.lang.{StringBuilder => JStringBuilder}
 import java.math.{BigDecimal => BigDec}
 
 object Util {
@@ -16,6 +17,24 @@ object Util {
     num.stripTrailingZeros()
   } catch {
     case _: ArithmeticException => num.setScale(Int.MinValue)
+  }
+  
+  // Always use scientific notation with a single digit before the decimal separator.
+  // Required to make number formatting consistent
+  def formatScientific(num: BigDec): String = {
+    if (num.compareTo(BigDec.ZERO) == 0) return "0e0"
+    val digits: Array[Char] = num.unscaledValue().abs().toString.toCharArray
+    val sb: JStringBuilder = new JStringBuilder(15 + digits.length)
+    val exp: Long = -num.scale().toLong + digits.length - 1
+    if (num.signum() < 0) sb.append("-")
+    sb.append(digits, 0, 1)
+    if (digits.length > 1) {
+      sb.append('.')
+      sb.append(digits, 1, digits.length - 1)
+    }
+    sb.append("e")
+    sb.append(exp)
+    sb.toString
   }
   
   def getStacktrace(t: Throwable): Vector[String] = {

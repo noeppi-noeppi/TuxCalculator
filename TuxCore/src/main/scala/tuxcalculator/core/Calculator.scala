@@ -13,7 +13,6 @@ import tuxcalculator.core.value._
 
 import java.io.DataOutputStream
 import java.math.{MathContext, RoundingMode}
-import java.util.Locale
 
 class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingContext with PropertyAccess {
 
@@ -59,7 +58,8 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
   
   private def formatNum(value: BigDecimal): String = value.round(outputMathContext) match {
     case v if v.abs < 1000000 && v.abs >= 0.0001 => Util.safeStripTrailingZeros(v).toPlainString
-    case v => Util.safeStripTrailingZeros(v).toString.toLowerCase(Locale.ROOT).replace("e+", "e")
+    case v if v.isWhole && v.abs < 100000000 => Util.safeStripTrailingZeros(v).toPlainString
+    case v => Util.formatScientific(Util.safeStripTrailingZeros(v))
   }
   
   private def formatNoTrunc(value: MathValue): String = value match {
