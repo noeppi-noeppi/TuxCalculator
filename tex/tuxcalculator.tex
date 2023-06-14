@@ -143,6 +143,8 @@
     Sometimes, it's desirable to use a character in an identifier that has a different meaning.
     In that case, any characters can be put between two backticks to form an identifier.
     \verb|`+`| for example, is a variable named \verb|+|.
+
+    The text between the backticks supports the same escape sequences as defined in the Java Language Specification except for line continuation.
     
     \subsubsection{Answer}
     The special variable \verb|ans| stores the result of the last evaluated expression that was not an error.
@@ -152,6 +154,7 @@
     \subsection{Error handling}\label{subsec:error-handling}
     To support error handling, there is a type of value called \textsl{error}.
     An error value can be created by placing arbitrary text between single quotation marks.
+    The error text supports the same escape sequences as identifier character escaping.
     Any expression that contains an error value will have that error value as a result, so the error propagates down and causes the whole expression to result in an error.
     Errors are created when trying to evaluate invalid expressions, like division by zero.
     

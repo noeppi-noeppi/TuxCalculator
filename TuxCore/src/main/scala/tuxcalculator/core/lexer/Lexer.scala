@@ -1,10 +1,13 @@
 package tuxcalculator.core.lexer
 
 import org.apache.commons.text.StringEscapeUtils
+import org.apache.commons.text.translate.{AggregateTranslator, LookupTranslator}
 import tuxcalculator.core.lexer.CatCode.CatCode
+import tuxcalculator.core.lexer.Lexer.UNESCAPE
 import tuxcalculator.core.util.{Result, Util}
 
 import scala.collection.mutable.ListBuffer
+import scala.jdk.CollectionConverters._
 
 case class TokenStream(tokens: Vector[Token]) {
   override def toString: String = "TokenStream(" + tokens.mkString(",") + ")"
@@ -24,6 +27,11 @@ class CharacterSource(private val codePoints: Vector[Int]) extends Lookahead[Int
 }
 
 object Lexer {
+  val UNESCAPE = new AggregateTranslator(
+    new LookupTranslator(Map[CharSequence, CharSequence]("\\s" -> " ").asJava),
+    StringEscapeUtils.UNESCAPE_JAVA
+  )
+  
   val LambdaTerminators: Set[CatCode] = Set(
     CatCode.Close, CatCode.End, CatCode.ElementSep, CatCode.GroupSep, CatCode.VarArg, CatCode.Follow
   )
@@ -281,7 +289,7 @@ class Lexer {
       case Some(currentChar) => this.catCodes.tokCode(source) match {
         case CharacterMapping(matchCode, content) if code == matchCode =>
           source.advance(content.length)
-          return Left(StringEscapeUtils.unescapeJava(sb.toString()))
+          return Left(UNESCAPE.translate(sb.toString()))
         case _ =>
           sb.append(Character.toString(currentChar))
           source.advance(1)
