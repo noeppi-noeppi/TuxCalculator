@@ -88,8 +88,9 @@ public abstract class GraphicalFrontend extends DesktopFrontend {
         }
 
         this.arrowIdx = this.clamp(this.arrowIdx + 1, -1, this.historyBuffer.size());
-        if (this.arrowIdx < 0) this.setCurrentText(this.current);
-        else this.setCurrentText(this.historyBuffer.get(this.arrowIdx));
+        String newText = this.arrowIdx < 0 ? this.current : this.historyBuffer.get(this.arrowIdx);
+        this.setCurrentText(newText);
+        this.placeCursorAt(newText.length());
     }
 
     private void decrHist() {
@@ -98,8 +99,9 @@ public abstract class GraphicalFrontend extends DesktopFrontend {
         }
         
         this.arrowIdx = this.clamp(this.arrowIdx - 1, -1, this.historyBuffer.size());
-        if (this.arrowIdx < 0) this.setCurrentText(this.current);
-        else this.setCurrentText(this.historyBuffer.get(this.arrowIdx));
+        String newText = this.arrowIdx < 0 ? this.current : this.historyBuffer.get(this.arrowIdx);
+        this.setCurrentText(newText);
+        this.placeCursorAt(newText.length());
     }
 
     private void calcTerm() {
@@ -107,6 +109,7 @@ public abstract class GraphicalFrontend extends DesktopFrontend {
         
         String term = this.getCurrentText();
         this.setCurrentText("");
+        this.placeCursorAt(0);
 
         if (term.isEmpty()) term = this.lastInput;
         else this.lastInput = term;
