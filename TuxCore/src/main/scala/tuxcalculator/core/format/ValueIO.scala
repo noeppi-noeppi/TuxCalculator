@@ -97,7 +97,7 @@ object ValueIO {
     case 5 =>
       val value = ctx.values.get(in.readInt())
       val len = in.readInt()
-      val args = for (_ <- 0 until len) yield ctx.values.get(in.readInt())
+      val args = for (_ <- 0 until len) yield if (in.readBoolean()) Some(ctx.values.get(in.readInt())) else None
       PartialAppliedFunction.create(value, args.toVector)
     case 6 =>
       val len = in.readInt()
@@ -145,7 +145,11 @@ object ValueIO {
     case partial: PartialAppliedFunction => out.writeByte(5)
       out.writeInt(ctx.values.add(partial.value))
       out.writeInt(partial.partialArgs.length)
-      for (arg <- partial.partialArgs) out.writeInt(ctx.values.add(arg))
+      for (arg <- partial.partialArgs) arg match {
+        case Some(a) => out.writeBoolean(true)
+          out.writeInt(ctx.values.add(a))
+        case None => out.writeBoolean(false)
+      }
     case matched: MatchFunction => out.writeByte(6)
       out.writeInt(matched.entries.length)
       for (entry <- matched.entries) {

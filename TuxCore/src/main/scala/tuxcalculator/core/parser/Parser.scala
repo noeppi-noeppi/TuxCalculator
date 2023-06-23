@@ -130,10 +130,10 @@ class CalculatorParsers(val ctx: ParsingContext) extends Parsers  {
   def basic_expression: Parser[Ast.Expression] = value | variable | reference | special | failure("expression expected")
   
   def post_action_apply: Parser[PostOperation.Application] = flatAcceptMatch("application", {
-    case Token.Application(tokens) => parseTokens(argument_list, tokens).map(args => PostOperation.Application(args.toVector))
+    case Token.Application(tokens) => parseTokens(partial_argument_list, tokens).map(args => PostOperation.Application(args.toVector))
   })
   def post_action_partial_apply_direct: Parser[PostOperation.PartialApplication] = accept(Token.PartialApplication) ~> flatAcceptMatch("partial application", {
-    case Token.Application(tokens) => parseTokens(argument_list, tokens).map(args => PostOperation.PartialApplication(args.toVector))
+    case Token.Application(tokens) => parseTokens(partial_argument_list, tokens).map(args => PostOperation.PartialApplication(args.toVector))
   })
   def post_action_partial_apply_simple: Parser[PostOperation.PartialApplication] = accept(Token.PartialApplication) ~> opt(acceptMatch("sign", { case Token.Sign(name) => name })) ~ (value | variable) ^^ {
     case Some(sgn) ~ value => PostOperation.PartialApplication(Vector(Ast.SignApplication(sgn, value)))
@@ -202,6 +202,9 @@ class CalculatorParsers(val ctx: ParsingContext) extends Parsers  {
     case expr ~ None => expr
   }
   def argument_list: Parser[List[Ast.Argument]] = repsep(argument, accept(Token.ElementSep))
+
+  def partial_argument: Parser[Ast.PartialArgument] = argument | (accept(Token.PartialApplication) ^^ (_ => Ast.Placeholder))
+  def partial_argument_list: Parser[List[Ast.PartialArgument]] = repsep(partial_argument, accept(Token.ElementSep))
   
   def cmd_let: Parser[Ast.LetCommand] = identifier ^^ (name => Ast.LetCommand(name))
   def cmd_rem: Parser[Ast.RemCommand] = target ^^ (name => Ast.RemCommand(name))
@@ -238,8 +241,8 @@ class CalculatorParsers(val ctx: ParsingContext) extends Parsers  {
 sealed trait PostOperation
 object PostOperation {
   case class Operator(name: String) extends PostOperation
-  case class Application(args: Vector[Ast.Argument]) extends PostOperation
-  case class PartialApplication(args: Vector[Ast.Argument]) extends PostOperation
+  case class Application(args: Vector[Ast.PartialArgument]) extends PostOperation
+  case class PartialApplication(args: Vector[Ast.PartialArgument]) extends PostOperation
 }
 
 class TokenReader(private val tokens: List[Token]) extends Reader[Token] {

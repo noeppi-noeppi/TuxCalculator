@@ -19,7 +19,7 @@ object AstIO {
     case 8 => Ast.Special(ctx.strings.get(in.readInt()))
     case 9 =>
       val len = in.readInt()
-      val values = for (_ <- 0 until len) yield readArgument(ctx, in)
+      val values = for (_ <- 0 until len) yield readArgument(ctx, in, ArgumentType.Default)
       Ast.List(values.toVector)
     case 10 =>
       val width = in.readInt()
@@ -55,12 +55,12 @@ object AstIO {
     case 13 =>
       val name = ctx.strings.get(in.readInt())
       val len = in.readInt()
-      val args = for (_ <- 0 until len) yield readArgument(ctx, in)
+      val args = for (_ <- 0 until len) yield readArgument(ctx, in, ArgumentType.Partial)
       Ast.Invocation(name, args.toVector)
     case 14 =>
       val name = ctx.strings.get(in.readInt())
       val len = in.readInt()
-      val args = for (_ <- 0 until len) yield readArgument(ctx, in)
+      val args = for (_ <- 0 until len) yield readArgument(ctx, in, ArgumentType.Partial)
       Ast.PartialInvocation(name, args.toVector)
     case 15 =>
       val name = ctx.strings.get(in.readInt())
@@ -69,12 +69,12 @@ object AstIO {
     case 16 =>
       val value = ctx.ast.get(in.readInt())
       val len = in.readInt()
-      val args = for (_ <- 0 until len) yield readArgument(ctx, in)
+      val args = for (_ <- 0 until len) yield readArgument(ctx, in, ArgumentType.Partial)
       Ast.Application(value, args.toVector)
     case 17 =>
       val value = ctx.ast.get(in.readInt())
       val len = in.readInt()
-      val args = for (_ <- 0 until len) yield readArgument(ctx, in)
+      val args = for (_ <- 0 until len) yield readArgument(ctx, in, ArgumentType.Partial)
       Ast.PartialApplication(value, args.toVector)
     case 18 => Ast.SignApplication(ctx.strings.get(in.readInt()), ctx.ast.get(in.readInt()))
     case 19 => Ast.PostApplication(ctx.strings.get(in.readInt()), ctx.ast.get(in.readInt()))
@@ -171,16 +171,25 @@ object AstIO {
     case _ => throw new IllegalStateException("Can't dump ast: " + ast + " (this is a bug!)")
   }
 
-  private def readArgument(ctx: FormatContext, in: DataInput): Ast.Argument = if (in.readBoolean()) {
-    Ast.SplattedArgument(ctx.ast.get(in.readInt()))
-  } else {
-    ctx.ast.get(in.readInt())
+  private sealed trait ArgumentType[T <: Ast.PartialArgument]
+  private object ArgumentType {
+    object Partial extends ArgumentType[Ast.PartialArgument]
+    object Default extends ArgumentType[Ast.Argument]
   }
   
-  private def writeArgument(ctx: FormatContext, ast: Ast.Argument, out: DataOutput): Unit = ast match {
-    case Ast.SplattedArgument(expr) => out.writeBoolean(true)
+  private def readArgument[T <: Ast.PartialArgument](ctx: FormatContext, in: DataInput, argType: ArgumentType[T]): T = in.readByte() match {
+    case 2 if argType == ArgumentType.Partial => Ast.Placeholder.asInstanceOf[T]
+    case 2 => throw new InvalidFormatException("Corrupted format: Placeholder in non-partial argument.")
+    case 1 => Ast.SplattedArgument(ctx.ast.get(in.readInt())).asInstanceOf[T]
+    case 0 => ctx.ast.get(in.readInt()).asInstanceOf[T]
+    case n => throw new InvalidFormatException("Corrupted format: Invalid argument type: " + n)
+  }
+  
+  private def writeArgument(ctx: FormatContext, ast: Ast.PartialArgument, out: DataOutput): Unit = ast match {
+    case Ast.Placeholder => out.writeByte(2)
+    case Ast.SplattedArgument(expr) => out.writeByte(1)
       out.writeInt(ctx.ast.add(expr))
-    case expr: Ast.Expression => out.writeBoolean(false)
+    case expr: Ast.Expression => out.writeByte(0)
       out.writeInt(ctx.ast.add(expr))
   }
 

@@ -222,7 +222,7 @@
     \subsubsection{Match functions}
     A match function is a function that matches its arguments against multiple patterns and applies the expression associated with the first matching pattern.
     Suppose you have a function \verb|iseven| that checks whether a number is even.
-    You can the define:
+    You can then define:
     \begin{verbatim}
         let collatz = @[x: @iseven -> x/2 ; x -> 3*x+1]
     \end{verbatim}
@@ -254,6 +254,11 @@
     Partial application can also take splatted arguments.
     If a function is partially applied to a single argument that consists of only a number or a variable, the parentheses can be omitted.
     Thus, the above example could also be written as \verb|log_e|.
+    
+    Partial application also supports placeholders that are not partially applied but will be filled in when the function is called.
+    For example \verb|clamp_(_,0,1)| is a function that takes a single value and clamps it to the interval $ [0;1] $.
+    The call \verb|clamp_(_,0,1)(x)| is equivalent to \verb|clamp(x,0,1)|.
+    If the argument list contains at least a single placeholder, the underscore between the function and the argument list can also be omitted, so the above function can also be written as \verb|clamp(_0,1)|.
     
     \subsection{Operators}\label{subsec:sign-operators}
     \paragraph{Sign operators} are unary operators written in front of an expression.

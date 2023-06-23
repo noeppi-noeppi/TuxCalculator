@@ -49,7 +49,15 @@ object Ast {
     def string(calc: Calculator): String = "dump '" + StringEscapeUtils.escapeJava(fileName) + "'"
   }
   
-  sealed trait Argument {
+  sealed trait PartialArgument {
+    def string(calc: Calculator): String
+  }
+  
+  case object Placeholder extends PartialArgument {
+    override def string(calc: Calculator): String = "_"
+  }
+  
+  sealed trait Argument extends PartialArgument {
     def string(calc: Calculator): String
   }
   
@@ -113,11 +121,11 @@ object Ast {
     }
   }
 
-  case class Invocation(name: String, args: Vector[Argument]) extends Expression {
+  case class Invocation(name: String, args: Vector[PartialArgument]) extends Expression {
     override def string(calc: Calculator): String = name + "(" + args.map(_.string(calc)).mkString(", ") + ")"
   }
   
-  case class PartialInvocation(name: String, args: Vector[Argument]) extends Expression {
+  case class PartialInvocation(name: String, args: Vector[PartialArgument]) extends Expression {
     override def string(calc: Calculator): String = name + "_(" + args.map(_.string(calc)).mkString(", ") + ")"
   }
   
@@ -125,11 +133,11 @@ object Ast {
     override def string(calc: Calculator): String = name + " " + arg.string(calc)
   }
   
-  case class Application(value: Expression, args: Vector[Argument]) extends Expression {
+  case class Application(value: Expression, args: Vector[PartialArgument]) extends Expression {
     override def string(calc: Calculator): String = value.string(calc) + "(" + args.map(_.string(calc)).mkString(", ") + ")"
   }
   
-  case class PartialApplication(value: Expression, args: Vector[Argument]) extends Expression {
+  case class PartialApplication(value: Expression, args: Vector[PartialArgument]) extends Expression {
     override def string(calc: Calculator): String = value.string(calc) + "_(" + args.map(_.string(calc)).mkString(", ") + ")"
   }
 

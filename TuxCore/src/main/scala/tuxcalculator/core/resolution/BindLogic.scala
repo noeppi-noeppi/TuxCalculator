@@ -38,6 +38,11 @@ object BindLogic {
       case None => variable(name)
     }
     
+    def processPartialArg(elem: Ast.PartialArgument): Ast.PartialArgument = elem match {
+      case Ast.Placeholder => Ast.Placeholder
+      case a: Ast.Argument => processArg(a)
+    }
+    
     def processArg(elem: Ast.Argument): Ast.Argument = elem match {
       case ex: Ast.Expression => process(ex)
       case Ast.SplattedArgument(ex) => Ast.SplattedArgument(process(ex))
@@ -66,22 +71,22 @@ object BindLogic {
           Ast.MatchEntry(sig, boundElementGuards.map(eg => eg.map(_.fullCode)), boundMainGuard.map(_.fullCode), boundCode.bound, defCode)
       })
       case Ast.Invocation(name, args) if freeVars.contains(name) => calc.resolution.maybeGlobalFunction(name) match {
-        case Some(global) => Ast.Application(Ast.Value(global), args.map(processArg))
+        case Some(global) => Ast.Application(Ast.Value(global), args.map(processPartialArg))
         // A global function does not exist now, but we have a free variable
         // make sure, it will never bind to a global function
-        case None => Ast.Application(Ast.Variable(name), args.map(processArg))
+        case None => Ast.Application(Ast.Variable(name), args.map(processPartialArg))
       }
       case Ast.PartialInvocation(name, args) if freeVars.contains(name) => calc.resolution.maybeGlobalFunction(name) match {
-        case Some(global) => Ast.PartialApplication(Ast.Value(global), args.map(processArg))
+        case Some(global) => Ast.PartialApplication(Ast.Value(global), args.map(processPartialArg))
         // A global function does not exist now, but we have a free variable
         // make sure, it will never bind to a global function
-        case None => Ast.PartialApplication(Ast.Variable(name), args.map(processArg))
+        case None => Ast.PartialApplication(Ast.Variable(name), args.map(processPartialArg))
       }
-      case Ast.Invocation(name, args) => Ast.Application(Ast.Value(checkError(name, invocation(name))), args.map(processArg))
-      case Ast.PartialInvocation(name, args) => Ast.PartialApplication(Ast.Value(checkError(name, invocation(name))), args.map(processArg))
+      case Ast.Invocation(name, args) => Ast.Application(Ast.Value(checkError(name, invocation(name))), args.map(processPartialArg))
+      case Ast.PartialInvocation(name, args) => Ast.PartialApplication(Ast.Value(checkError(name, invocation(name))), args.map(processPartialArg))
       case Ast.ShorthandInvocation(name, arg) => Ast.Application(Ast.Value(calc.resolution.globalFunction(name)), Vector(process(arg)))
-      case Ast.Application(value, args) => Ast.Application(process(value), args.map(processArg))
-      case Ast.PartialApplication(value, args) => Ast.PartialApplication(process(value), args.map(processArg))
+      case Ast.Application(value, args) => Ast.Application(process(value), args.map(processPartialArg))
+      case Ast.PartialApplication(value, args) => Ast.PartialApplication(process(value), args.map(processPartialArg))
       case Ast.SignApplication(name, arg) => Ast.Application(Ast.Value(checkError(name, calc.resolution.sign(name))), Vector(process(arg)))
       case Ast.PostApplication(name, arg) => Ast.Application(Ast.Value(checkError(name, calc.resolution.post(name))), Vector(process(arg)))
       case ops: Ast.OperatorApplication => processOps(ops)

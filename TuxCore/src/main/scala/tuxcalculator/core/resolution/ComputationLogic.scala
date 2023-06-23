@@ -8,6 +8,11 @@ import tuxcalculator.core.value.{MathError, MathList, MathMatrix, MathValue, Mat
 object ComputationLogic {
 
   def compute(expr: BoundExpression, calc: Calculator): MathValue = {
+    def processPartialArg(arg: Ast.PartialArgument): Seq[Option[MathValue]] = arg match {
+      case Ast.Placeholder => Seq(None)
+      case a: Ast.Argument => processArg(a).map(Some(_))
+    }
+    
     def processArg(arg: Ast.Argument): Seq[MathValue] = arg match {
       case Ast.SplattedArgument(listExpr) => normalize(process(listExpr)) match {
         case MathList(values) => values
@@ -35,28 +40,33 @@ object ComputationLogic {
           new LambdaFunction(sig, code, definitionCode)
         )
       }, ast)
-      case Ast.Application(value, args) => doApply(process(value), args.flatMap(processArg), partial = false)
-      case Ast.PartialApplication(value, args) => doApply(process(value), args.flatMap(processArg), partial = true)
+      case Ast.Application(value, args) => doApply(process(value), args.flatMap(processPartialArg), forcePartial = false)
+      case Ast.PartialApplication(value, args) => doApply(process(value), args.flatMap(processPartialArg), forcePartial = true)
       case elem => MathError("Computing an unbound expression: '" + elem.string(calc) + "' This is a bug.")
     }
     
-    def doApply(value: MathValue, args: Vector[MathValue], partial: Boolean): MathValue = {
-      val normArgs = args.map(normalize)
-      def resultOrVoid(result: => MathValue): MathValue = if (normArgs.contains(MathVoid)) MathVoid else result
-
+    def doApply(value: MathValue, args: Vector[Option[MathValue]], forcePartial: Boolean): MathValue = {
+      def argString(arg: Option[MathValue]): String = arg match {
+        case Some(value) => calc.format(value)
+        case None => "_"
+      }
+      
+      val normArgs: Vector[Option[MathValue]] = args.map(_.map(normalize))
+      def resultOrVoid(result: => MathValue): MathValue = if (normArgs.contains(Some(MathVoid))) MathVoid else result
+      val partial = forcePartial || normArgs.contains(None)
+      
       if (value == MathVoid) MathVoid else value match {
-        case err: MathError => err.trace("Applied to " + args.map(calc.format).mkString("(", ", ", ")"))
+        case err: MathError if partial => err.trace("Partially applied to " + args.map(argString).mkString("(", ", ", ")"))
+        case err: MathError => err.trace("Applied to " + args.map(argString).mkString("(", ", ", ")"))
         case _ => normArgs.flatMap[MathError] {
-          case err: MathError => Some(err)
+          case Some(err: MathError) => Some(err)
           case _ => None
         }.headOption match {
-          case Some(err) => err.trace("Passed as " + (if (partial) "partial " else "") + "argument to " + calc.format(value))
-          case None if partial && normArgs.isEmpty => resultOrVoid(value)
-          case None if partial => value match {
-            case err: MathError => err.trace("Partially applied to (" + normArgs.mkString(", ") + ")")
-            case _ => resultOrVoid(PartialAppliedFunction.create(value, normArgs))
-          }
-          case None => resultOrVoid(value.applyTo(calc, normArgs))
+          case Some(err) if partial => err.trace("Passed as partial argument to " + calc.format(value))
+          case Some(err) => err.trace("Passed as argument to " + calc.format(value))
+          case None if partial && !normArgs.exists(_.isDefined) => resultOrVoid(value)
+          case None if partial => resultOrVoid(PartialAppliedFunction.create(value, normArgs))
+          case None => resultOrVoid(value.applyTo(calc, normArgs.map(_.get)))
         }
       }
     }
