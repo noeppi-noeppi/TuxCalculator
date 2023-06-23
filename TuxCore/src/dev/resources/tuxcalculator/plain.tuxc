@@ -58,6 +58,10 @@ def ℑ(x) = #im(x)
 def conj(x) = #sub(#re(x),#mul(#i,#im(x)))
 def polar(r,a) = #polar(r,a)
 
+? Basic functions for dealing with functions
+let temp=\f->(\x->x(x))(\x->f(\y...->x(x)(y...)))
+def Y(f)=temp(\s->\a...->f(s,a...))
+
 ? Basic functions for dealing with lists
 let temp=#sub(0,1)
 def has(l,v) = #if(#eq(#idx(l,#eq_v),temp),false,true)
