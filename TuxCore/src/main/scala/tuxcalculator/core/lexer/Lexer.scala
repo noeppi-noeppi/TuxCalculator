@@ -47,17 +47,22 @@ class Lexer {
   def allChangedCatCodes: Map[Int, CatCode] = this.catCodes.allChangedCatCodes
   def allChangedTokCodes: Map[String, CatCode] = this.catCodes.allChangedTokCodes.map(entry => (Util.makeString(entry._1), entry._2))
   
-  def tokenize(line: String): Result[TokenStream] = {
+  def tokenize(line: String): Result[TokenStream] = try {
     val source: CharacterSource = new CharacterSource(Util.decomposeString(line))
     tokenizePart(source, None, Set())
+  } catch {
+    case e: ImmediateError => e.error
   }
   
-  def tokenizeAssignment(line: String): Result[PartialTokenStream] = {
+  def tokenizeAssignment(line: String): Result[PartialTokenStream] = try {
     val source: CharacterSource = new CharacterSource(Util.decomposeString(line))
     val result = tokenizePart(source, None, Set(), tokenizeAssignment = true)
     result ~ (tokens => PartialTokenStream(tokens, source.remaining))
+  } catch {
+    case e: ImmediateError => e.error
   }
   
+  @throws[ImmediateError]
   private def tokenizePart(source: CharacterSource, closingCatCode: Option[CatCode], breakAt: Set[CatCode], tokenizeAssignment: Boolean = false, canEmitFollow: Boolean = false): Result[TokenStream] = {
     val tokens: ListBuffer[Token] = ListBuffer()
     
@@ -65,7 +70,7 @@ class Lexer {
       private[this] val identifier: ListBuffer[Int] = ListBuffer()
 
       private[this] var insideNumber: Boolean = false
-      private[this] var insideFractional: Boolean = false
+      private[this] var insideFractional: Boolean = false // Must only be true if an actual decimal sep was encountered. Integral part + exp only must leave this false
       private[this] var insideExponent: Boolean = false
       private[this] val integralNumber: ListBuffer[Int] = ListBuffer()
       private[this] val fractionalNumber: ListBuffer[Int] = ListBuffer()
@@ -105,7 +110,9 @@ class Lexer {
           case CatCode.Operator | CatCode.Assign if operator.nonEmpty => operator.addAll(content)
           case CatCode.Post if postfixOperator.nonEmpty => postfixOperator.addAll(content)
           // Check for cat-codes that appear inside a number
-          case CatCode.DecimalSep if insideNumber && !insideFractional && !insideExponent => insideFractional = true
+          case CatCode.DecimalSep if !insideNumber || (!insideFractional && !insideExponent) =>
+            insideNumber = true
+            insideFractional = true
           case CatCode.DecimalSep => return Some(Result.Error("Dangling decimal separator"))
           case CatCode.Exp if insideNumber && !insideExponent => insideExponent = true
           // Start a new cat-code group
@@ -148,6 +155,10 @@ class Lexer {
       }
       
       def finishNumber(): Unit = if (insideNumber) {
+        if (insideFractional && fractionalNumber.isEmpty) {
+          // We got a decimal point but no fractional part. This is an error
+          throw new ImmediateError(Result.Error("Dangling decimal separator"))
+        }
         tokens.addOne(Token.Number(
           if (integralNumber.isEmpty) "0" else Util.makeString(integralNumber),
           if (fractionalNumber.isEmpty) None else Some(Util.makeString(fractionalNumber)),
@@ -301,4 +312,6 @@ class Lexer {
     }
     throw new Error()
   }
+
+  private class ImmediateError(val error: Result.Error) extends Exception
 }
