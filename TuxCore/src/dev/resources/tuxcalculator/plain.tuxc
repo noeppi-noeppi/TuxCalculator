@@ -149,6 +149,7 @@ def °(x) = x * #pi / 180
 ? Functions
 def sort(l) = #sort(l,@<)
 def sort(l,f) = #sort(l,f)
+def arrange(l,p) = #sort(l,(\a,b->p(a)<p(b)))
 let temp = @[(x):#eq(x,-1)->'element not found in list';(x)->x]
 def index(l,v) = temp(#idx(l,#eq_v))
 
