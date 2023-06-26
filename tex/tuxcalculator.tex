@@ -10,6 +10,7 @@
 \usepackage{lmodern}
 \usepackage[parfill]{parskip}
 \usepackage{longtable}
+\usepackage[dvipdfm,hidelinks]{hyperref}
 
 \renewcommand{\arraystretch}{1.3}
 \newcommand{\argument}[1]{{${\big<}\mathrm{#1}{\big>}$}}
@@ -23,7 +24,7 @@
         {\Huge\fontsize{37pt}{37pt}\selectfont T\kern-0.425exu\kern-0.069exx\kern0.075exCalculator}\hspace*{12pt}{\footnotesize Version \texttt{\input{version.txt}}}
         
         \vspace*{24pt}
-        \verb|https://github.com/noeppi-noeppi/TuxCalculator|
+        \url{https://github.com/noeppi-noeppi/TuxCalculator}
     \end{center}
     \vspace*{48pt}
     
@@ -42,13 +43,13 @@
     TuxCalculator is written in Scala and uses the following external libraries:
     \begin{itemize}
         \item The scala library as well as the scala combinator parsing module.\\
-              \texttt{https://\~www.scala-\~lang.org/}
-        \item \textsl{JOpt Simple}: \texttt{https://\~jopt-\~simple.github.io\~/jopt-simple/}
-        \item \textsl{big-math}: \texttt{https://\~eobermuhlner.github.io\~/big-math/}
-        \item \textsl{commons-text}: \texttt{https://\~commons.apache.org\~/text/}
-        \item \textsl{java-gnome}: \texttt{https://\~java\~-gnome.sourceforge.net/}
-        \item \textsl{jline3}: \texttt{https://\~github.com\~/jline\~/jline3/}
-        \item \textsl{jansi}: \texttt{https://\~fusesource.github.io\~/jansi/}
+              \url{https://www.scala-lang.org/}
+        \item \textsl{JOpt Simple}: \url{https://jopt-simple.github.io/jopt-simple/}
+        \item \textsl{big-math}: \url{https://eobermuhlner.github.io/big-math/}
+        \item \textsl{commons-text}: \url{https://commons.apache.org/text/}
+        \item \textsl{java-gnome}: \url{https://java-gnome.sourceforge.net/}
+        \item \textsl{jline3}: \url{https://github.com/jline/jline3/}
+        \item \textsl{jansi}: \url{https://fusesource.github.io/jansi/}
     \end{itemize}
     
     To start the calculator, simply execute the \verb|JAR|-file using at least Java 17.
