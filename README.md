@@ -4,7 +4,7 @@
 That means, expressions are typed in as text and then evaluated to give a result.
 
 *TuxCalculator* is written in Scala and runs on Desktop as well as Android.
-It can use either GTK (through [java-gnome](https://java-gnome.sourceforge.net/)) or Swing or run entirely text based.
+It can use either GTK (through [java-gnome](https://java-gnome.sourceforge.net/)), JavaFX or Swing or run entirely text based.
 
 To get started, head over to [Releases](https://github.com/noeppi-noeppi/TuxCalculator/releases/latest).
 There you can download the *fatjar* for desktop or the *apk* file to install on an Android phone.
