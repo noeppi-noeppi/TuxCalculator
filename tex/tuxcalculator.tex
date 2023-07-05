@@ -644,7 +644,9 @@
         $ \mathrm{chain}(f\dots) $                 & Takes some functions and chains them in order: $ \mathrm{chain}(f, g, h) $ yields $ f(g(h(x))) $. $ \mathrm{chain} $ without any arguments yields the identity function. \\
         $ \mathrm{map}(l, f) $                     & Applies the function $ f $ to each element in the list $ l $ and creates a new list with all the results. \\
         $ \mathrm{flatMap}(l, f) $                 & Applies the function $ f $ to each element in the list $ l $. $ f $ is expected to produce a list. All the lists produced by $ f $ are flattened into one single result list. \\
-        $ \mathrm{rev}(l) $                        & Reverses the list $ l $. \tabgap
+        $ \mathrm{rev}(l) $                        & Reverses the list $ l $. \\
+        $ \mathrm{forall}(l, f) $                  & Gets whether the function $ f $ yields \verb|true| for all elements of the list or matrix $ l $. If $ l $ is neither a list nor a matrix, the result is \verb|true|.  \\
+        $ \mathrm{exists}(l, f) $                  & Gets whether the function $ f $ yields \verb|true| for at least one element of the list or matrix $ l $. If $ l $ is neither a list nor a matrix, the result is \verb|false|. \tabgap
         $ \mathrm{range}(n) $                      & Creates a list with all integers in the interval $ [1;n] $. \\
         $ \mathrm{range}(a, b) $                   & Creates a list with all integers in the interval $ [a;b] $. Giving bounds in reverse order causes the order of the elements to be reversed. \tabgap
         $ \mathrm{sum}(n, f) $                     & Applies $ f $ to all integers in the interval $ [1;n] $ and sums up the results. \\
