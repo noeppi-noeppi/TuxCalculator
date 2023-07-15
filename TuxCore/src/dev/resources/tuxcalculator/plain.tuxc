@@ -90,6 +90,7 @@ cat '<' = operator
 cat '>' = operator
 cat '*' = operator
 cat '/' = operator
+cat '¦' = operator
 cat '÷' = operator
 cat '%' = operator
 cat '^' = operator
@@ -132,6 +133,7 @@ let temp = @[(a:#isv,b:#isv):#len(a)=#len(b)->#fold([#zip(a,b,#mul)...],0,#add);
 def[-200] **(a,b) = temp(a,b)
 let temp = @[(a:#isl,b):#eq(#len(a),0)->'Reduce on an empty list.';(a:#isl,b)->#fold(#cdr(#rev(a)),#car(#rev(a)),(\h,t->b(t,h)));(a,b)->#div(a,b)]
 def[-200] /(a,b) = temp(a,b)
+def[-200] ¦(a,b) = #eq(#mod(b,a),0)
 def[-200] ÷(a,b) = #div(a,b)
 def[-200] %(a,b) = #mod(a,b)
 def[-200] %%(a,b) = (a % b + #abs(b)) % b
