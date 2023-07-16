@@ -177,14 +177,21 @@ let temp = @[(x,p):x<0->#cl(x,p);(x,p)->#fl(x,p)]
 def trunc(x,p) = temp(re(x),p)+i*temp(im(x),p)
 def trunc(x) = temp(re(x),0)+i*temp(im(x),0)
 let temp = \a,b->#if(a<b,a,b)
+def min() = 'Minimum of empty list'
 def min(l...) = l/temp
 let temp = \a,b->#if(a>b,a,b)
+def max() = 'Maximum of empty list'
 def max(l...) = l/temp
+def am() = 'Arithmetic mean of empty list'
 def am(l...) = #fold(l,0,@+)/#len(l)
+def gm() = 'Geometric mean of empty list'
 def gm(l...) = #fold(l,1,@*)^(1/#len(l))
+def hm() = 'Harmonic mean of empty list'
 def hm(l...) = #len(l)/#fold(#map(l,#div_1),0,@+)
+def agm() = 'Arithmetic-geometric mean of empty list'
 def agm(l...) = #agm(gm(l...),am(l...))
 let temp = @[(a):#eq(#len(a),0)->'med of an empty list';(a):#len(a)%2=0->(a(#len(a)/2)+a((#len(a)/2)-1))/2;(a)->a((#len(a)-1)/2)]
+def med() = 'Median of empty list'
 def med(l...) = temp(#sort(l,@<))
 
 let temp = @[(x,l,u):l>x->l;(x,l,u):u<x->u;(x,l,u)->x]
