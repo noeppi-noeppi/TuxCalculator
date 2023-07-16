@@ -6,8 +6,6 @@ import java.math.{MathContext, RoundingMode, BigDecimal => BigDec}
 
 object ProductLog {
 
-  private val R_TWO = BigDec.valueOf(2)
-  private val C_TWO = BigComplex.valueOf(2)
   private val REAl_SEP = BigDec.valueOf(-0.3678794411716)
   
   def productLog(value: BigComplex, mc: MathContext): BigComplex = {
@@ -33,8 +31,8 @@ object ProductLog {
         val wGuess = guess.multiply(expGuess, theMc)
         val numer = wGuess.subtract(value.re, theMc)
         val incrWGuess = guess.add(BigDec.ONE, theMc).multiply(expGuess, theMc)
-        val subPartNum = guess.add(R_TWO, theMc).multiply(numer, theMc)
-        val subPartDenom = R_TWO.multiply(guess, theMc).add(R_TWO, theMc)
+        val subPartNum = guess.add(MathHelper.R_TWO, theMc).multiply(numer, theMc)
+        val subPartDenom = MathHelper.R_TWO.multiply(guess, theMc).add(MathHelper.R_TWO, theMc)
         val subPart = subPartNum.divide(subPartDenom, theMc)
         val denom = incrWGuess.subtract(subPart, theMc)
         guess = guess.subtract(numer.divide(denom, theMc), theMc)
@@ -54,8 +52,8 @@ object ProductLog {
         val wGuess = guess.multiply(expGuess, theMc)
         val numer = wGuess.subtract(value, theMc)
         val incrWGuess = guess.add(BigComplex.ONE, theMc).multiply(expGuess, theMc)
-        val subPartNum = guess.add(C_TWO, theMc).multiply(numer, theMc)
-        val subPartDenom = C_TWO.multiply(guess, theMc).add(C_TWO, theMc)
+        val subPartNum = guess.add(MathHelper.C_TWO, theMc).multiply(numer, theMc)
+        val subPartDenom = MathHelper.C_TWO.multiply(guess, theMc).add(MathHelper.C_TWO, theMc)
         val subPart = subPartNum.divide(subPartDenom, theMc)
         val denom = incrWGuess.subtract(subPart, theMc)
         guess = guess.subtract(numer.divide(denom, theMc), theMc)

@@ -69,6 +69,7 @@ class CalculatorSpecials(private val calc: PropertyAccess) {
     BuiltinFunctions.Rd,
     BuiltinFunctions.Cl,
     BuiltinFunctions.Fl,
+    BuiltinFunctions.Agm,
     LogicOperators.And,
     LogicOperators.Or,
     LogicOperators.Xor

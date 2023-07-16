@@ -17,11 +17,7 @@ object LogarithmicIntegral {
       BigComplexMath.log(log, theMc)
     }
     
-    // Workaround for https://github.com/eobermuhlner/big-math/issues/66
-    val sqrt: BigComplex = x match {
-      case x if x.im.compareTo(BigDec.ZERO) == 0 && x.re.compareTo(BigDec.ZERO) <= 0 => BigComplex.I.multiply(BigDecimalMath.sqrt(x.re.negate(), theMc))
-      case x => BigComplexMath.sqrt(x, theMc)
-    }
+    val sqrt: BigComplex = MathHelper.complexSqrt(x, theMc)
     
     var sum: BigComplex = BigComplex.ZERO
     var current: BigComplex = BigComplex.ZERO

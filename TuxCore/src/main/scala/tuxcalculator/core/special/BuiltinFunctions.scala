@@ -3,7 +3,7 @@ package tuxcalculator.core.special
 import ch.obermuhlner.math.big.{BigComplex, BigComplexMath, BigDecimalMath}
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.data.CalculatorSpecial
-import tuxcalculator.core.math.{IncompleteGamma, LogarithmicIntegral, ProductLog}
+import tuxcalculator.core.math.{ArithmeticGeometricMean, IncompleteGamma, LogarithmicIntegral, ProductLog}
 import tuxcalculator.core.value.{MathComplexNumeric, MathError, MathNumber, MathNumeric, MathRealNumeric, MathValue, ValueHelper}
 
 import java.math.MathContext
@@ -128,4 +128,13 @@ object BuiltinFunctions {
   object Rd extends Rounding("rd", RoundingMode.HALF_UP)
   object Cl extends Rounding("cl", RoundingMode.CEILING)
   object Fl extends Rounding("fl", RoundingMode.FLOOR)
+  
+  object Agm extends CalculatorSpecial.SimpleFunction("agm", 2) {
+    override protected def result(calc: Calculator, args: Vector[MathValue]): MathValue = ValueHelper.run(calc) {
+      (args(0), args(1)) match {
+        case (MathNumeric(gm), MathNumeric(am)) => MathNumber(ArithmeticGeometricMean.agm(gm, am, calc.mathContext))
+        case (gm, am) => MathError("Arithmetic-geometric mean is not defined for (" + calc.format(gm) + ", " + calc.format(am) + ")")
+      }
+    }
+  }
 }

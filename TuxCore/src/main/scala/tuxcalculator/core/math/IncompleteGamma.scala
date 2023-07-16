@@ -7,8 +7,6 @@ import java.math.{MathContext, RoundingMode, BigDecimal => BigDec}
 
 object IncompleteGamma {
   
-  private val C_TWO = BigComplex.valueOf(2)
-
   def gamma(p: BigComplex, x: BigComplex, mc: MathContext): BigComplex = {
     if (BigComplex.ZERO.equals(x)) return gammaC(p, mc)
     if (BigComplex.ZERO.equals(p)) return gammaP0(x, mc)
@@ -64,6 +62,6 @@ object IncompleteGamma {
     println(expInt)
     val ln = BigComplexMath.log(x, theMc)
     val rLog: BigComplex = BigComplexMath.log(neg, theMc).subtract(BigComplexMath.log(BigComplexMath.reciprocal(neg, theMc), theMc), theMc)
-    expInt.negate().add(rLog.divide(C_TWO, theMc)).subtract(ln)
+    expInt.negate().add(rLog.divide(MathHelper.C_TWO, theMc)).subtract(ln)
   }
 }

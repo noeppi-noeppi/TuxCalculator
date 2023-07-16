@@ -180,7 +180,10 @@ let temp = \a,b->#if(a<b,a,b)
 def min(l...) = l/temp
 let temp = \a,b->#if(a>b,a,b)
 def max(l...) = l/temp
-def mean(l...) = #fold(l,0,@+)/#len(l)
+def am(l...) = #fold(l,0,@+)/#len(l)
+def gm(l...) = #fold(l,1,@*)^(1/#len(l))
+def hm(l...) = #len(l)/#fold(#map(l,#div_1),0,@+)
+def agm(l...) = #agm(gm(l...),am(l...))
 let temp = @[(a):#eq(#len(a),0)->'med of an empty list';(a):#len(a)%2=0->(a(#len(a)/2)+a((#len(a)/2)-1))/2;(a)->a((#len(a)-1)/2)]
 def med(l...) = temp(#sort(l,@<))
 

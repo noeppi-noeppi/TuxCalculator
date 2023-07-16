@@ -632,7 +632,10 @@
         $ \mathrm{trunc}(x, p) $                   & Rounds $ x $ to $ p $ decimal places, always rounding towards $ 0 $ ($ p $ may be negative). \tabgap
         $ \mathrm{min}(l\dots) $                   & Gets the smallest of its arguments. $ \mathrm{min}() $ without any arguments produces an error. \\
         $ \mathrm{max}(l\dots) $                   & Gets the largest of its arguments. $ \mathrm{max}() $ without any arguments produces an error. \\
-        $ \mathrm{mean}(l\dots) $                  & Gets the arithmetic mean of its arguments. $ \mathrm{mean}() $ without any arguments produces an error. \\
+        $ \mathrm{am}(l\dots) $                    & Gets the arithmetic mean of its arguments. $ \mathrm{am}() $ without any arguments produces an error. \\
+        $ \mathrm{gm}(l\dots) $                    & Gets the geometric mean of its arguments. $ \mathrm{gm}() $ without any arguments produces an error. \\
+        $ \mathrm{hm}(l\dots) $                    & Gets the harmonic mean of its arguments. $ \mathrm{hm}() $ without any arguments produces an error. \\
+        $ \mathrm{agm}(l\dots) $                   & Gets the arithmetic-geometric mean of its arguments. $ \mathrm{agm}() $ without any arguments produces an error. \\
         $ \mathrm{med}(l\dots) $                   & Gets the median of its arguments. $ \mathrm{med}() $ without any arguments produces an error. \tabgap
         $ \mathrm{clamp}(x, l, u) $                & Gets $ x $ if it lies between $ l $ and $ u $, otherwise the bound that is closer to the value of $ x $. \\
         $ \mathrm{lerp}(p, a, b) $                 & Linearly interpolates from $ a $ to $ b $ using the percentage $ p \in [0;1] $. \tabgap
@@ -720,6 +723,7 @@
         \verb|#abs|    & A function that computes the absolute value of its argument. \\
         \verb|#add|    & A function that adds two numbers or matrices together. \\
         \verb|#adj|    & A function that computes the adjugate of a matrix. \\
+        \verb|#agm|    & A function that computes the arithmetic-geometric mean of tw o numbers. \\
         \verb|#and|    & A function that computes logic or bitwise \verb|AND| of two booleans or integers. \\
         \verb|#asin|   & The arc sine function. \\
         \verb|#atan|   & The \verb|atan2| function. \\
