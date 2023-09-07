@@ -547,7 +547,9 @@
     \begin{longtable}{p{0.2\textwidth}p{\dimexpr0.8\textwidth-3\tabcolsep\relax}}
         $ + $                   & The identity function. Does nothing. \\
         $ - $                   & The negation function. $ -a $ computes $ 0 - a $. \\
-        $ \sim $, $ \neg $      & The logical or bitwise not function. \\
+        $ \sim $                & If used on a list $ l $, returns a new list with only those elements that are contained \textsl{exactly once} in $ l $.
+                                  Otherwise the logical or bitwise \texttt{NOT} function. \\
+        $ \neg $                & The logical or bitwise \texttt{NOT} function. \\
         $ \bar{\;} $            & The complex conjugate function. $ \bar{\;}(a + b \cdot i) = a - b \cdot i $. \\
         $ \sqrt{\vphantom{0}} $ & The square root of a value.
     \end{longtable}
