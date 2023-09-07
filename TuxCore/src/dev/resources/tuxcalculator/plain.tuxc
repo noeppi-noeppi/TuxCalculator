@@ -282,6 +282,8 @@ def NM(n,m) = #fill(n,m,\r,c->0)
 def NM(n) = #fill(n,n,\r,c->0)
 let temp = @[(a:#isv,b:#isv):#len(a)=3&#len(b)=3->#[a(2)*b(3)-a(3)*b(2),a(3)*b(1)-a(1)*b(3),a(1)*b(2)-a(2)*b(1)];(a,b)->'Cross product needs two 3-dimensional vectors.']
 def cross(a,b) = temp(a,b)
+let temp = @[(a:#ism):#eq(#wd(a),#ht(a))->#fold(#fill(#wd(a),\idx->a(idx+1,idx+1)),0,@+);(a:#ism)->'Trace of non-square matrix.';(a)->'Trace needs a matrix.']
+def tr(a) = temp(a)
 def adj(a) = #adj(a)
 def det(a) = #det(a)
 
