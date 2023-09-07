@@ -44,7 +44,7 @@ case class MathList(values: Vector[MathValue]) extends MathValue {
 case class MathMatrix(values: Vector[Vector[MathValue]]) extends MathValue {
   if (values.nonEmpty && values.map(_.length).distinct.size != 1) {
     throw new IllegalArgumentException("Matrix with different column sizes. This is a bug.")
-  } else if (values.exists(_.isEmpty)) {
+  } else if (values.isEmpty || values.exists(_.isEmpty)) {
     throw new IllegalArgumentException("Wrong empty matrix. This is a bug.")
   }
   

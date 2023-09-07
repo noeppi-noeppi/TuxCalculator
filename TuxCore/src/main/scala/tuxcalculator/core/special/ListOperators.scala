@@ -37,7 +37,7 @@ object ListOperators {
       case MathList(values) => values.head
       case MathVector(Vector()) => MathError("car/head of empty vector")
       case MathVector(values) => values.head
-      case _ => MathError("Can't get head of: " + calc.format(args.head))
+      case _ => MathError("Can't get car/head of: " + calc.format(args.head))
     }}
   }
   
@@ -46,8 +46,9 @@ object ListOperators {
       case MathList(Vector()) => MathError("cdr/tail of empty list")
       case MathList(values) => MathList(values.tail)
       case MathVector(Vector()) => MathError("cdr/tail of empty vector")
+      case MathVector(Vector(_)) => MathError("cdr/tail of single-element vector is not defined") // Empty matrices can't exist
       case MathVector(values) => MathVector(values.tail)
-      case _ => MathError("Can't get tail of: " + calc.format(args.head))
+      case _ => MathError("Can't get cdr/tail of: " + calc.format(args.head))
     }}
   }
 
