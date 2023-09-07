@@ -64,7 +64,7 @@ object MatrixOps {
   @tailrec
   def raise(mat: MathMatrix, exp: Int): MathValue = {
     if (mat.width != mat.height) {
-      MathError("Can't compute powers from " + dim(mat) + " matrix.")
+      MathError("Can't compute powers of " + dim(mat) + " matrix.")
     } else if (exp == 0) {
       identity(mat.width)
     } else if (exp > 0) {

@@ -73,12 +73,16 @@ cat '-' = sign
 cat '~' = sign
 cat '¬' = sign
 cat '¯' = sign
-def +(a) = a
+tok '::' = sign
+let temp = @[(a:#isl)->#car(a);(a)->a]
+def +(a) = temp(a)
 def -(a) = #sub(0,a)
 def ¬(a) = #xor(a,true)
 let temp = @[(a:#isl)->#filter(a,\elem,idx->#and(#eq(#idx(a,0,#eq_elem),idx),#eq(#idx(a,#add(idx,1),#eq_elem),#sub(0,1))));(a)->#xor(a,true)]
 def ~(a) = temp(a)
 def ¯(a) = conj(a)
+let temp = @[(a:#ism)->':: on a matrix.';(a)->#cdr(a)]
+def ::(a) = temp(a)
 
 ? Operators
 cat '&' = operator
@@ -97,32 +101,34 @@ cat '%' = operator
 cat '^' = operator
 cat '∠' = operator
 let temp = \a,b->distinct([a...,b...])
-def[-800] ∪(a,b) = temp(a,b)
+def[-900] ∪(a,b) = temp(a,b)
 let temp = @[(a:#isl,b:#isl)->temp(a,b);(a,b)->#or(a,b)]
-def[-800] |(a,b) = temp(a,b)
-def[-800] ⊎(a,b) = [a...,b...]
+def[-900] |(a,b) = temp(a,b)
+def[-900] ⊎(a,b) = [a...,b...]
 let temp = \a,b->distinct(#filter([a...,b...],(\e,i->#if(#and(has(a,e),has(b,e)),false,true))))
-def[-800] ⊔(a,b) = temp(a,b)
+def[-900] ⊔(a,b) = temp(a,b)
 let temp = @[(a:#isl,b:#isl)->temp(a,b);(a,b)->#xor(a,b)]
-def[-800] ~(a,b) = temp(a,b)
+def[-900] ~(a,b) = temp(a,b)
 let temp = \a,b->distinct(#filter(a,(\e,i->has(b,e))))
-def[-700] ∩(a,b) = temp(a,b)
+def[-800] ∩(a,b) = temp(a,b)
 let temp = @[(a:#isl,b:#isl)->temp(a,b);(a,b)->#and(a,b)]
-def[-700] &(a,b) = temp(a,b)
+def[-800] &(a,b) = temp(a,b)
 ? Defining the = operator is a bit tricky as it has the assign catcode and thus, if encountered alone marks the start
 ? of the definition expression. We temporarily change catcodes to circumvent this.
 ? The same is true for other operators starting with =
 tok 'ASSIGN' = assign
 cat '=' ASSIGN operator
-def[-600] =>(a,b) ASSIGN #or(#xor(a,true),b)
-def[-500] =(a,b) ASSIGN #eq(a,b)
+def[-700] =>(a,b) ASSIGN #or(#xor(a,true),b)
+def[-600] =(a,b) ASSIGN #eq(a,b)
 cat '=' ASSIGN assign
 tok 'ASSIGN' = invalid
-def[-500] <>(a,b) = #xor(#eq(a,b),true)
-def[-500] <(a,b) = #lt(a,b)
-def[-500] <=(a,b) = #or(#eq(a,b),#lt(a,b))
-def[-500] >(a,b) = #lt(b,a)
-def[-500] >=(a,b) = #or(#eq(b,a),#lt(b,a))
+def[-600] <>(a,b) = #xor(#eq(a,b),true)
+def[-600] <(a,b) = #lt(a,b)
+def[-600] <=(a,b) = #or(#eq(a,b),#lt(a,b))
+def[-600] >(a,b) = #lt(b,a)
+def[-600] >=(a,b) = #or(#eq(b,a),#lt(b,a))
+let temp = @[(h,t:#ism)->':: on a matrix.';(h,t)->[h,t...]]
+def[-399] ::(h,t) = temp(h,t)
 let temp = @[(a:#isl,b:#isl)->[a...,b...];(a,b)->#add(a,b)]
 def[-300] +(a,b) = temp(a,b)
 let temp = @[(a:#isl,b:#isl)->#filter(a,(\e,i->#eq(#idx(b,0,#eq_e),-1)));(a,b)->#sub(a,b)]
@@ -327,18 +333,18 @@ cat '·' = operator
 cat '×' = operator
 cat '∘' = operator
 cat '∙' = operator
-def[-800] ∨(a,b) = #or(a,b)
-def[-800] ⊽(a,b) = #xor(#or(a,b),true)
-def[-800] ⊻(a,b) = #xor(a,b)
-def[-700] ∧(a,b) = #and(a,b)
-def[-700] ⊼(a,b) = #xor(#and(a,b),true)
-def[-600] ⇒(a,b) = a => b
-def[-500] ≠(a,b) = a <> b
-def[-500] ≤(a,b) = a <= b
-def[-500] ≥(a,b) = a >= b
-def[-400] ∈(e,l) = has(l,e)
-def[-400] ∉(e,l) = #if(has(l,e),false,true)
-def[-400] ∘(a,b) = \arg...->a(b(arg...))
+def[-900] ∨(a,b) = #or(a,b)
+def[-900] ⊽(a,b) = #xor(#or(a,b),true)
+def[-900] ⊻(a,b) = #xor(a,b)
+def[-800] ∧(a,b) = #and(a,b)
+def[-800] ⊼(a,b) = #xor(#and(a,b),true)
+def[-700] ⇒(a,b) = a => b
+def[-600] ≠(a,b) = a <> b
+def[-600] ≤(a,b) = a <= b
+def[-600] ≥(a,b) = a >= b
+def[-500] ∈(e,l) = has(l,e)
+def[-500] ∉(e,l) = #if(has(l,e),false,true)
+def[-500] ∘(a,b) = \arg...->a(b(arg...))
 def[-200] ·(a,b) = a * b
 def[-200] ×(a,b) = cross(a,b)
 def[-200] ∙(a,b) = a ** b

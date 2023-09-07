@@ -10,6 +10,7 @@
 \usepackage{lmodern}
 \usepackage[parfill]{parskip}
 \usepackage{longtable}
+\usepackage{mathtools}
 \usepackage[dvipdfm,hidelinks]{hyperref}
 
 \renewcommand{\arraystretch}{1.3}
@@ -545,12 +546,14 @@
     \subsection{Sign operators}
     Lists all sign operators defined by the \textit{plain} format.
     \begin{longtable}{p{0.2\textwidth}p{\dimexpr0.8\textwidth-3\tabcolsep\relax}}
-        $ + $                   & The identity function. Does nothing. \\
+        $ + $                   & If used on a list, gets the first element of that list.
+                                  Otherwise does nothing. \\
         $ - $                   & The negation function. $ -a $ computes $ 0 - a $. \\
         $ \sim $                & If used on a list $ l $, returns a new list with only those elements that are contained \textsl{exactly once} in $ l $.
                                   Otherwise the logical or bitwise \texttt{NOT} function. \\
         $ \neg $                & The logical or bitwise \texttt{NOT} function. \\
         $ \bar{\;} $            & The complex conjugate function. $ \bar{\;}(a + b \cdot i) = a - b \cdot i $. \\
+        $ \dblcolon $           & Gets all elements except the first of a list. \\
         $ \sqrt{\vphantom{0}} $ & The square root of a value.
     \end{longtable}
     
@@ -579,28 +582,29 @@
         $ \times $                   & \makebox[0pt][r]{$ -200 $} & Calculates a cross product of two $ 3 $-dimensional vectors. \\
         $ + $                        & \makebox[0pt][r]{$ -300 $} & Adds two numbers or concatenates two lists. \\
         $ - $                        & \makebox[0pt][r]{$ -300 $} & If both arguments are lists, $ a - b $ is the list $ a $ with all elements removed, that are contained in the list $ b $. Otherwise subtracts two numbers. \\
-        $ \in $                      & \makebox[0pt][r]{$ -400 $} & $ a \in l $ checks whether the list $ l $ contains the element $ a $. \\
-        $ \notin $                   & \makebox[0pt][r]{$ -400 $} & $ a \notin l $ checks whether the list $ l $ does not contain the element $ a $.\\
-        $ \circ $                    & \makebox[0pt][r]{$ -400 $} & $ f \circ g $ chains the functions f and g to $ f(g(x)) $ \\
-        $ = $                        & \makebox[0pt][r]{$ -500 $} & Gets whether two values are equal. \\
-        $ <> $, $ \neq $             & \makebox[0pt][r]{$ -500 $} & Gets whether two values are different. \\
-        $ < $                        & \makebox[0pt][r]{$ -500 $} & $ a < b $ gets whether the real number $ a $ is strictly smaller than $ b $. Always \verb|false| for non-real numbers. \\
-        $ > $                        & \makebox[0pt][r]{$ -500 $} & $ a > b $ gets whether the real number $ a $ is strictly greater than $ b $. Always \verb|false| for non-real numbers. \\
-        $ <= $, $ \leq $             & \makebox[0pt][r]{$ -500 $} & $ a \leq b $ gets whether the real number $ a $ is smaller or equal to $ b $. Always \verb|false| for non equal, non-real numbers. \\
-        $ >= $, $ \geq $             & \makebox[0pt][r]{$ -500 $} & $ a \geq b $ gets whether the real number $ a $ is greater or equal to $ b $. Always \verb|false| for non equal, non-real numbers. \\
-        $ => $, $ \Rightarrow $      & \makebox[0pt][r]{$ -600 $} & Logical implication. $ a \Rightarrow b $ is equivalent to $ \neg a \vee b $. \\
-        $ \& $                       & \makebox[0pt][r]{$ -700 $} & Logical or bitwise \verb|AND| or deduplicated intersection of lists. \\
-        $ \wedge $                   & \makebox[0pt][r]{$ -700 $} & Logical or bitwise \verb|AND|. \\
-        $ \overline{\wedge} $        & \makebox[0pt][r]{$ -700 $} & Logical or bitwise \verb|NAND|. \\
-        $ \cap $                     & \makebox[0pt][r]{$ -700 $} & Deduplicated intersection of lists. \\
-        $ | $                        & \makebox[0pt][r]{$ -800 $} & Logical or bitwise \verb|OR| or deduplicated union of lists. \\
-        $ \vee $                     & \makebox[0pt][r]{$ -800 $} & Logical or bitwise \verb|OR|. \\
-        $ \overline{\vee} $          & \makebox[0pt][r]{$ -800 $} & Logical or bitwise \verb|NOR|. \\
-        $ \cup $                     & \makebox[0pt][r]{$ -800 $} & Deduplicated union of lists. \\
-        $ \uplus $                   & \makebox[0pt][r]{$ -800 $} & List concatenation. \\
-        $ \sim $                     & \makebox[0pt][r]{$ -800 $} & Logical or bitwise \verb|XOR| or deduplicated disjunctive union of lists. \\
-        $ \underline{\vee} $         & \makebox[0pt][r]{$ -800 $} & Logical or bitwise \verb|XOR|. \\
-        $ \sqcup $                   & \makebox[0pt][r]{$ -800 $} & Deduplicated disjunctive union of lists. \\
+        $ \dblcolon $                & \makebox[0pt][r]{$ -399 $} & $ h \dblcolon t $ prepends $ h $ to the list $ t $. \\
+        $ \in $                      & \makebox[0pt][r]{$ -500 $} & $ a \in l $ checks whether the list $ l $ contains the element $ a $. \\
+        $ \notin $                   & \makebox[0pt][r]{$ -500 $} & $ a \notin l $ checks whether the list $ l $ does not contain the element $ a $.\\
+        $ \circ $                    & \makebox[0pt][r]{$ -500 $} & $ f \circ g $ chains the functions f and g to $ f(g(x)) $ \\
+        $ = $                        & \makebox[0pt][r]{$ -600 $} & Gets whether two values are equal. \\
+        $ <> $, $ \neq $             & \makebox[0pt][r]{$ -600 $} & Gets whether two values are different. \\
+        $ < $                        & \makebox[0pt][r]{$ -600 $} & $ a < b $ gets whether the real number $ a $ is strictly smaller than $ b $. Always \verb|false| for non-real numbers. \\
+        $ > $                        & \makebox[0pt][r]{$ -600 $} & $ a > b $ gets whether the real number $ a $ is strictly greater than $ b $. Always \verb|false| for non-real numbers. \\
+        $ <= $, $ \leq $             & \makebox[0pt][r]{$ -600 $} & $ a \leq b $ gets whether the real number $ a $ is smaller or equal to $ b $. Always \verb|false| for non equal, non-real numbers. \\
+        $ >= $, $ \geq $             & \makebox[0pt][r]{$ -600 $} & $ a \geq b $ gets whether the real number $ a $ is greater or equal to $ b $. Always \verb|false| for non equal, non-real numbers. \\
+        $ => $, $ \Rightarrow $      & \makebox[0pt][r]{$ -700 $} & Logical implication. $ a \Rightarrow b $ is equivalent to $ \neg a \vee b $. \\
+        $ \& $                       & \makebox[0pt][r]{$ -800 $} & Logical or bitwise \verb|AND| or deduplicated intersection of lists. \\
+        $ \wedge $                   & \makebox[0pt][r]{$ -800 $} & Logical or bitwise \verb|AND|. \\
+        $ \overline{\wedge} $        & \makebox[0pt][r]{$ -800 $} & Logical or bitwise \verb|NAND|. \\
+        $ \cap $                     & \makebox[0pt][r]{$ -800 $} & Deduplicated intersection of lists. \\
+        $ | $                        & \makebox[0pt][r]{$ -900 $} & Logical or bitwise \verb|OR| or deduplicated union of lists. \\
+        $ \vee $                     & \makebox[0pt][r]{$ -900 $} & Logical or bitwise \verb|OR|. \\
+        $ \overline{\vee} $          & \makebox[0pt][r]{$ -900 $} & Logical or bitwise \verb|NOR|. \\
+        $ \cup $                     & \makebox[0pt][r]{$ -900 $} & Deduplicated union of lists. \\
+        $ \uplus $                   & \makebox[0pt][r]{$ -900 $} & List concatenation. \\
+        $ \sim $                     & \makebox[0pt][r]{$ -900 $} & Logical or bitwise \verb|XOR| or deduplicated disjunctive union of lists. \\
+        $ \underline{\vee} $         & \makebox[0pt][r]{$ -900 $} & Logical or bitwise \verb|XOR|. \\
+        $ \sqcup $                   & \makebox[0pt][r]{$ -900 $} & Deduplicated disjunctive union of lists. \\
     \end{longtable}
     
     \subsection{Functions}
