@@ -748,8 +748,8 @@
         \verb|#gcd|    & Yields the greatest common divisor of two integers. \\
         \verb|#ht|     & Takes a matrix and returns its height. \\
         \verb|#i|      & The imaginary unit. \\
-        \verb|#idx|    & $ \mathrm{idx}(l,f) $ gets the index of the first element in the list $ l $ for that $ f $ yields \verb|true|.
-                         \verb|-1| if no element matches. \\
+        \verb|#idx|    & $ \mathrm{idx}(l,i,f) $ gets the index of the first element in the list $ l $ for that $ f $ yields \verb|true| skipping the first $ i $ elements.
+                         If no element matches or $ i $ is greater than the list length, the result is \verb|-1|. \\
         \verb|#if|     & $ \mathrm{if}(p,a,b) $ results in $ a $ if $ p $ is \verb|true|, $ b $ otherwise. \\
         \verb|#im|     & A function that gets the imaginary part of a number. \\
         \verb|#isb|    & A function that tests whether it's argument is a boolean value. \\

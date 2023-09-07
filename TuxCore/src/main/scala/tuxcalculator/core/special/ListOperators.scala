@@ -2,7 +2,7 @@ package tuxcalculator.core.special
 
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.data.CalculatorSpecial
-import tuxcalculator.core.value.{MathError, MathList, MathMatrix, MathNumber, MathRealNumeric, MathValue, MathVector, ValueHelper}
+import tuxcalculator.core.value._
 
 object ListOperators {
   
@@ -84,11 +84,22 @@ object ListOperators {
     }
   }}
   
-  object Idx extends CalculatorSpecial.SimpleFunction("idx", 2) {
+  object Idx extends CalculatorSpecial.SimpleFunction("idx", 3) {
     override protected def result(calc: Calculator, args: Vector[MathValue]): MathValue = ValueHelper.run(calc) {ValueHelper.get(args(0)) match {
       case MathList(values) =>
-        val func = ValueHelper.get(args(1))
-        MathNumber(values.indexWhere(value => ValueHelper.boolean(func.applyTo(calc, Vector(value)))))
+        val from: BigInt = ValueHelper.realInt(args(1))
+        if (from < 0) ValueHelper.error("Negative search index: " + from)
+        if (from.isValidInt) {
+          val fromIdx: Int = from.toInt
+          if (fromIdx >= values.size) {
+            MathNumber(-1)
+          } else {
+            val func = ValueHelper.get(args(2))
+            MathNumber(values.indexWhere(value => ValueHelper.boolean(func.applyTo(calc, Vector(value))), fromIdx))
+          }
+        } else {
+          MathNumber(-1)
+        }
       case _ => MathError("Can't index: " + calc.format(args.head))
     }
   }}

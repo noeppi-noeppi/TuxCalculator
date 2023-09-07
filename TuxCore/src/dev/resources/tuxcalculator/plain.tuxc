@@ -64,7 +64,7 @@ def Y(f)=temp(\s->\a...->f(s,a...))
 
 ? Basic functions for dealing with lists
 let temp=#sub(0,1)
-def has(l,v) = #if(#eq(#idx(l,#eq_v),temp),false,true)
+def has(l,v) = #if(#eq(#idx(l,0,#eq_v),temp),false,true)
 def distinct(l) = #fold(l,[],(\n,e->#if(has(n,e),n,[n...,e])))
 
 ? Signs
@@ -124,7 +124,7 @@ def[-500] >(a,b) = #lt(b,a)
 def[-500] >=(a,b) = #or(#eq(b,a),#lt(b,a))
 let temp = @[(a:#isl,b:#isl)->[a...,b...];(a,b)->#add(a,b)]
 def[-300] +(a,b) = temp(a,b)
-let temp = @[(a:#isl,b:#isl)->#filter(a,(\e,i->#eq(#idx(b,#eq_e),-1)));(a,b)->#sub(a,b)]
+let temp = @[(a:#isl,b:#isl)->#filter(a,(\e,i->#eq(#idx(b,0,#eq_e),-1)));(a,b)->#sub(a,b)]
 def[-300] -(a,b) = temp(a,b)
 let temp = \l,n->#fill(#mul(#len(l),n),\i->l(#mod(i,#len(l))))
 let temp = @[(a:#isl,b:#isr)->temp(a,b);(a:#isr,b:#isl)->temp(b,a);(a,b)->#mul(a,b)]
@@ -153,7 +153,7 @@ def sort(l) = #sort(l,@<)
 def sort(l,f) = #sort(l,f)
 def arrange(l,p) = #sort(l,(\a,b->p(a)<p(b)))
 let temp = @[(x):#eq(x,-1)->'element not found in list';(x)->x]
-def index(l,v) = temp(#idx(l,#eq_v))
+def index(l,v) = temp(#idx(l,0,#eq_v))
 
 def sqrt(x) = x^0.5
 def cbrt(x) = x^(1/3)
@@ -161,7 +161,7 @@ def root(n,x) = x^(1/n)
 
 let temp = @[(v:#isv)->sqrt(#fold([#map(v,\x->x*x)...],0,#add));(x)->#abs(x)]
 def abs(x) = temp(x)
-let temp = \x->#eq(#idx([x...],\elem->#if(#eq(elem,0),false,true)),-1)
+let temp = \x->#eq(#idx([x...],0,\elem->#if(#eq(elem,0),false,true)),-1)
 let temp = @[(x:#isl)->'sgn of list';(x):x=0->0;(x:#isv):temp(x)->x;(x:#isr):x>0->1;(x:#isr):x<0->-1;(x)->x/abs(x)]
 def sgn(x) = temp(x)
 def gcd(a,b) = #gcd(a,b)
@@ -263,7 +263,7 @@ def li(x) = #li(x)
 def Li(x) = #li(x) - #li(2)
 def Ei(x) = #li(#e^x)
 
-let temp = @[(n:#isr):n<=1->false;(n):n=2->true;(n:#isr):n=3->true;(n:#isr)->#eq(#idx(#fill(ceil(sqrt(n)),@+_2),\d->gcd(n,d)<>1),-1);(n)->false]
+let temp = @[(n:#isr):n<=1->false;(n):n=2->true;(n:#isr):n=3->true;(n:#isr)->#eq(#idx(#fill(ceil(sqrt(n)),@+_2),0,\d->gcd(n,d)<>1),-1);(n)->false]
 def prime(n) = temp(n)
 let temp = @[(n:#isr):n<=0->0;(n)->count(n,\d->#eq(gcd(n,d),1))]
 def totient(n) = temp(n)
