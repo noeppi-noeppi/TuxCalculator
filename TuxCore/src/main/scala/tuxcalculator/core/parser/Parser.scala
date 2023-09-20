@@ -102,7 +102,7 @@ class CalculatorParsers(val ctx: ParsingContext) extends Parsers  {
   def value: Parser[Ast.Expression] = flatAcceptMatch("struct", {
     case Token.Number(integral, fraction, exponent) => ctx.parseNumber(integral, fraction, exponent) match {
       case Result.Value(num) => Success(Ast.Value(num), TokenReader.Empty)
-      case Result.Error(msg) => Error("number expected. Are your catcodes screwed up? " + msg, TokenReader.Empty)
+      case Result.Error(msg) => Error(msg, TokenReader.Empty)
     }
     case Token.Answer => Success(Ast.Answer, TokenReader.Empty)
     case Token.Error(msg) => Success(Ast.Value(MathError(msg)), TokenReader.Empty)

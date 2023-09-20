@@ -84,11 +84,20 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
     }
   }
   
-  def parseNumber(integral: String, fraction: Option[String], exponent: Option[String]): Result[MathValue] = try {
-    val str = integral + fraction.map("." + _).getOrElse("") + exponent.map("E" + _).getOrElse("")
-    Result.Value(MathNumber(BigDecimal(BigDecimalMath.toBigDecimal(str, mathContext))))
-  } catch {
-    case e: NumberFormatException => Result.Error(e.getMessage)
+  def parseNumber(integral: String, fraction: Option[String], exponent: Option[String]): Result[MathValue] = {
+    exponent match {
+      case Some(exp) => exp.toDoubleOption match {
+        case Some(expNum) if !expNum.isValidInt => return Result.Error("Exponent out of range: " + exp)
+        case _ =>
+      }
+      case None =>
+    }
+    try {
+      val str = integral + fraction.map("." + _).getOrElse("") + exponent.map("E" + _).getOrElse("")
+      Result.Value(MathNumber(BigDecimal(BigDecimalMath.toBigDecimal(str, mathContext))))
+    } catch {
+      case e: NumberFormatException => Result.Error("Number expected. Are your catcodes screwed up? " + e.getMessage)
+    }
   }
   
   def parse(line: String): Result[MathValue] = {
