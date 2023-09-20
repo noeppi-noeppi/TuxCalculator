@@ -658,7 +658,9 @@
         $ \mathrm{forall}(l, f) $                  & Gets whether the function $ f $ yields \verb|true| for all elements of the list or matrix $ l $. If $ l $ is neither a list nor a matrix, the result is \verb|true|.  \\
         $ \mathrm{exists}(l, f) $                  & Gets whether the function $ f $ yields \verb|true| for at least one element of the list or matrix $ l $. If $ l $ is neither a list nor a matrix, the result is \verb|false|. \tabgap
         $ \mathrm{range}(n) $                      & Creates a list with all integers in the interval $ [1;n] $. \\
-        $ \mathrm{range}(a, b) $                   & Creates a list with all integers in the interval $ [a;b] $. Giving bounds in reverse order causes the order of the elements to be reversed. \tabgap
+        $ \mathrm{range}(a, b) $                   & Creates a list with all integers in the interval $ [a;b] $. Giving bounds in reverse order causes the order of the elements to be reversed. \\
+        $ \mathrm{fill}(n, f) $                    & Equivalent to $ \mathrm{map}(\mathrm{range}(n), f) $ \\
+        $ \mathrm{fill}(a, b, f) $                 & Equivalent to $ \mathrm{map}(\mathrm{range}(a, b), f) $ \tabgap
         $ \mathrm{sum}(n, f) $                     & Applies $ f $ to all integers in the interval $ [1;n] $ and sums up the results. \\
         $ \mathrm{sum}(a, b, f) $                  & Applies $ f $ to all integers in the interval $ [a;b] $ and sums up the results. \\
         $ \mathrm{prod}(n, f) $                    & Applies $ f $ to all integers in the interval $ [1;n] $ and multiplies the results. \\

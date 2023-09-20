@@ -227,6 +227,9 @@ let temp = @[(a,b):a=b->[a];(a,b):a>b->#rev(#fill(1+a-b,@+_b));(a,b)->#fill(1+b-
 def range(a,b) = temp(a,b)
 def range(n) = range(1,n)
 
+def fill(a,b,f) = #map(range(a,b),f)
+def fill(n,f) = #map(range(n),f)
+
 def sum(a,b,f) = #fold(#map(range(a,b),f),0,@+)
 def prod(a,b,f) = #fold(#map(range(a,b),f),1,@*)
 def count(a,b,f) = #len(#filter(range(a,b),\elem,idx->f(elem)))
