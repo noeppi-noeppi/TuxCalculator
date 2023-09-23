@@ -13,8 +13,8 @@ object TabCompleter {
   private val Identifier: Set[CatCode] = Set(CatCode.Letter, CatCode.Digit, CatCode.Exp)
   private val Reference: Set[CatCode] = Identifier | Set(CatCode.Sign, CatCode.Operator, CatCode.Post, CatCode.Assign)
 
-  def tabComplete(calc: Calculator, content: String): Result = {
-    val codePoints = Util.decomposeString(content)
+  def tabComplete(calc: Calculator, line: String): Result = {
+    val codePoints = Util.decomposeString(line)
     
     def findPrefix(catcodes: Set[CatCode], startsWith: Option[CatCode]): Option[Prefix] = {
       val matchIdx = codePoints.lastIndexWhere(codePoint => !catcodes.contains(calc.lexer.catCode(codePoint)))
@@ -58,7 +58,7 @@ object TabCompleter {
       case None =>
     }
     
-    Result(content, "", Vector(), isIdentifier = false)
+    Result(line, "", Vector(), isIdentifier = false)
   }
   
   case class Result(prefix: String, completionString: String, matches: Vector[String], isIdentifier: Boolean)

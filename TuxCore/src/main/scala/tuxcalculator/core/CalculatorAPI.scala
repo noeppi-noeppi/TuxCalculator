@@ -2,7 +2,7 @@ package tuxcalculator.core
 
 import tuxcalculator.api.{TuxCalculator, TuxCalculatorAPI, TuxFrontend}
 import tuxcalculator.core.format.{FileLoader, FormatIO, InvalidFormatException}
-import tuxcalculator.core.util.{Result, TabCompleter, Util}
+import tuxcalculator.core.util.{InputHighlighter, Result, TabCompleter, Util}
 import tuxcalculator.core.value.{MathError, MathVoid}
 
 import java.io._
@@ -75,7 +75,8 @@ object CalculatorAPI extends TuxCalculatorAPI {
   
   class CalculatorWrapper(val calc: Calculator) extends TuxCalculator {
     override def ini(): Boolean = calc.ini
-    override def tabComplete(content: String): TuxCalculator.TabCompletion = TabCompleter.tabComplete(calc, content) match {
+    override def highlight(line: String): util.List[TuxCalculator.InputHighlight] = InputHighlighter.highlight(calc, line).asJava
+    override def tabComplete(line: String): TuxCalculator.TabCompletion = TabCompleter.tabComplete(calc, line) match {
       case TabCompleter.Result(prefix, completionString, matches, isIdentifier) => new TuxCalculator.TabCompletion(prefix, completionString, matches.asJava, isIdentifier)
     }
     override def parse(line: String): TuxCalculator.Result = calc.parse(line) match {

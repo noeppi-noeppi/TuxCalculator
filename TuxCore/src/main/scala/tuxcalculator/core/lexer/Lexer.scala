@@ -47,6 +47,8 @@ class Lexer {
   def allChangedCatCodes: Map[Int, CatCode] = this.catCodes.allChangedCatCodes
   def allChangedTokCodes: Map[String, CatCode] = this.catCodes.allChangedTokCodes.map(entry => (Util.makeString(entry._1), entry._2))
   
+  def lookup(source: Lookahead[Int]): TokResult = this.catCodes.tokCode(source)
+  
   def tokenize(line: String): Result[TokenStream] = try {
     val source: CharacterSource = new CharacterSource(Util.decomposeString(line))
     tokenizePart(source, None, Set())

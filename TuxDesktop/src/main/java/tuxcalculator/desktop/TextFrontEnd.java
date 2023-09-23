@@ -72,7 +72,7 @@ public final class TextFrontEnd extends DesktopFrontend {
             System.out.println("This is TuxCalculator, Version " + TuxCalculatorAPI.VERSION + (calc.ini() ? " (INI)" : ""));
             //noinspection InfiniteLoopStatement
             while (true) {
-                String line = reader.readLine(Ansi.ansi().reset().fgBrightGreen().toString());
+                String line = reader.readLine();
                 if (line == null) continue;
                 TuxCalculator.Result result = calc.parse(line);
                 if (result instanceof TuxCalculator.Error) {

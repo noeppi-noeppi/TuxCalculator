@@ -13,9 +13,14 @@ public interface TuxCalculator {
     boolean ini();
 
     /**
+     * Split the given input line into a list of syntax highlighting parts.
+     */
+    List<InputHighlight> highlight(String line);
+    
+    /**
      * Gets tab completion information for an input string.
      */
-    TabCompletion tabComplete(String content);
+    TabCompletion tabComplete(String line);
 
     /**
      * Parses an input line.
@@ -49,6 +54,11 @@ public interface TuxCalculator {
     }
 
     /**
+     * A part of input that can be highlighted.
+     */
+    record InputHighlight(HighlightType type, String content) {}
+    
+    /**
      * Tab completion result.
      *
      * @param prefix           The text before the currently tab-completed part starts.
@@ -59,6 +69,57 @@ public interface TuxCalculator {
      */
     record TabCompletion(String prefix, String completionString, List<String> matches, boolean isIdentifier) {}
 
+    /**
+     * A type of input highlighting.
+     */
+    enum HighlightType {
+
+        /**
+         * Fallback for everything that doesn't match any other category.
+         */
+        PLAIN,
+
+        /**
+         * A number
+         */
+        NUMBER,
+        
+        /**
+         * An identifier.
+         */
+        IDENTIFIER,
+
+        /**
+         * An operator.
+         */
+        OPERATOR,
+
+        /**
+         * A reference.
+         */
+        REFERENCE,
+        
+        /**
+         * A special.
+         */
+        SPECIAL,
+
+        /**
+         * An error.
+         */
+        ERROR,
+
+        /**
+         * A calculator command
+         */
+        COMMAND,
+
+        /**
+         * A comment.
+         */
+        COMMENT
+    }
+    
     interface Builder {
 
         /**
