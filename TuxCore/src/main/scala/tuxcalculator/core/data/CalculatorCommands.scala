@@ -11,8 +11,10 @@ object CalculatorCommands {
   
   private val BaseCommands: Set[String] = Set("let", "def", "rem", "set", "cat", "tok")
   private val IniCommands: Set[String] = BaseCommands | Set("dump")
+  private val AssignmentCommands: Set[String] = Set("let", "def", "set", "cat", "tok")
   
   def commands(calc: Calculator): Set[String] = if (calc.ini) IniCommands else BaseCommands
+  def isAssignmentCommand(cmd: String): Boolean = AssignmentCommands.contains(cmd)
 }
 
 class CalculatorCommands(private val lexer: Lexer) {

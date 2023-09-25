@@ -44,9 +44,11 @@ object InputHighlighter {
     }
     
     skipSpace()
-    CalculatorCommands.commands(calc).map(Util.decomposeString).find((cmd: Vector[Int]) => codePoints.drop(idx).startsWith(cmd)) match {
-      case Some(cmd) => advance(cmd.length, HighlightType.COMMAND)
-      case None =>
+    var commandAssign: Boolean = CalculatorCommands.commands(calc).map(Util.decomposeString).find((cmd: Vector[Int]) => codePoints.drop(idx).startsWith(cmd)) match {
+      case Some(cmd) if codePoints.drop(idx + cmd.length).headOption.forall(next => !Identifier.contains(calc.lexer.catCode(next))) =>
+        advance(cmd.length, HighlightType.COMMAND)
+        CalculatorCommands.isAssignmentCommand(Util.makeString(cmd))
+      case _ => false
     }
 
     // Lookahead that updates with each advance
@@ -63,7 +65,10 @@ object InputHighlighter {
           case CatCode.Error =>
             advance(content.length, HighlightType.ERROR) // Also updates the lookahead
             advanceWhile(lookahead, HighlightType.ERROR, cat => !cat.contains(CatCode.Error), takeFirstNonMatch = true)
-          case CatCode.Operator | CatCode.Sign | CatCode.Post => advance(content.length, HighlightType.OPERATOR)
+          case CatCode.Assign if commandAssign =>
+            advance(content.length, HighlightType.COMMAND)
+            commandAssign = false
+          case CatCode.Operator | CatCode.Sign | CatCode.Post | CatCode.Assign => advance(content.length, HighlightType.OPERATOR)
           case CatCode.Reference =>
             advance(content.length, HighlightType.REFERENCE) // Also updates the lookahead
             skipSpace()

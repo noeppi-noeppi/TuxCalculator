@@ -45,7 +45,10 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
   
   private def outputMathContext: MathContext = {
     if (_outputMathContext == null) {
-      _outputMathContext = new MathContext(precision min properties(CalculatorProperties.Output), RoundingMode.HALF_UP)
+      _outputMathContext = properties(CalculatorProperties.Output) match {
+        case 0 => new MathContext(precision, RoundingMode.HALF_UP)
+        case o => new MathContext(precision min o, RoundingMode.HALF_UP)
+      }
     }
     _outputMathContext
   }

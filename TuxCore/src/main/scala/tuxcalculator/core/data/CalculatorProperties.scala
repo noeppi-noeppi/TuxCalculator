@@ -13,8 +13,8 @@ sealed trait CalculatorProperty[T] {
 class CalculatorProperties(private val calc: Calculator, val onChange: () => Unit) {
   
   private[this] val values: mutable.Map[CalculatorProperty[_], Any] = mutable.Map(
-    CalculatorProperties.Precision -> 24,
-    CalculatorProperties.Output -> 16,
+    CalculatorProperties.Precision -> 16,
+    CalculatorProperties.Output -> 0,
     CalculatorProperties.Truncate -> 0,
     CalculatorProperties.Eager -> false
   )
@@ -63,7 +63,7 @@ object CalculatorProperties {
   case object Output extends CalculatorProperty[Int] {
     override def from(calc: Calculator, value: MathValue): Either[Int, MathValue] = ValueHelper.make(calc) { ValueHelper.realInt(value).toInt }
     override def validate(value: Int): Either[Int, String] = value match {
-      case _ if value <= 0 => Right("Output precision must be positive")
+      case _ if value < 0 => Right("Output precision must be non-negative")
       case _ => Left(value)
     }
   }

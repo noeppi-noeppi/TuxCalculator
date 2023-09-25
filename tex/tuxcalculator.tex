@@ -372,8 +372,8 @@
     These can be changed using the \verb|set| command (section~\ref{subsec:cmd-set}).
     
     \subsection{\texttt{precision}}\label{subsec:precision}
-    The \verb|precsision| is a positive integer that defines the number of significant places used for numeric computations.
-    It defaults to $ 24 $ however, it can be arbitrarily large.
+    The \verb|precsision| is a positive integer that defines the number of significant decimal places used for numeric computations.
+    It defaults to $ 24 $, however, it can be arbitrarily large.
     Note that this affects any computation.
     Consider the following two commands executed in order:
     \begin{verbatim}
@@ -387,7 +387,7 @@
     \subsection{\texttt{output}}\label{subsec:output}
     The \verb|output| property sets the precision used for printing results.
     It defaults to $ 16 $ however, it can be arbitrarily large.
-    If \verb|output| is larger than \verb|precision|, the value of \verb|precision| is used for the output as well.
+    If \verb|output| is $ 0 $, the value of \verb|precision| will be used for output as well.
     Performing calculations on a higher precision internally than outputting to the user helps to mitigate rounding errors.
     
     \subsection{\texttt{truncate}}\label{subsec:truncate}
@@ -493,6 +493,17 @@
             \verb|special| & The hash symbol \verb|#|.           \\
         \end{tabular}
     \end{center}
+    
+    The calculator properties are initialised to the following values:
+    \begin{center}
+        \begin{tabular}{p{0.3\textwidth}p{0.5\textwidth}}
+            \verb|precision| & $ 16 $       \\
+            \verb|output|    & $ 0 $        \\
+            \verb|truncate|  & $ 0 $        \\
+            \verb|eager|     & \verb|false| \\
+        \end{tabular}
+    \end{center}
+    
     There are no variables or functions defined.
     Everything is defined on some specials that can be accessed using a \verb|special| catcode followed by an identifier.
     (for example, \verb|#pi| is the value of $ \pi $).
