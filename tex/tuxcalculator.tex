@@ -88,7 +88,7 @@
     It uses Java-Swing to create the window, which doesn't look like a native application at all but is platform independent.
     
     \subsection{RC-File}\label{subsec:rcfile}
-    Whenever TuxCalculator starts, it tries to load definitions from a \textit{rc-file} unless the \verb|--no-rc| option is given.
+    Whenever TuxCalculator starts, it tries to load definitions from an \textit{rc-file} unless the \verb|--no-rc| option is given.
     The default location for that file is \verb|~/.init.tuxc|.
     The \textit{rc-file} can, for example, define frequently used functions or constants or set the decimal separator to a comma (See section~\ref{subsec:decimal-comma}).
 
@@ -200,7 +200,7 @@
     That means the result of applying the function \verb|\-> a| changes whenever the value of \verb|a| changes.
     
     The last argument to a function can be \textsl{vararg}.
-    In that case, all arguments that are left are packed into a list and passed to the function as a single arguments.
+    In that case, all arguments that are left are packed into a list and passed to the function as a single argument.
     The function \verb|\a... -> a| creates a list of all its arguments.
     
     \subsubsection{Calling functions}
@@ -249,18 +249,17 @@
     \subsection{Partial application}\label{subsec:partial-application}
     Functions can be partially applied.
     This fixes some arguments in place and creates a new function that expects the remaining arguments and calls the old function, adding all the partially applied arguments as well.
-    Take the \verb|log| function: \verb|log(b,a)| computes the logarithm of $ a $ to the base of $ b $.
+    Take the \verb|log| function: \verb|log(b,a)| computes the logarithm of $ a $ base $ b $.
     A partial application can fix the base in place and produce a new function:
     \verb|log_(e)| is a function which takes a single argument and calculates the natural logarithm.
     
-    Partial application can also take splatted arguments.
     If a function is partially applied to a single argument that consists of only a number or a variable, the parentheses can be omitted.
     Thus, the above example could also be written as \verb|log_e|.
     
     Partial application also supports placeholders that are not partially applied but will be filled in when the function is called.
     For example \verb|clamp_(_,0,1)| is a function that takes a single value and clamps it to the interval $ [0;1] $.
     The call \verb|clamp_(_,0,1)(x)| is equivalent to \verb|clamp(x,0,1)|.
-    If the argument list contains at least a single placeholder, the underscore between the function and the argument list can also be omitted, so the above function can also be written as \verb|clamp(_0,1)|.
+    If the argument list contains at least a single placeholder, the underscore between the function and the argument list can also be omitted, so the above function can also be written as \verb|clamp(_,0,1)|.
     
     \subsection{Operators}\label{subsec:sign-operators}
     \paragraph{Sign operators} are unary operators written in front of an expression.
@@ -285,7 +284,7 @@
     \setlength{\parskip}{0pt}
     \begin{enumerate}
         \item Parentheses
-        \item Applications and partial application to a value
+        \item Applications and partial applications to a value
         \item Sign operators
         \item Postfix operators
         \item Binary operators ordered by their \textsl{priority} value from highest to lowest.
@@ -331,7 +330,7 @@
     \setlength{\parskip}{0pt}
     \begin{enumerate}
         \item If a non-vararg function with exactly $ n $ arguments is defined, use it.
-        \item If there are vararg functions that can apply to $ n $ arguments, pick the one with the most non-vararg parameters.
+        \item If there are vararg functions that can take $ n $ arguments, pick the one with the most non-vararg parameters.
         \item Produce an error.
     \end{enumerate}
     \endgroup
@@ -369,7 +368,7 @@
     See section~\ref{subsec:inimode} for more information.
 
     \section{Calculator Properties}\label{sec:calculator-properties}
-    TuxCalculator knows a few properties that alter the behaviour of the calculator itself.
+    TuxCalculator knows a few properties that alter the behaviour of the calculator.
     These can be changed using the \verb|set| command (section~\ref{subsec:cmd-set}).
     
     \subsection{\texttt{precision}}\label{subsec:precision}
@@ -397,7 +396,7 @@
     If the formatted result is longer than the value of \verb|truncate|, it is truncated and \verb|[...]| is added to mark truncation.
     
     \subsection{\texttt{eager}}\label{subsec:eager}
-    \verb|eager| is a boolean value that starts out at \verb|false|.
+    \verb|eager| is a boolean value that starts out \verb|false|.
     The value of \verb|eager| affects, how the calculator binds values to free variables and operators.
     
     By default, binding roughly takes place when a piece of code is executed.
