@@ -39,7 +39,7 @@ object ValueIO {
     case MathError(msg, trace) => out.writeByte(1)
       out.writeInt(ctx.strings.add(msg))
       out.writeInt(trace.length)
-      for (line <- trace) out.writeInt(ctx.strings.add(msg))
+      for (line <- trace) out.writeInt(ctx.strings.add(line))
     case MathNumber(num) if num.im == BigDec.ZERO => out.writeByte(2)
      writeNumber(num.re, out)
     case MathNumber(num) => out.writeByte(3)
