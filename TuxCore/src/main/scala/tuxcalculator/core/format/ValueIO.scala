@@ -2,7 +2,7 @@ package tuxcalculator.core.format
 
 import ch.obermuhlner.math.big.BigComplex
 import tuxcalculator.core.data.SpecialFunction
-import tuxcalculator.core.function.{GlobalFunction, LambdaFunction, MatchFunction, MatchFunctionEntry, MergedOperatorFunction, OperatorFunction, PartialAppliedFunction}
+import tuxcalculator.core.function.{GlobalFunction, LambdaFunction, MatchFunction, MatchFunctionEntry, MemoizedFunction, MergedOperatorFunction, OperatorFunction, PartialAppliedFunction}
 import tuxcalculator.core.value.{MathError, MathFalse, MathFunction, MathList, MathMatrix, MathNumber, MathTrue, MathValue, MathVoid}
 
 import java.io.{DataInput, DataOutput}
@@ -118,6 +118,7 @@ object ValueIO {
       }
       val defCode = ctx.ast.get(in.readInt())
       new MatchFunction(entries.toVector, defCode)
+    case 7 => new MemoizedFunction(ctx.functions.get(in.readInt()))
     case b => throw new InvalidFormatException("Corrupted format: Unknown function type: " + b)
   }
   
@@ -167,6 +168,8 @@ object ValueIO {
         out.writeInt(ctx.functions.add(entry.code))
       }
       out.writeInt(ctx.ast.add(matched.definitionCode))
+    case memoized: MemoizedFunction => out.writeByte(7)
+      out.writeInt(ctx.functions.add(memoized.function))
     case _ => throw new IllegalStateException("Can't dump function: " + func + " (this is a bug!)")
   }
 }

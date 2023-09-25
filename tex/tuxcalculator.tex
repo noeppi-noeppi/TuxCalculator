@@ -728,71 +728,73 @@
     \section{Reference of specials}\label{sec:reference-special}
     Lists all specials known to \textit{TuxCalculator}.
     \begin{longtable}{p{0.2\textwidth}p{\dimexpr0.8\textwidth-3\tabcolsep\relax}}
-        \verb|#abs|    & A function that computes the absolute value of its argument. \\
-        \verb|#add|    & A function that adds two numbers or matrices together. \\
-        \verb|#adj|    & A function that computes the adjugate of a matrix. \\
-        \verb|#agm|    & A function that computes the arithmetic-geometric mean of tw o numbers. \\
-        \verb|#and|    & A function that computes logic or bitwise \verb|AND| of two booleans or integers. \\
-        \verb|#asin|   & The arc sine function. \\
-        \verb|#atan|   & The \verb|atan2| function. \\
-        \verb|#car|    & A function that gets the first element of a list or vector. \\
-        \verb|#cdr|    & A function that gets all except the first element of a list or vector.
-                         $ \mathrm{cdr} $ on a single-element vector is an error as empty vectors don't exist. \\
-        \verb|#cl|     & $ \mathrm{cl}(n,p) $ ceils $ n $ to precision $ p $. \\
-        \verb|#cosh|   & The hyperbolic cosine function. \\
-        \verb|#det|    & A function that computes the determinant of a matrix. \\
-        \verb|#div|    & A function that divides two numbers or matrices. \\
-        \verb|#e|      & The value of the constant $ e $ for the current precision. \\
-        \verb|#eq|     & Takes two values and yields whether they are equal. \\
-        \verb|#f|      & The \verb|false| value. \\
-        \verb|#fib|    & A function for the fibonacci sequence.
-                         Indices start at $ 1 $. \\
-        \verb|#fill|   & $ \mathrm{fill}(m,f) $ applies $ f $ to each number from $ 0 $ (inclusive) to $ m $ (exclusive) and puts the results in a list.
-                         $ \mathrm{fill}(h,w,f) $ makes a matrix with height $ h $ and width $ w $, where each element is obtained by calling $ f(row,col) $. \\
-        \verb|#filter| & $ \mathrm{filter}(l,f) $ applies $ f $ to each element in the list $ l $ and its index.
-                         Returns a new list with every element in $ l $ for that $ f $ returned \verb|true|. \\
-        \verb|#fl|     & $ \mathrm{fl}(n,p) $ floors $ n $ to precision $ p $. \\
-        \verb|#fold|   & $ \mathrm{fold}(l,s,f) $ yields $ s $ for an empty list $ l $.
-                         For a non-empty list, apply $ f $ to $ s, l(0) $ and fold it with the tail of $ l $. \\
-        \verb|#gamma|  & The incomplete gamma function $ \Gamma(p, x) $. \\
-        \verb|#gcd|    & Yields the greatest common divisor of two integers. \\
-        \verb|#ht|     & Takes a matrix and returns its height. \\
-        \verb|#i|      & The imaginary unit. \\
-        \verb|#idx|    & $ \mathrm{idx}(l,i,f) $ gets the index of the first element in the list $ l $ for that $ f $ yields \verb|true| skipping the first $ i $ elements.
-                         If no element matches or $ i $ is greater than the list length, the result is \verb|-1|. \\
-        \verb|#if|     & $ \mathrm{if}(p,a,b) $ results in $ a $ if $ p $ is \verb|true|, $ b $ otherwise. \\
-        \verb|#im|     & A function that gets the imaginary part of a number. \\
-        \verb|#isb|    & A function that tests whether it's argument is a boolean value. \\
-        \verb|#isl|    & A function that tests whether it's argument is a list. \\
-        \verb|#ism|    & A function that tests whether it's argument is a vector or matrix. \\
-        \verb|#isr|    & A function that tests whether it's argument is a real number. \\
-        \verb|#isv|    & A function that tests whether it's argument is a vector. \\
-        \verb|#len|    & A function that yields the length of a list or a vector. \\
-        \verb|#li|     & The logarithmic integral. \\
-        \verb|#ln|     & The natural logarithm. \\
-        \verb|#lt|     & Takes two values and yields whether the first is smaller than the second.
-                         If either of the arguments is not a real number, the result is \verb|false|. \\
-        \verb|#map|    & $ \mathrm{map}(l,f) $ applies $ f $ to each element in the list or vector  $ l $ and produces a new list or vector with the new results. \\
-        \verb|#mod|    & A function that computes the modulo of two numbers. \\
-        \verb|#mul|    & A function that multiplies two numbers or matrices. \\
-        \verb|#or|     & A function that computes logic or bitwise \verb|OR| of two booleans or integers. \\
-        \verb|#pi|     & The value of the constant $ \pi $ for the current precision. \\
-        \verb|#polar|  & A function that creates a complex number from radius and angle. \\
-        \verb|#pow|    & A function that raises a number or matrix to a power. \\
-        \verb|#re|     & A function that gets the real part of a number. \\
-        \verb|#rev|    & A function that reverses a list or a vector. \\
-        \verb|#rd |    & $ \mathrm{rd}(n,p) $ rounds $ n $ to precision $ p $. \\
-        \verb|#sin|    & The sine function. \\
-        \verb|#sinh|   & The hyperbolic sine function. \\
-        \verb|#sort|   & $ \mathrm{sort}(l,f) $ sorts the list $ l $ given a function $ f $ which holds $ f(a,b) \iff a < b $ \\
-        \verb|#sub|    & A function that subtracts two numbers or matrices. \\
-        \verb|#t|      & The \verb|true| value. \\
-        \verb|#v|      & The \verb|void| value. \\
-        \verb|#w|      & The lambert $ W $ function. \\
-        \verb|#wd|     & Takes a matrix and returns its width. \\
-        \verb|#xor|    & A function that computes logic or bitwise \verb|XOR| of two booleans or integers. \\
-        \verb|#zip|    & $ \mathrm{zip}(a,b,f) $ Given the two lists or vectors $ a $ and $ b $, iterates over every index from $ 0 $ to the length of the shorter list.
-                         Applies $ f $ to the value from $ a $ at that index and the value of $ b $ at that index.
-                         Produces a new list containing all the results. \\
+        \verb|#abs|     & A function that computes the absolute value of its argument. \\
+        \verb|#add|     & A function that adds two numbers or matrices together. \\
+        \verb|#adj|     & A function that computes the adjugate of a matrix. \\
+        \verb|#agm|     & A function that computes the arithmetic-geometric mean of tw o numbers. \\
+        \verb|#and|     & A function that computes logic or bitwise \verb|AND| of two booleans or integers. \\
+        \verb|#asin|    & The arc sine function. \\
+        \verb|#atan|    & The \verb|atan2| function. \\
+        \verb|#car|     & A function that gets the first element of a list or vector. \\
+        \verb|#cdr|     & A function that gets all except the first element of a list or vector.
+                          $ \mathrm{cdr} $ on a single-element vector is an error as empty vectors don't exist. \\
+        \verb|#cl|      & $ \mathrm{cl}(n,p) $ ceils $ n $ to precision $ p $. \\
+        \verb|#cosh|    & The hyperbolic cosine function. \\
+        \verb|#det|     & A function that computes the determinant of a matrix. \\
+        \verb|#div|     & A function that divides two numbers or matrices. \\
+        \verb|#e|       & The value of the constant $ e $ for the current precision. \\
+        \verb|#eq|      & Takes two values and yields whether they are equal. \\
+        \verb|#f|       & The \verb|false| value. \\
+        \verb|#fib|     & A function for the fibonacci sequence.
+                          Indices start at $ 1 $. \\
+        \verb|#fill|    & $ \mathrm{fill}(m,f) $ applies $ f $ to each number from $ 0 $ (inclusive) to $ m $ (exclusive) and puts the results in a list.
+                          $ \mathrm{fill}(h,w,f) $ makes a matrix with height $ h $ and width $ w $, where each element is obtained by calling $ f(row,col) $. \\
+        \verb|#filter|  & $ \mathrm{filter}(l,f) $ applies $ f $ to each element in the list $ l $ and its index.
+                          Returns a new list with every element in $ l $ for that $ f $ returned \verb|true|. \\
+        \verb|#fl|      & $ \mathrm{fl}(n,p) $ floors $ n $ to precision $ p $. \\
+        \verb|#fold|    & $ \mathrm{fold}(l,s,f) $ yields $ s $ for an empty list $ l $.
+                          For a non-empty list, apply $ f $ to $ s, l(0) $ and fold it with the tail of $ l $. \\
+        \verb|#gamma|   & The incomplete gamma function $ \Gamma(p, x) $. \\
+        \verb|#gcd|     & Yields the greatest common divisor of two integers. \\
+        \verb|#ht|      & Takes a matrix and returns its height. \\
+        \verb|#i|       & The imaginary unit. \\
+        \verb|#idx|     & $ \mathrm{idx}(l,i,f) $ gets the index of the first element in the list $ l $ for that $ f $ yields \verb|true| skipping the first $ i $ elements.
+                          If no element matches or $ i $ is greater than the list length, the result is \verb|-1|. \\
+        \verb|#if|      & $ \mathrm{if}(p,a,b) $ results in $ a $ if $ p $ is \verb|true|, $ b $ otherwise. \\
+        \verb|#im|      & A function that gets the imaginary part of a number. \\
+        \verb|#isb|     & A function that tests whether it's argument is a boolean value. \\
+        \verb|#isl|     & A function that tests whether it's argument is a list. \\
+        \verb|#ism|     & A function that tests whether it's argument is a vector or matrix. \\
+        \verb|#isr|     & A function that tests whether it's argument is a real number. \\
+        \verb|#isv|     & A function that tests whether it's argument is a vector. \\
+        \verb|#len|     & A function that yields the length of a list or a vector. \\
+        \verb|#li|      & The logarithmic integral. \\
+        \verb|#ln|      & The natural logarithm. \\
+        \verb|#lt|      & Takes two values and yields whether the first is smaller than the second.
+                          If either of the arguments is not a real number, the result is \verb|false|. \\
+        \verb|#map|     & $ \mathrm{map}(l,f) $ applies $ f $ to each element in the list or vector  $ l $ and produces a new list or vector with the new results. \\
+        \verb|#memoize| & Takes a function and returns a new function that invokes the old one but makes a best effort to memoize the results if called with the same arguments multiple times.
+                          However, there is no guarantee that any caching is performed. \\
+        \verb|#mod|     & A function that computes the modulo of two numbers. \\
+        \verb|#mul|     & A function that multiplies two numbers or matrices. \\
+        \verb|#or|      & A function that computes logic or bitwise \verb|OR| of two booleans or integers. \\
+        \verb|#pi|      & The value of the constant $ \pi $ for the current precision. \\
+        \verb|#polar|   & A function that creates a complex number from radius and angle. \\
+        \verb|#pow|     & A function that raises a number or matrix to a power. \\
+        \verb|#re|      & A function that gets the real part of a number. \\
+        \verb|#rev|     & A function that reverses a list or a vector. \\
+        \verb|#rd |     & $ \mathrm{rd}(n,p) $ rounds $ n $ to precision $ p $. \\
+        \verb|#sin|     & The sine function. \\
+        \verb|#sinh|    & The hyperbolic sine function. \\
+        \verb|#sort|    & $ \mathrm{sort}(l,f) $ sorts the list $ l $ given a function $ f $ which holds $ f(a,b) \iff a < b $ \\
+        \verb|#sub|     & A function that subtracts two numbers or matrices. \\
+        \verb|#t|       & The \verb|true| value. \\
+        \verb|#v|       & The \verb|void| value. \\
+        \verb|#w|       & The lambert $ W $ function. \\
+        \verb|#wd|      & Takes a matrix and returns its width. \\
+        \verb|#xor|     & A function that computes logic or bitwise \verb|XOR| of two booleans or integers. \\
+        \verb|#zip|     & $ \mathrm{zip}(a,b,f) $ Given the two lists or vectors $ a $ and $ b $, iterates over every index from $ 0 $ to the length of the shorter list.
+                          Applies $ f $ to the value from $ a $ at that index and the value of $ b $ at that index.
+                          Produces a new list containing all the results. \\
     \end{longtable}
 \end{document}

@@ -1,7 +1,7 @@
 package tuxcalculator.core.data
 
 import tuxcalculator.core.Calculator
-import tuxcalculator.core.special.{BasicOperators, BuiltinFunctions, Constants, ListOperators, LogicOperators, MatrixOperators, RelOperators, TestOperators}
+import tuxcalculator.core.special.{BasicOperators, BuiltinFunctions, Constants, FunctionOperators, ListOperators, LogicOperators, MatrixOperators, RelOperators, TestOperators}
 import tuxcalculator.core.value.{MathError, MathFunction, MathValue}
 
 import java.math.MathContext
@@ -72,7 +72,8 @@ class CalculatorSpecials(private val calc: PropertyAccess) {
     BuiltinFunctions.Agm,
     LogicOperators.And,
     LogicOperators.Or,
-    LogicOperators.Xor
+    LogicOperators.Xor,
+    FunctionOperators.Memoize
   ).map(special => special.name -> special).toMap
   
   val keys: Set[String] = specials.keySet
