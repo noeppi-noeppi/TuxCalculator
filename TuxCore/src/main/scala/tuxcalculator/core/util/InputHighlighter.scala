@@ -1,6 +1,6 @@
 package tuxcalculator.core.util
 
-import tuxcalculator.api.TuxCalculator.{HighlightType, InputHighlight}
+import tuxcalculator.api.TuxCalculator.{HighlightType, HighlightPart}
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.data.CalculatorCommands
 import tuxcalculator.core.lexer.CatCode.CatCode
@@ -13,10 +13,10 @@ object InputHighlighter {
   private val Number: Set[CatCode] = Set(CatCode.Digit, CatCode.DecimalSep, CatCode.Exp)
   private val Identifier: Set[CatCode] = Set(CatCode.Letter, CatCode.Digit, CatCode.Exp)
   
-  def highlight(calc: Calculator, line: String): Vector[InputHighlight] = {
+  def highlight(calc: Calculator, line: String): Vector[HighlightPart] = {
     var idx: Int = 0
     val codePoints = Util.decomposeString(line)
-    val parts: ListBuffer[InputHighlight] = ListBuffer()
+    val parts: ListBuffer[HighlightPart] = ListBuffer()
     
     def advance(amount: Int, highlight: HighlightType): Unit = if (amount != 0) {
       val content = codePoints.slice(idx min codePoints.length, (idx + amount) min codePoints.length)
@@ -24,8 +24,8 @@ object InputHighlighter {
       if (content.nonEmpty) parts.lastOption match {
         case Some(hl) if hl.`type`() == highlight =>
           parts.remove(parts.length - 1)
-          parts.addOne(new InputHighlight(highlight, hl.content() + Util.makeString(content)))
-        case _ => parts.addOne(new InputHighlight(highlight, Util.makeString(content)))
+          parts.addOne(new HighlightPart(highlight, hl.content() + Util.makeString(content)))
+        case _ => parts.addOne(new HighlightPart(highlight, Util.makeString(content)))
       }
     }
     
@@ -75,7 +75,7 @@ object InputHighlighter {
             calc.lexer.lookup(lookahead) match {
               // Signs only take the first token
               case CharacterMapping(CatCode.Sign, nestedContent) => advance(nestedContent.length, HighlightType.REFERENCE)
-              case CharacterMapping(CatCode.Operator, _) => advanceWhile(lookahead, HighlightType.REFERENCE, cat => cat.contains(CatCode.Operator))
+              case CharacterMapping(CatCode.Operator | CatCode.Assign, _) => advanceWhile(lookahead, HighlightType.REFERENCE, cat => cat.contains(CatCode.Operator) || cat.contains(CatCode.Assign))
               case CharacterMapping(CatCode.Post, _) => advanceWhile(lookahead, HighlightType.REFERENCE, cat => cat.contains(CatCode.Post))
               case _ => advanceWhile(lookahead, HighlightType.REFERENCE, cat => cat.exists(Identifier.contains))
             }
@@ -85,12 +85,22 @@ object InputHighlighter {
             advanceWhile(lookahead, HighlightType.SPECIAL, cat => cat.exists(Identifier.contains))
           case cat if Number.contains(cat) => advanceWhile(lookahead, HighlightType.NUMBER, cat => cat.exists(Number.contains))
           case cat if Identifier.contains(cat) => advanceWhile(lookahead, HighlightType.IDENTIFIER, cat => cat.exists(Identifier.contains))
+          case CatCode.Answer | CatCode.Lambda | CatCode.Follow | CatCode.VarArg | CatCode.Partial => advance(content.length, HighlightType.CONSTRUCT)
           case _ => advance(content.length, HighlightType.PLAIN)
         }
         case _ => advance(1, HighlightType.PLAIN)
       }
     }
     
-    parts.toVector
+    // Identifiers are not necessarily processed as a whole but may be added in pieces.
+    // At this point however, they'll be merged together.
+    // Replace identifiers that are globally defined with global highlight.
+    parts.map(part => {
+      if (part.`type`() == HighlightType.IDENTIFIER && calc.resolution.tabCompleteIdentifier.contains(part.content())) {
+        new HighlightPart(HighlightType.GLOBAL, part.content())
+      } else {
+        part
+      }
+    }).toVector
   }
 }

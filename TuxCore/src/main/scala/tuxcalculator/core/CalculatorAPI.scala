@@ -1,5 +1,6 @@
 package tuxcalculator.core
 
+import tuxcalculator.api.TuxCalculator.HighlightPart
 import tuxcalculator.api.{TuxCalculator, TuxCalculatorAPI, TuxFrontend}
 import tuxcalculator.core.format.{FileLoader, FormatIO, InvalidFormatException}
 import tuxcalculator.core.util.{InputHighlighter, Result, TabCompleter, Util}
@@ -75,7 +76,7 @@ object CalculatorAPI extends TuxCalculatorAPI {
   
   class CalculatorWrapper(val calc: Calculator) extends TuxCalculator {
     override def ini(): Boolean = calc.ini
-    override def highlight(line: String): util.List[TuxCalculator.InputHighlight] = InputHighlighter.highlight(calc, line).asJava
+    override def highlight(line: String): util.List[HighlightPart] = InputHighlighter.highlight(calc, line).asJava
     override def tabComplete(line: String): TuxCalculator.TabCompletion = TabCompleter.tabComplete(calc, line) match {
       case TabCompleter.Result(prefix, completionString, matches, isIdentifier) => new TuxCalculator.TabCompletion(prefix, completionString, matches.asJava, isIdentifier)
     }

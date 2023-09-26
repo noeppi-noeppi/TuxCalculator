@@ -181,7 +181,7 @@ public abstract class GraphicalFrontend extends DesktopFrontend {
         this.lastTabCurserPos = -1;
     }
     
-    enum Action {
+    protected enum Action {
         SUBMIT,
         INCR_HIST,
         DECR_HIST,

@@ -15,7 +15,7 @@ public interface TuxCalculator {
     /**
      * Split the given input line into a list of syntax highlighting parts.
      */
-    List<InputHighlight> highlight(String line);
+    List<HighlightPart> highlight(String line);
     
     /**
      * Gets tab completion information for an input string.
@@ -56,7 +56,7 @@ public interface TuxCalculator {
     /**
      * A part of input that can be highlighted.
      */
-    record InputHighlight(HighlightType type, String content) {}
+    record HighlightPart(HighlightType type, String content) {}
     
     /**
      * Tab completion result.
@@ -88,6 +88,11 @@ public interface TuxCalculator {
          * An identifier.
          */
         IDENTIFIER,
+        
+        /**
+         * An identifier that is defined as a global name.
+         */
+        GLOBAL,
 
         /**
          * An operator.
@@ -114,6 +119,11 @@ public interface TuxCalculator {
          */
         COMMAND,
 
+        /**
+         * A construct. The answer catcode, lambdas, vararg and partial tokens fall into this category.
+         */
+        CONSTRUCT,
+        
         /**
          * A comment.
          */

@@ -3,7 +3,6 @@ package tuxcalculator.desktop;
 import org.gnome.gdk.Keyval;
 import org.gnome.gdk.Rectangle;
 import org.gnome.gtk.*;
-import org.gnome.pango.Scale;
 import org.gnome.pango.Weight;
 import tuxcalculator.api.TuxCalculator;
 import tuxcalculator.api.TuxCalculatorAPI;
@@ -14,11 +13,10 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class GtkFrontend extends GraphicalFrontend {
 
@@ -29,8 +27,7 @@ public class GtkFrontend extends GraphicalFrontend {
     private TextTag outTag;
     private TextTag outTagError;
 
-    private final List<TextTagKey> resultTags = new ArrayList<>();
-    private final List<TextTagKey> errorTags = new ArrayList<>();
+    private final List<TextTagKey> outputTags = new ArrayList<>();
     
     @Override
     public void init() {
@@ -72,8 +69,6 @@ public class GtkFrontend extends GraphicalFrontend {
             this.scrollPane = (ScrolledWindow) builder.getObject("tux_term_scroll");
 
             TextTagTable inTable = new TextTagTable();
-            TextTag inTag = new TextTag(inTable);
-            inTag.setScale(Scale.X_LARGE);
             this.in.setBuffer(new TextBuffer(inTable));
 
             TextTagTable outTable = new TextTagTable();
@@ -127,12 +122,7 @@ public class GtkFrontend extends GraphicalFrontend {
                 
                 int cursor = iter.getOffset();
                 String tooltip = null;
-                for (TextTagKey key : this.resultTags) {
-                    if (key.start < cursor && key.end > cursor) {
-                        tooltip = key.tooltip();
-                    }
-                }
-                for (TextTagKey key : this.errorTags) {
+                for (TextTagKey key : this.outputTags) {
                     if (key.start < cursor && key.end > cursor) {
                         tooltip = key.tooltip();
                     }
@@ -211,20 +201,18 @@ public class GtkFrontend extends GraphicalFrontend {
         if (result instanceof TuxCalculator.Error err) {
             String tooltip = null;
             if (!err.trace().isEmpty()) tooltip = String.join("\n", err.trace());
-            this.errorTags.add(new TextTagKey(start, end, tooltip));
+            this.outputTags.add(new TextTagKey(start, end, tooltip, this.outTagError));
         } else {
-            this.resultTags.add(new TextTagKey(start, end, null));
+            this.outputTags.add(new TextTagKey(start, end, null, this.outTag));
         }
         
-        for (TextTagKey tag : this.resultTags) {
-            this.out.getBuffer().applyTag(this.outTag, this.out.getBuffer().getIter(tag.start()), this.out.getBuffer().getIter(tag.end()));
-        }
-        for (TextTagKey tag : this.errorTags) {
-            this.out.getBuffer().applyTag(this.outTagError, this.out.getBuffer().getIter(tag.start()), this.out.getBuffer().getIter(tag.end()));
+        this.out.getBuffer().removeAllTags(this.out.getBuffer().getIterStart(), this.out.getBuffer().getIterEnd());
+        for (TextTagKey tag : this.outputTags) {
+            this.out.getBuffer().applyTag(tag.tag(), this.out.getBuffer().getIter(tag.start()), this.out.getBuffer().getIter(tag.end()));
         }
 
         this.scrollPane.getVAdjustment().setValue(this.scrollPane.getVAdjustment().getUpper());
     }
 
-    private record TextTagKey(int start, int end, @Nullable String tooltip) {}
+    private record TextTagKey(int start, int end, @Nullable String tooltip, TextTag tag) {}
 }
