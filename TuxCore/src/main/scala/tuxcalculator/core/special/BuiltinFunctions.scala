@@ -33,10 +33,11 @@ object BuiltinFunctions {
     override protected def result(calc: Calculator, args: Vector[MathValue]): MathValue = ValueHelper.run(calc) {
       val num = ValueHelper.realInt(args.head)
       if (num <= 0) ValueHelper.error("Fibonacci(" + num + ") is undefined.")
+      if (!num.isValidInt) ValueHelper.error("Can't compute fibonacci numbers at index " + num + ": out of bounds.")
       if (num <= 2) MathNumber(1) else {
         var last: BigInt = 1
         var last2: BigInt = 1
-        for (_ <- BigInt(2) until num) {
+        for (_ <- 2 until num.toInt) {
           val sum = last + last2
           last2 = last
           last = sum
