@@ -16,6 +16,7 @@ object ArithmeticGeometricMean {
   
   // Both numbers must be positive
   private def agmR(gm: BigDec, am: BigDec, mc: MathContext): BigDec = {
+    if (gm.compareTo(BigDec.ZERO) == 0 || am.compareTo(BigDec.ZERO) == 0) return BigDec.ZERO
     val theMc = new MathContext(mc.getPrecision + 4, RoundingMode.HALF_EVEN)
     var theGm: BigDec = gm
     var theAm: BigDec = am
@@ -30,6 +31,7 @@ object ArithmeticGeometricMean {
   }
 
   private def agmC(gm: BigComplex, am: BigComplex, mc: MathContext): BigComplex = {
+    if (gm == BigComplex.ZERO || am == BigComplex.ZERO) return BigComplex.ZERO
     val theMc = new MathContext(mc.getPrecision << 1, RoundingMode.HALF_EVEN)
     var theGm: BigComplex = gm
     var theAm: BigComplex = am
