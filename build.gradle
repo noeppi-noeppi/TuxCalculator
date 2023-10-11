@@ -2,7 +2,9 @@ allprojects {
     group 'io.github.noeppi_noeppi.tools'
 
     afterEvaluate {
-        if (project.plugins.hasPlugin('java-library')) java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+        if (project.plugins.hasPlugin('java-library') && !project.plugins.hasPlugin('com.android.application')) {
+            java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+        }
     }
     
     repositories {

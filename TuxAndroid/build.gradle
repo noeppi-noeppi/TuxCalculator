@@ -4,15 +4,17 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'org.moddingx:LegacyJavaConverter:1.1.0'
+        classpath 'org.moddingx:LegacyJavaConverter:1.2.0'
     }
 }
 
 plugins {
-    id 'com.android.application' version '7.3.0'
+    id 'com.android.application' version '8.1.2'
 }
 
 apply plugin: 'org.moddingx.ljc'
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 repositories {
     google()
@@ -20,12 +22,12 @@ repositories {
 
 android {
     namespace 'tuxcalculator.android'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "tuxcalculator.android"
-        minSdk 29
-        targetSdk 33
+        minSdk 26
+        targetSdk 34
         versionCode project.version.split('\\.').inject(0) { r,s -> 1000*r+s.toInteger() }
         versionName project.version.toString()
         multiDexEnabled true
@@ -59,7 +61,7 @@ task convertDependencies(type: org.moddingx.ljc.gradle.LjcConfigurationTask) {
         dependsOn project(':core').jar
     }
     input configurations.legacy
-    languageLevel = 11
+    languageLevel = 17
     project(':core').afterEvaluate {
         inputs.file(project(':core').jar.archiveFile)
     }
@@ -67,7 +69,7 @@ task convertDependencies(type: org.moddingx.ljc.gradle.LjcConfigurationTask) {
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.8.0'
+    implementation 'com.google.android.material:material:1.10.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation convertDependencies.output()
 }

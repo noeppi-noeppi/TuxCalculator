@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import tuxcalculator.android.data.TextEntry;
 import tuxcalculator.api.TuxCalculator;
 import tuxcalculator.api.TuxCalculatorAPI;
@@ -92,7 +93,7 @@ public class ApplicationState {
                     this.makeErrorFail(activity, "There were errors initialising:\n" + errors.stream().map(err -> "  " + err).collect(Collectors.joining("\n")));
                 } else {
                     this.calculator = builder.build();
-                    activity.getMainExecutor().execute(() -> {
+                    ContextCompat.getMainExecutor(activity).execute(() -> {
                         activity.endLoad();
                         this.initLogic(activity);
                     });
@@ -142,7 +143,7 @@ public class ApplicationState {
     
     private void makeErrorFail(MainActivity activity, String failure) {
         this.errorFailure = failure;
-        activity.getMainExecutor().execute(() -> activity.showErrorState(this.errorFailure));
+        ContextCompat.getMainExecutor(activity).execute(() -> activity.showErrorState(this.errorFailure));
     }
     
     private void calcTerm(MainActivity activity) {
@@ -161,7 +162,7 @@ public class ApplicationState {
         this.executor.execute(() -> {
             try {
                 TuxCalculator.Result result = this.calculator.parse(effectiveFinalTerm);
-                activity.getMainExecutor().execute(() -> {
+                ContextCompat.getMainExecutor(activity).execute(() -> {
                     TextEntry inputText = new TextEntry(effectiveFinalTerm, false, true, false, null);
                     String detail = null;
                     if (result instanceof TuxCalculator.Error err) {
@@ -193,7 +194,7 @@ public class ApplicationState {
         @Override
         public void showError(String err) {
             MainActivity activity = ApplicationState.this.getActivity();
-            if (activity != null) activity.getMainExecutor().execute(() -> activity.showErrorPopup(err));
+            if (activity != null) ContextCompat.getMainExecutor(activity).execute(() -> activity.showErrorPopup(err));
         }
 
         @Override
@@ -206,7 +207,7 @@ public class ApplicationState {
         @Override
         public void exit() {
             Activity activity = ApplicationState.this.getActivity();
-            if (activity != null) activity.getMainExecutor().execute(activity::finish);
+            if (activity != null) ContextCompat.getMainExecutor(activity).execute(activity::finish);
         }
     }
 }

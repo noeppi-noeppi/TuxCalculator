@@ -14,9 +14,9 @@ dependencies {
     api project(':core')
     api 'com.google.code.findbugs:jsr305:3.0.2'
     api 'net.sf.jopt-simple:jopt-simple:5.0.4'
-    api 'org.jline:jline-terminal:3.22.0'
-    api 'org.jline:jline-terminal-jansi:3.22.0'
-    api 'org.jline:jline-reader:3.22.0'
+    api 'org.jline:jline-terminal:3.23.0'
+    api 'org.jline:jline-terminal-jansi:3.23.0'
+    api 'org.jline:jline-reader:3.23.0'
     api 'org.fusesource.jansi:jansi:2.4.0'
     compileOnly 'net.sourceforge.java-gnome:java-gnome:4.1.3'
 }

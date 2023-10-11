@@ -1,6 +1,7 @@
 package tuxcalculator.android;
 
 import android.graphics.Typeface;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Menu;
@@ -14,10 +15,13 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import com.google.android.material.snackbar.Snackbar;
 import tuxcalculator.android.data.TextEntry;
 import tuxcalculator.android.dialog.SimpleDialogFragment;
 import tuxcalculator.api.TuxCalculatorAPI;
+
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -66,7 +70,8 @@ public class MainActivity extends AppCompatActivity {
     }
     
     public void showErrorPopup(String err) {
-        Snackbar snackbar = Snackbar.make(this.requireViewById(R.id.root), err, Snackbar.LENGTH_INDEFINITE);
+        View root = Objects.requireNonNull(this.findViewById(R.id.root), "root view not found.");
+        Snackbar snackbar = Snackbar.make(root, err, Snackbar.LENGTH_INDEFINITE);
         snackbar.setTextMaxLines(20);
         snackbar.setAction(R.string.dismiss, v -> snackbar.dismiss());
         snackbar.show();
@@ -124,6 +129,11 @@ public class MainActivity extends AppCompatActivity {
         ScrollView scroll = this.findViewById(R.id.text_scroll);
 
         layout.addView(view);
-        this.getMainExecutor().execute(() -> scroll.scrollToDescendant(view));
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ContextCompat.getMainExecutor(this).execute(() -> scroll.scrollToDescendant(view));
+        } else {
+            ContextCompat.getMainExecutor(this).execute(() -> scroll.scrollTo(0, Integer.MAX_VALUE));
+        }
     }
 }
