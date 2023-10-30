@@ -71,6 +71,9 @@ let temp=#sub(0,1)
 def has(l,v) = #if(#eq(#idx(l,0,#eq_v),temp),false,true)
 def distinct(l) = #fold(l,[],(\n,e->#if(has(n,e),n,[n...,e])))
 
+? Basic functions for dealing with vectors
+def vec(l...) = #fill(#len(l),1,\r,c->l(#sub(r,1))) ? Required to construct vectors with argument splatting.
+
 ? Signs
 cat '+' = sign
 cat '-' = sign
@@ -235,6 +238,20 @@ def range(n) = range(1,n)
 def fill(a,b,f) = #map(range(a,b),f)
 def fill(n,f) = #map(range(n),f)
 
+? zip and merge are rather complicated
+? merge with two lists is straightforward
+? zip with two lists and vararg zip build on this
+? vararg merge builds on vararg zip as the #zip special only allows zipping two lists at once.
+? Also special attention is needed to make all those functions work well with vectors as well as lists.
+let temp=@[(f,l1:#isl,l2:#isl):#len(l1)=#len(l2)->#zip(l1,l2,f);(f,l1:#isl,l2:#isl)->'Merge on different size lists.';(f,l1:#isv,l2:#isv):#len(l1)=#len(l2)->#zip(l1,l2,f);(f,l1:#isv,l2:#isv)->'Merge on different size vectors.';(f,l1,l2)->'Merge can only operate on lists or vectors.']
+def merge(f,l1,l2)=temp(f,l1,l2)
+def zip(l1,l2)=merge(\l...->l,l1,l2)
+let temp=\ll,l1->merge(\a,b->[a...,b],ll,l1)
+let temp=\start,l1,l->#fold([l1,l...],start,temp) ? start parameter is required to either fill in a list or a vector depending on the contents of l.
+let temp=@[(l1:#isl,l)->temp([[]]*#len(l1),l1,l);(l1:#isv,l)->temp(vec(([[]]*#len(l1))...),l1,l);(l1,l)->'Merge can only operate on lists or vectors.']
+def zip(l1,l...)=temp(l1,l)
+def merge(f,l1,l...)=#map(zip(l1,l...),\elems->f(elems...))
+
 def sum(a,b,f) = #fold(#map(range(a,b),f),0,@+)
 def prod(a,b,f) = #fold(#map(range(a,b),f),1,@*)
 def count(a,b,f) = #len(#filter(range(a,b),\elem,idx->f(elem)))
@@ -283,7 +300,6 @@ def prime(n) = temp(n)
 let temp = @[(n:#isr):n<=0->0;(n)->count(n,\d->#eq(gcd(n,d),1))]
 def totient(n) = temp(n)
 
-def vec(l...) = #fill(#len(l),1,\r,c->l(r-1))
 def T(a) = #fill(#wd(a),#ht(a),\r,c->a(c,r))
 def IM(n) = #fill(n,n,\r,c->#if(r=c,1,0))
 def NM(n,m) = #fill(n,m,\r,c->0)

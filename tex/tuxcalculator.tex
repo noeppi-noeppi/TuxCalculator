@@ -671,6 +671,8 @@
         $ \mathrm{range}(a, b) $                   & Creates a list with all integers in the interval $ [a;b] $. Giving bounds in reverse order causes the order of the elements to be reversed. \\
         $ \mathrm{fill}(n, f) $                    & Equivalent to $ \mathrm{map}(\mathrm{range}(n), f) $ \\
         $ \mathrm{fill}(a, b, f) $                 & Equivalent to $ \mathrm{map}(\mathrm{range}(a, b), f) $ \tabgap
+        $ \mathrm{zip}(l_1, l\dots) $              & Takes any non-zero amount of some same-sized lists or vectors and produces a new list or vector, whose element at index $ i $ is a list of all the elements at index $ i $ in the original lists or vecors. For example $ zip([1,2],[3,4]) $ yields $ [[1,3],[2,4]] $. \\
+        $ \mathrm{merge}(f, l_1, l\dots) $         & Takes any non-zero amount of some same-sized lists or vectors and produces a new list or vector, whose element at index $ i $ is the function $ f $ applied to all the elements at index $ i $ in the original lists or vecors. For example $ merge({@+},[1,i],[1,4]) $ yields $ [1, 4 + 1i] $. \tabgap
         $ \mathrm{sum}(n, f) $                     & Applies $ f $ to all integers in the interval $ [1;n] $ and sums up the results. \\
         $ \mathrm{sum}(a, b, f) $                  & Applies $ f $ to all integers in the interval $ [a;b] $ and sums up the results. \\
         $ \mathrm{prod}(n, f) $                    & Applies $ f $ to all integers in the interval $ [1;n] $ and multiplies the results. \\
