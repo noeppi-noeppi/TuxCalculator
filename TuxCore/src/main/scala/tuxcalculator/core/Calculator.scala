@@ -59,10 +59,10 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
     ready = true
   }
   
-  private def formatNum(value: BigDecimal): String = value.round(outputMathContext) match {
-    case v if v.abs < 1000000 && v.abs >= 0.0001 => Util.safeStripTrailingZeros(v).toPlainString
-    case v if v.isWhole && v.abs < 100000000 => Util.safeStripTrailingZeros(v).toPlainString
-    case v => Util.formatScientific(Util.safeStripTrailingZeros(v))
+  private def formatNum(value: BigDecimal, imaginary: Boolean = false): String = value.round(outputMathContext) match {
+    case v if v.abs < 1000000 && v.abs >= 0.0001 => Util.safeStripTrailingZeros(v).toPlainString + (if (imaginary) "i" else "")
+    case v if v.isWhole && v.abs < 100000000 => Util.safeStripTrailingZeros(v).toPlainString + (if (imaginary) "i" else "")
+    case v => Util.formatScientific(Util.safeStripTrailingZeros(v)) + (if (imaginary) " i" else "")
   }
   
   private def formatNoTrunc(value: MathValue): String = value match {
@@ -73,8 +73,8 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
     case MathList(values) => "[" + values.map(this.formatNoTrunc).mkString(", ") + "]"
     case MathMatrix(values) => "#[" + values.map(col => col.map(this.formatNoTrunc).mkString(",")).mkString(" ; ") + "]"
     case MathRealNumeric(real) => formatNum(real)
-    case MathNumber(num) if num.im.signum() == -1 => formatNum(num.re) + " - " + formatNum(num.im.negate()) + "i"
-    case MathNumber(num) => formatNum(num.re) + " + " + formatNum(num.im) + "i"
+    case MathNumber(num) if num.im.signum() == -1 => formatNum(num.re) + " - " + formatNum(num.im.negate(), imaginary = true)
+    case MathNumber(num) => formatNum(num.re) + " + " + formatNum(num.im, imaginary = true)
     case func: MathFunction => func.string(this)
   }
   
