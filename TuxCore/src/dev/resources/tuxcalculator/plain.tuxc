@@ -242,13 +242,13 @@ def fill(n,f) = #map(range(n),f)
 ? merge with two lists is straightforward
 ? zip with two lists and vararg zip build on this
 ? vararg merge builds on vararg zip as the #zip special only allows zipping two lists at once.
-? Also special attention is needed to make all those functions work well with vectors as well as lists.
-let temp=@[(f,l1:#isl,l2:#isl):#len(l1)=#len(l2)->#zip(l1,l2,f);(f,l1:#isl,l2:#isl)->'Merge on different size lists.';(f,l1:#isv,l2:#isv):#len(l1)=#len(l2)->#zip(l1,l2,f);(f,l1:#isv,l2:#isv)->'Merge on different size vectors.';(f,l1,l2)->'Merge can only operate on lists or vectors.']
+? Also special attention is needed to make all those functions work well with matrices as well as lists.
+let temp=@[(f,l1:#isl,l2:#isl):#eq(#len(l1),#len(l2))->#zip(l1,l2,f);(f,l1:#isl,l2:#isl)->'Merge on different size lists.';(f,l1:#ism,l2:#ism):#and(#eq(#wd(l1),#wd(l2)),#eq(#ht(l1),#ht(l2)))->#zip(l1,l2,f);(f,l1:#ism,l2:#ism)->'Merge on different size matrices.';(f,l1,l2)->'Merge can only operate on lists or matrices.']
 def merge(f,l1,l2)=temp(f,l1,l2)
 def zip(l1,l2)=merge(\l...->l,l1,l2)
 let temp=\ll,l1->merge(\a,b->[a...,b],ll,l1)
 let temp=\start,l1,l->#fold([l1,l...],start,temp) ? start parameter is required to either fill in a list or a vector depending on the contents of l.
-let temp=@[(l1:#isl,l)->temp([[]]*#len(l1),l1,l);(l1:#isv,l)->temp(vec(([[]]*#len(l1))...),l1,l);(l1,l)->'Merge can only operate on lists or vectors.']
+let temp=@[(l1:#isl,l)->temp([[]]*#len(l1),l1,l);(l1:#ism,l)->temp(#fill(#ht(l1),#wd(l1),\r,c->[]),l1,l);(l1,l)->'Merge can only operate on lists or matrices.']
 def zip(l1,l...)=temp(l1,l)
 def merge(f,l1,l...)=#map(zip(l1,l...),\elems->f(elems...))
 

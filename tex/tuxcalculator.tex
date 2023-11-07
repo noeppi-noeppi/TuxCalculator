@@ -671,8 +671,8 @@
         $ \mathrm{range}(a, b) $                   & Creates a list with all integers in the interval $ [a;b] $. Giving bounds in reverse order causes the order of the elements to be reversed. \\
         $ \mathrm{fill}(n, f) $                    & Equivalent to $ \mathrm{map}(\mathrm{range}(n), f) $ \\
         $ \mathrm{fill}(a, b, f) $                 & Equivalent to $ \mathrm{map}(\mathrm{range}(a, b), f) $ \tabgap
-        $ \mathrm{zip}(l_1, l\dots) $              & Takes any non-zero amount of some same-sized lists or vectors and produces a new list or vector, whose element at index $ i $ is a list of all the elements at index $ i $ in the original lists or vecors. For example $ zip([1,2],[3,4]) $ yields $ [[1,3],[2,4]] $. \\
-        $ \mathrm{merge}(f, l_1, l\dots) $         & Takes any non-zero amount of some same-sized lists or vectors and produces a new list or vector, whose element at index $ i $ is the function $ f $ applied to all the elements at index $ i $ in the original lists or vecors. For example $ merge({@+},[1,i],[1,4]) $ yields $ [1, 4 + 1i] $. \tabgap
+        $ \mathrm{zip}(l_1, l\dots) $              & Takes any non-zero amount of some same-sized lists or matrices and produces a new list or matrix, whose element at index $ i $ is a list of all the elements at index $ i $ in the original lists or matrices. For example $ zip([1,2],[3,4]) $ yields $ [[1,3],[2,4]] $. \\
+        $ \mathrm{merge}(f, l_1, l\dots) $         & Takes any non-zero amount of some same-sized lists or matrices and produces a new list or matrix, whose element at index $ i $ is the function $ f $ applied to all the elements at index $ i $ in the original lists or matrices. For example $ merge({@+},[1,i],[1,4]) $ yields $ [1, 4 + 1i] $. \tabgap
         $ \mathrm{sum}(n, f) $                     & Applies $ f $ to all integers in the interval $ [1;n] $ and sums up the results. \\
         $ \mathrm{sum}(a, b, f) $                  & Applies $ f $ to all integers in the interval $ [a;b] $ and sums up the results. \\
         $ \mathrm{prod}(n, f) $                    & Applies $ f $ to all integers in the interval $ [1;n] $ and multiplies the results. \\
@@ -785,7 +785,7 @@
         \verb|#ln|      & The natural logarithm. \\
         \verb|#lt|      & Takes two values and yields whether the first is smaller than the second.
                           If either of the arguments is not a real number, the result is \verb|false|. \\
-        \verb|#map|     & $ \mathrm{map}(l,f) $ applies $ f $ to each element in the list or vector  $ l $ and produces a new list or vector with the new results. \\
+        \verb|#map|     & $ \mathrm{map}(l,f) $ applies $ f $ to each element in the list or matrix  $ l $ and produces a new list or matrix with the new results. \\
         \verb|#memoize| & Takes a function and returns a new function that invokes the old one but makes a best effort to memoize the results if called with the same arguments multiple times.
                           However, there is no guarantee that any caching is performed. \\
         \verb|#mod|     & A function that computes the modulo of two numbers. \\
@@ -806,8 +806,8 @@
         \verb|#w|       & The lambert $ W $ function. \\
         \verb|#wd|      & Takes a matrix and returns its width. \\
         \verb|#xor|     & A function that computes logic or bitwise \verb|XOR| of two booleans or integers. \\
-        \verb|#zip|     & $ \mathrm{zip}(a,b,f) $ Given the two lists or vectors $ a $ and $ b $, iterates over every index from $ 0 $ to the length of the shorter list.
-                          Applies $ f $ to the value from $ a $ at that index and the value of $ b $ at that index.
-                          Produces a new list containing all the results. \\
+        \verb|#zip|     & $ \mathrm{zip}(a,b,f) $ Given the two lists or matrices $ a $ and $ b $, matches up pairs of elements between $ a $ and $ b $ depending on their index.
+                          Applies $ f $ to the value from $ a $ at a specific index and the value of $ b $ at that index and produces a new list or matrix containing all the results.
+                          If one list or matrix is shorter/smaller than the other, the extra size on the larger one is ignored. \\
     \end{longtable}
 \end{document}

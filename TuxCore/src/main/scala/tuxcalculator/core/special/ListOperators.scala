@@ -57,10 +57,10 @@ object ListOperators {
       case MathList(values) =>
         val func = ValueHelper.get(args(1))
         MathList(values.map(v => func.applyTo(calc, Vector(v))))
-      case MathVector(values) =>
+      case MathMatrix(values) =>
         val func = ValueHelper.get(args(1))
-        MathVector(values.map(v => func.applyTo(calc, Vector(v))))
-      case _ => MathError("Can't get tail of: " + calc.format(args.head))
+        MathMatrix(values.map(row => row.map(v => func.applyTo(calc, Vector(v)))))
+      case _ => MathError("Can't map: " + calc.format(args.head))
     }}
   }
 
@@ -72,6 +72,10 @@ object ListOperators {
       case (MathVector(a), MathVector(b)) =>
         val func = ValueHelper.get(args(2))
         MathVector((a zip b).map(e => func.applyTo(calc, Vector(e._1, e._2))))
+      case (a: MathMatrix, b: MathMatrix) =>
+        val func = ValueHelper.get(args(2))
+        val (width, height) = (a.width min b.width, a.height min b.height)
+        MathMatrix((0 until width).map(col => (0 until height).map(row => func.applyTo(calc, Vector(a.get(row, col), b.get(row, col)))).toVector).toVector)
       case _ => MathError("Can't zip: " + calc.format(args.head))
     }}
   }
@@ -82,8 +86,8 @@ object ListOperators {
         val func = ValueHelper.get(args(1))
         MathList(values.zipWithIndex.filter(e => ValueHelper.boolean(func.applyTo(calc, Vector(e._1, MathNumber(e._2))))).map(_._1))
       case _ => MathError("Can't filter: " + calc.format(args.head))
-    }
-  }}
+    }}
+  }
   
   object Idx extends CalculatorSpecial.SimpleFunction("idx", 3) {
     override protected def result(calc: Calculator, args: Vector[MathValue]): MathValue = ValueHelper.run(calc) {ValueHelper.get(args(0)) match {
@@ -102,8 +106,8 @@ object ListOperators {
           MathNumber(-1)
         }
       case _ => MathError("Can't index: " + calc.format(args.head))
-    }
-  }}
+    }}
+  }
   
   object Sort extends CalculatorSpecial.SimpleFunction("sort", 2) {
     override protected def result(calc: Calculator, args: Vector[MathValue]): MathValue = ValueHelper.run(calc) {ValueHelper.get(args(0)) match {
@@ -111,8 +115,8 @@ object ListOperators {
         val func = ValueHelper.get(args(1))
         MathList(values.sorted(Ordering.fromLessThan((a: MathValue, b: MathValue) => ValueHelper.boolean(func.applyTo(calc, Vector(a, b))))))
       case _ => MathError("Can't sort: " + calc.format(args.head))
-    }
-  }}
+    }}
+  }
   
   object Fill extends CalculatorSpecial.Function("fill") {
     override protected def result(calc: Calculator, args: Vector[MathValue]): MathValue = ValueHelper.run(calc) { args.size match {
