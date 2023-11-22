@@ -120,6 +120,9 @@ let temp = \a,b->distinct(#filter(a,(\e,i->has(b,e))))
 def[-800] ∩(a,b) = temp(a,b)
 let temp = @[(a:#isl,b:#isl)->temp(a,b);(a,b)->#and(a,b)]
 def[-800] &(a,b) = temp(a,b)
+let temp = \l,sl->#eq(#idx(l,0,\le->#eq(#idx(sl,0,\sle->#eq(le,sle)),-1)),-1)
+let temp = @[(a:#isl,b:#isl)->#and(temp(a,b),temp(b,a));(a,b)->#eq(a,b)]
+def[-700] <=>(a,b) = temp(a,b)
 ? Defining the = operator is a bit tricky as it has the assign catcode and thus, if encountered alone marks the start
 ? of the definition expression. We temporarily change catcodes to circumvent this.
 ? The same is true for other operators starting with =
@@ -350,6 +353,7 @@ cat '∨' = operator
 cat '⊽' = operator
 cat '⊻' = operator
 cat '⇒' = operator
+cat '⇔' = operator
 cat '≠' = operator
 cat '≤' = operator
 cat '≥' = operator
@@ -364,6 +368,7 @@ def[-900] ⊽(a,b) = #xor(#or(a,b),true)
 def[-900] ⊻(a,b) = #xor(a,b)
 def[-800] ∧(a,b) = #and(a,b)
 def[-800] ⊼(a,b) = #xor(#and(a,b),true)
+def[-700] ⇔(a,b) = a <=> b
 def[-700] ⇒(a,b) = a => b
 def[-600] ≠(a,b) = a <> b
 def[-600] ≤(a,b) = a <= b
