@@ -287,7 +287,8 @@ let temp = @[(n,k):n<k->0;(n,k)->(n!)/((k!)*((n-k)!))]
 def nCr(n,k) = temp(n,k)
 let temp = @[(n,k):n<k->0;(n,k)->(n!)/((n-k)!)]
 def nPr(n,k) = temp(n,k)
-def fib(n) = #fib(n)
+let temp = #memoize(@[(n):#if(#eq(#fl(n,0),n),n<=0,true)->'fib is only defined for positive integers';(n):n<=2->1;(n)->(#[1,1;1,0]^(n-2)*#[1,1])(1)])
+def fib(n) = temp(n)
 def ln(x) = #ln(x)
 def W(x) = #w(x)
 def ld(x) = #ln(x) / #ln(2)
