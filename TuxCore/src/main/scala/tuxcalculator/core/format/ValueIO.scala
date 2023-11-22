@@ -2,7 +2,7 @@ package tuxcalculator.core.format
 
 import ch.obermuhlner.math.big.BigComplex
 import tuxcalculator.core.data.SpecialFunction
-import tuxcalculator.core.function.{GlobalFunction, LambdaFunction, MatchFunction, MatchFunctionEntry, MemoizedFunction, MergedOperatorFunction, OperatorFunction, PartialAppliedFunction}
+import tuxcalculator.core.function.{BracketFunction, GlobalFunction, LambdaFunction, MatchFunction, MatchFunctionEntry, MemoizedFunction, MergedOperatorFunction, OperatorFunction, PartialAppliedFunction}
 import tuxcalculator.core.value.{MathError, MathFalse, MathFunction, MathList, MathMatrix, MathNumber, MathTrue, MathValue, MathVoid}
 
 import java.io.{DataInput, DataOutput}
@@ -93,13 +93,14 @@ object ValueIO {
       val map = for (_ <- 0 until len) yield AstIO.readDescriptor(in) -> ctx.functions.get(in.readInt())
       new GlobalFunction(name, map.toMap)
     case 3 => new OperatorFunction(ctx.strings.get(in.readInt()), ctx.functions.get(in.readInt()))
-    case 4 => new MergedOperatorFunction(ctx.strings.get(in.readInt()), ctx.functions.get(in.readInt()), ctx.functions.get(in.readInt()))
-    case 5 =>
+    case 4 => new BracketFunction(ctx.strings.get(in.readInt()), ctx.strings.get(in.readInt()), ctx.functions.get(in.readInt()))
+    case 5 => new MergedOperatorFunction(ctx.strings.get(in.readInt()), ctx.functions.get(in.readInt()), ctx.functions.get(in.readInt()))
+    case 6 =>
       val value = ctx.values.get(in.readInt())
       val len = in.readInt()
       val args = for (_ <- 0 until len) yield if (in.readBoolean()) Some(ctx.values.get(in.readInt())) else None
       PartialAppliedFunction.create(value, args.toVector)
-    case 6 =>
+    case 7 =>
       val len = in.readInt()
       val entries = for (_ <- 0 until len) yield {
         val sig = ctx.signatures.get(in.readInt())
@@ -118,7 +119,7 @@ object ValueIO {
       }
       val defCode = ctx.ast.get(in.readInt())
       new MatchFunction(entries.toVector, defCode)
-    case 7 => new MemoizedFunction(ctx.functions.get(in.readInt()))
+    case 8 => new MemoizedFunction(ctx.functions.get(in.readInt()))
     case b => throw new InvalidFormatException("Corrupted format: Unknown function type: " + b)
   }
   
@@ -139,11 +140,15 @@ object ValueIO {
     case op: OperatorFunction => out.writeByte(3)
       out.writeInt(ctx.strings.add(op.name))
       out.writeInt(ctx.functions.add(op.function))
-    case op: MergedOperatorFunction => out.writeByte(4)
+    case op: BracketFunction => out.writeByte(4)
+      out.writeInt(ctx.strings.add(op.name))
+      out.writeInt(ctx.strings.add(op.close))
+      out.writeInt(ctx.functions.add(op.function))
+    case op: MergedOperatorFunction => out.writeByte(5)
       out.writeInt(ctx.strings.add(op.name))
       out.writeInt(ctx.functions.add(op.function1))
       out.writeInt(ctx.functions.add(op.function2))
-    case partial: PartialAppliedFunction => out.writeByte(5)
+    case partial: PartialAppliedFunction => out.writeByte(6)
       out.writeInt(ctx.values.add(partial.value))
       out.writeInt(partial.partialArgs.length)
       for (arg <- partial.partialArgs) arg match {
@@ -151,7 +156,7 @@ object ValueIO {
           out.writeInt(ctx.values.add(a))
         case None => out.writeBoolean(false)
       }
-    case matched: MatchFunction => out.writeByte(6)
+    case matched: MatchFunction => out.writeByte(7)
       out.writeInt(matched.entries.length)
       for (entry <- matched.entries) {
         out.writeInt(ctx.signatures.add(entry.sig))
@@ -168,7 +173,7 @@ object ValueIO {
         out.writeInt(ctx.functions.add(entry.code))
       }
       out.writeInt(ctx.ast.add(matched.definitionCode))
-    case memoized: MemoizedFunction => out.writeByte(7)
+    case memoized: MemoizedFunction => out.writeByte(8)
       out.writeInt(ctx.functions.add(memoized.function))
     case _ => throw new IllegalStateException("Can't dump function: " + func + " (this is a bug!)")
   }

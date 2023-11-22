@@ -212,21 +212,24 @@
     However, \verb|ln -2| does not work, it is parsed as $ 2 $ subtracted from the variable \verb|ln|.
 
     \subsubsection{References to functions}
-    Using the reference notation, it's possible to convert global functions as well as operators into function values.
+    Using the reference notation, it's possible to convert global functions as well as operators and brackets into function values.
     \begin{verbatim}
         @sqrt     \x -> sqrt(x)
         @-        \x -> -x       \a, b -> a - b
+        @[]
     \end{verbatim}
     The first value is the square root function, which is equivalent to the lambda on the right.
     The second value is the minus function.
     Depending on whether it's applied to one or two arguments, it's equivalent to one of the lambdas on the right.
+    The third value is the list bracket function.
+    This function will make a list from all its arguments.
     
     \subsubsection{Match functions}
     A match function is a function that matches its arguments against multiple patterns and applies the expression associated with the first matching pattern.
     Suppose you have a function \verb|iseven| that checks whether a number is even.
     You can then define:
     \begin{verbatim}
-        let collatz = @[x: @iseven -> x/2 ; x -> 3*x+1]
+        let collatz = \[x: @iseven -> x/2 ; x -> 3*x+1]
     \end{verbatim}
     \[
         \mathrm{collatz}(x) = \left\{\kern-\nulldelimiterspace\begin{array}{ll}
@@ -242,7 +245,7 @@
     They are an expression where all the values from the argument list can be used.
     For example:
     \begin{verbatim}
-        @[(a,b): a>b -> 42 ; (a,b) -> 0]
+        \[(a,b): a>b -> 42 ; (a,b) -> 0]
     \end{verbatim}
     This function evaluates to $ 42 $ whenever the first argument is larger than the second, $ 0 $ otherwise.
     
@@ -278,12 +281,24 @@
     A left-associative operator {\small(like \verb|+|)} evaluates from left to right, applying the first two operands and then the result with the third.
     A right-associative operator {\small(like \verb|^|)} instead evaluates from right to left, first applying the last and second-to-last elements.
 
+    \subsection{Brackets}\label{subsec:brackets}
+    Brackets are functions that are delimited by two separate tokens, one opening and one closing token.
+    They can also be used for grouping.
+    The previously shown list and matrix syntax are actually brackets that make lists and matrices from their arguments.
+    Brackets come in three kinds:
+    \begin{itemize}
+        \item \textsl{Primary Brackets} take exactly one single argument between the delimiters.
+        \item \textsl{Secondary Brackets} take zero or more arguments between the delimiters and support argument splatting.
+        \item \textsl{Tertiary Brackets} take zero or more arguments separated by \verb|,| and \verb|;| as used in a matrix literal.
+              The arguments must follow a rectangular shape.
+    \end{itemize}
+    
     \subsection{Order of operations}\label{subsec:order-of-operations}
     The order of operations is defined as follows:
     \begingroup
     \setlength{\parskip}{0pt}
     \begin{enumerate}
-        \item Parentheses
+        \item Parentheses and brackets
         \item Applications and partial applications to a value
         \item Sign operators
         \item Postfix operators
@@ -307,7 +322,7 @@
     The syntax is
     \begin{code}
         def \argument{name}(\argument{args}) = \argument{expression} \\
-        def[\argument{priority}] \argument{name}(\argument{args}) = \argument{expression}
+        def(\argument{priority}) \argument{name}(\argument{args}) = \argument{expression}
     \end{code}
     If \verb|name| is a sign, an operator or postfix name, that operator is redefined.
     Binary operators must be defined using exactly two arguments, unary operators using exactly one argument.
@@ -315,6 +330,17 @@
     It is an expression for an integer setting that operators' priority.
     Higher priorities are evaluated first.
     Also \textsl{even} priorities cause the operator to be left-associative, while \textsl{odd} priorities cause it to be right associative.
+    
+    If \verb|name| is an opening bracket followed by a closing bracket, \verb|def| defines a bracket.
+    The bracket is uniquely identified by the opening delimiter but must always be closed with the closing delimiter given at definition time.
+    The type of bracket is determined by the \textsl{CatCode} of the opening delimiter (See~\ref{subsec:catcodes}).
+    Depending on the type of bracket, the function must take a different number of arguments:
+    \begin{itemize}
+        \item \textsl{Primary brackets} must take only a single argument.
+        \item \textsl{Secondary brackets} must be vararg without any positional arguments.
+        \item \textsl{Tertiary brackets} must be vararg with at most two positional arguments.
+              They are applied to the height, then the width and then all the given element values flattened.
+    \end{itemize}
     
     If \verb|name| is an identifier, \verb|def| defines a function.
     A function is different to a variable in that it cannot be used as a value.
@@ -433,35 +459,37 @@
     Tokcodes are matched before catcodes, however, if at any point multiple tokcodes match, the calculator will immediately emit a parser error.
     TuxCalculator knows about the following catcodes:
     \begin{longtable}{p{0.2\textwidth}p{\dimexpr0.8\textwidth-3\tabcolsep\relax}}
-        \verb|letter|       & Part of an identifier. \\
-        \verb|space|        & Breaks numbers and identifiers, otherwise ignored. \\
-        \verb|digit|        & Makes up numbers together with \verb|decimal sep| and \verb|exp| \\
-        \verb|decimal sep|  & Decimal separator in a number. \\
-        \verb|element sep|  & Element separator in lists, vectors and applications. \\
-        \verb|group sep|    & Group separator in matrices. \\
-        \verb|exp|          & Behaves as letter, except when used inside a number, where it marks the start of an exponent. \\
-        \verb|operator|     & A binary operator is composed of one or multiple characters of \verb|operator| catcode, or a single character of \verb|sign| catcode. \\
-        \verb|assign|       & Behaves like \verb|operator| except that it can be used as assignment operator in commands. \\
-        \verb|sign|         & A sign operator that can be used in front of an expression. These can also be binary operators, but only as a single character. \\
-        \verb|post|         & A postfix operator that can be used after an expression. \\
-        \verb|reference|    & Start of a function or operator reference. \\
-        \verb|error|        & Start and end of an error value. \\
-        \verb|open|         & Start of a group. \\
-        \verb|close|        & End of a group. \\
-        \verb|start list|   & Start of a list. \\
-        \verb|start vector| & Start of a matrix. \\
-        \verb|start match|  & Start of a match function. \\
-        \verb|end|          & End of a list, matrix or match function. \\
-        \verb|lambda|       & Start of a lambda. \\
-        \verb|follow|       & Separator for lambda parameters and body. \\
-        \verb|guard |       & Start of a guard. \\
-        \verb|escape|       & Causes every character until the next escape to be parsed as letter catcode. \\
-        \verb|special|      & Access to builtin specials. See section~\ref{subsec:inimode}. \\
-        \verb|comment|      & Start of a line comment. \\
-        \verb|vararg|       & Vararg token for splatting and definition of vararg functions. \\
-        \verb|partial|      & Partial application. \\
-        \verb|answer|       & Last result. \\
-        \verb|invalid|      & Produces an error when encountered. \\
+        \verb|letter|          & Part of an identifier. \\
+        \verb|space|           & Breaks numbers and identifiers, otherwise ignored. \\
+        \verb|digit|           & Makes up numbers together with \verb|decimal sep| and \verb|exp| \\
+        \verb|decimal sep|     & Decimal separator in a number. \\
+        \verb|element sep|     & Element separator in lists, vectors and applications. \\
+        \verb|group sep|       & Group separator in matrices. \\
+        \verb|exp|             & Behaves as letter, except when used inside a number, where it marks the start of an exponent. \\
+        \verb|operator|        & A binary operator is composed of one or multiple characters of \verb|operator| catcode, or a single character of \verb|sign| catcode. \\
+        \verb|assign|          & Behaves like \verb|operator| except that it can be used as assignment operator in commands. \\
+        \verb|sign|            & A sign operator that can be used in front of an expression. These can also be binary operators, but only as a single character. \\
+        \verb|post|            & A postfix operator that can be used after an expression. \\
+        \verb|reference|       & Start of a function or operator reference. \\
+        \verb|error|           & Start and end of an error value. \\
+        \verb|open|            & Start of a group. \\
+        \verb|close|           & End of a group. \\
+        \verb|start primary|   & Start of a primary bracket. \\
+        \verb|start secondary| & Start of a secondary bracket. \\
+        \verb|start tertiary|  & Start of a tertiary bracket. \\
+        \verb|end|             & End of a bracket. \\
+        \verb|start match|     & Start of a match function. \\
+        \verb|end match|       & Behaves exactly as \verb|end| but can also be used to end match functions. \\
+        \verb|lambda|          & Start of a lambda. \\
+        \verb|follow|          & Separator for lambda parameters and body. \\
+        \verb|guard |          & Start of a guard. \\
+        \verb|escape|          & Causes every character until the next escape to be parsed as letter catcode. \\
+        \verb|special|         & Access to builtin specials. See section~\ref{subsec:inimode}. \\
+        \verb|comment|         & Start of a line comment. \\
+        \verb|vararg|          & Vararg token for splatting and definition of vararg functions. \\
+        \verb|partial|         & Partial application. \\
+        \verb|answer|          & Last result. \\
+        \verb|invalid|         & Produces an error when encountered. \\
     \end{longtable}
     Catcodes are frozen once a statement has been typed in.
     All changes made to the catcodes will only affect later lines.
@@ -544,13 +572,21 @@
     \subsection{Constants}
     Lists all constants defined by the \textit{plain} format.
     \begin{longtable}{p{0.2\textwidth}p{\dimexpr0.8\textwidth-3\tabcolsep\relax}}
-        $ pi $, $ \pi $    & The ratio of a circle's circumference to its diameter. \\
+        $ pi $, $ \pi $     & The ratio of a circle's circumference to its diameter. \\
         $ e $               & The euler number $ e $. \\
         $ i $               & The imaginary unit $ i $. \\
         $ void $            & The void value. \\
         $ true $, $ \top $  & The true value $ \top $. \\
         $ false $, $ \bot $ & The false value $ \bot $. \\
         $ id $              & The identity function. \\
+    \end{longtable}
+    
+    \subsection{Brackets}
+    Lists all brackets defined by the \textit{plain} format.
+    \begin{longtable}{p{0.18\textwidth}p{0.02\textwidth}p{\dimexpr0.8\textwidth-3\tabcolsep\relax}}
+        $ [ \cdots ] $   & \makebox[0pt][r]{secondary} & Creates a list from all its arguments. \\
+        $ \{ \cdots \} $ & \makebox[0pt][r]{secondary} & Creates a list from all its arguments removing duplicates and sorting the elements. \\
+        $ \#[ \cdots ] $ & \makebox[0pt][r]{tertiary}  & Creates a matrix from all its arguments. \\
     \end{longtable}
     
     \subsection{Sign operators}

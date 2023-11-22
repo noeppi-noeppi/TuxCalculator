@@ -46,6 +46,7 @@ class CalculatorParsers(val ctx: ParsingContext) extends Parsers  {
     case in if in.atEnd => Failure("end of input", in)
     case in if f.isDefinedAt(in.first) => f.apply(in.first) match {
       case Success(result, _) => Success(result, in.rest)
+      case Failure(result, _) => Failure(result, in.rest)
       case result => result
     }
     case in => Failure(expected + " expected", in)
@@ -90,13 +91,20 @@ class CalculatorParsers(val ctx: ParsingContext) extends Parsers  {
   }, _ => "Only the last parameter can be vararg")
   
   private def target_func: this.Parser[Ast.DefTarget] = identifier ^^ (name => Ast.DefTarget.Function(name))
-  private def target_other: this.Parser[Ast.DefTarget] = acceptMatch("def operator", {
-    case Token.Operator(name) => Ast.DefTarget.Operator(name)
-    case Token.Sign(name) => Ast.DefTarget.SignOrOperator(name)
-    case Token.Post(name) => Ast.DefTarget.Post(name)
+  private def target_other: this.Parser[Ast.DefTarget] = flatAcceptMatch("def operator", {
+    case Token.Operator(name) => Success(Ast.DefTarget.Operator(name), TokenReader.Empty)
+    case Token.Sign(name) => Success(Ast.DefTarget.SignOrOperator(name), TokenReader.Empty)
+    case Token.Post(name) => Success(Ast.DefTarget.Post(name), TokenReader.Empty)
+    case Token.PrimaryBracket(_, _, tokens) if tokens.tokens.nonEmpty => Failure("No tokens are allowed in bracket reference.", TokenReader.Empty)
+    case Token.PrimaryBracket(open, close, _) => Success(Ast.DefTarget.PrimaryBracket(open, close), TokenReader.Empty)
+    case Token.SecondaryBracket(_, _, tokens) if tokens.tokens.nonEmpty => Failure("No tokens are allowed in bracket reference.", TokenReader.Empty)
+    case Token.SecondaryBracket(open, close, _) => Success(Ast.DefTarget.SecondaryBracket(open, close), TokenReader.Empty)
+    case Token.TertiaryBracket(_, _, tokens) if tokens.tokens.nonEmpty => Failure("No tokens are allowed in bracket reference.", TokenReader.Empty)
+    case Token.TertiaryBracket(open, close, _) => Success(Ast.DefTarget.TertiaryBracket(open, close), TokenReader.Empty)
+    case _ => Failure("identifier or operator expected", TokenReader.Empty)
   })
 
-  private def target: this.Parser[Ast.DefTarget] = target_func | target_other | failure("identifier or operator expected")
+  private def target: this.Parser[Ast.DefTarget] = target_func | target_other
   
   // Basic values
   def value: this.Parser[Ast.Expression] = flatAcceptMatch("struct", {
@@ -107,8 +115,9 @@ class CalculatorParsers(val ctx: ParsingContext) extends Parsers  {
     case Token.Answer => Success(Ast.Answer, TokenReader.Empty)
     case Token.Error(msg) => Success(Ast.Value(MathError(msg)), TokenReader.Empty)
     case Token.Group(tokens) => parseTokens(expression, tokens).map(expr => Ast.Group(expr))
-    case Token.List(tokens) => parseTokens(argument_list, tokens).map(expr => Ast.List(expr.toVector))
-    case Token.Vector(tokens) => parseTokens(expression_grouped_list, tokens).map(expr => Ast.Matrix(expr.map(_.toVector).toVector))
+    case Token.PrimaryBracket(open, close, tokens) => parseTokens(expression, tokens).map(expr => Ast.PrimaryBracket(open, close, expr))
+    case Token.SecondaryBracket(open, close, tokens) => parseTokens(argument_list, tokens).map(expr => Ast.SecondaryBracket(open, close, expr.toVector))
+    case Token.TertiaryBracket(open, close, tokens) => parseTokens(expression_grouped_list, tokens).map(expr => Ast.TertiaryBracket(open, close, expr.map(_.toVector).toVector))
     case Token.Match(tokens) => parseTokens(repsep(match_entry, accept(Token.GroupSep)), tokens).map(args => Ast.Match(args.toVector))
     case Token.Lambda(args, tokens) => parseTokens(signature, args) match {
       case Success(sig, _) => parseTokens(expression, tokens).map(expr => Ast.Lambda(sig, expr))
@@ -211,7 +220,8 @@ class CalculatorParsers(val ctx: ParsingContext) extends Parsers  {
   def cmd_set: this.Parser[Ast.SetCommand] = identifier ^^ (name => Ast.SetCommand(name))
 
   private def cmd_def_priority: this.Parser[Ast.Expression] = flatAcceptMatch("priority", {
-    case Token.List(tokens) => parseTokens(expression, tokens)
+    case Token.Group(tokens) => parseTokens(expression, tokens)
+    case Token.Application(tokens) => parseTokens(expression, tokens)
   })
   def cmd_def: this.Parser[Ast.DefCommand] = opt(cmd_def_priority) ~ target ~ flatAcceptMatch("argument list", {
     case Token.Group(tokens) => parseTokens(signature, tokens)

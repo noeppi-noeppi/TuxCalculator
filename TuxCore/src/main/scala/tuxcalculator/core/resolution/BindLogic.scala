@@ -2,7 +2,7 @@ package tuxcalculator.core.resolution
 
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.expression.{Ast, BoundExpression}
-import tuxcalculator.core.value.{MathError, MathValue}
+import tuxcalculator.core.value.{MathError, MathNumber, MathValue}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -54,12 +54,17 @@ object BindLogic {
       case Ast.Variable(name) if !freeVars.contains(name) => Ast.Value(checkError(name, variable(name)))
       case Ast.Reference(target) => Ast.Value(checkError(target.name, calc.resolution.reference(target)))
       case Ast.Special(name) => Ast.Value(checkError("#" + name, calc.specials(name)))
-      case Ast.List(args) => Ast.List(args.map(processArg))
-      case Ast.Matrix(args) => Ast.Matrix(args.map(col => col.map(process)))
       case Ast.Lambda(sig, code, defCode) if eager =>
         val boundCode = bind(code, calc, eager, freeVars | sig.names.toSet, specialValues)
         errors.addAll(boundCode.unboundErrors)
         Ast.Lambda(sig, boundCode.bound, defCode)
+      case Ast.PrimaryBracket(open, close, expr) => Ast.Application(Ast.Value(checkError(open + close, calc.resolution.primaryBracket(open, close))), Vector(process(expr)))
+      case Ast.SecondaryBracket(open, close, args) => Ast.Application(Ast.Value(checkError(open + close, calc.resolution.secondaryBracket(open, close))), args.map(processArg))
+      case Ast.TertiaryBracket(_, _, values) if values.map(col => col.length).distinct.size > 1 => Ast.Value(MathError("Tertiary bracket literal with different sized columns."))
+      case Ast.TertiaryBracket(open, close, values) =>
+        val width = values.length
+        val height = if (values.isEmpty) 0 else values.head.size
+        Ast.Application(Ast.Value(checkError(open + close, calc.resolution.tertiaryBracket(open, close))), Vector(Ast.Value(MathNumber(BigDecimal(height))), Ast.Value(MathNumber(BigDecimal(width)))) ++ values.flatMap(col => col.map(process)))
       case Ast.Match(entries) if eager => Ast.Match(entries.map {
         case Ast.MatchEntry(sig, elementGuards, mainGuard, code, defCode) =>
           val boundElementGuards = elementGuards.map(eg => eg.map(expr => bindDef(expr, calc, eager, freeVars, specialValues)))

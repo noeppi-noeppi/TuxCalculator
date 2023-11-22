@@ -13,8 +13,9 @@ case object Token {
   case class Error(msg: String) extends Token
   case class Application(tokens: TokenStream) extends Token
   case class Group(tokens: TokenStream) extends Token
-  case class List(tokens: TokenStream) extends Token
-  case class Vector(tokens: TokenStream) extends Token
+  case class PrimaryBracket(open: String, close: String, tokens: TokenStream) extends Token
+  case class SecondaryBracket(open: String, close: String, tokens: TokenStream) extends Token
+  case class TertiaryBracket(open: String, close: String, tokens: TokenStream) extends Token
   case class Match(tokens: TokenStream) extends Token
   case class Lambda(declaration: TokenStream, definition: TokenStream) extends Token
   case object Follow extends Token

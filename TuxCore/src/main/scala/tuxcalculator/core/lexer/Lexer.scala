@@ -33,7 +33,7 @@ object Lexer {
   )
   
   val LambdaTerminators: Set[CatCode] = Set(
-    CatCode.Close, CatCode.End, CatCode.ElementSep, CatCode.GroupSep, CatCode.VarArg, CatCode.Follow
+    CatCode.Close, CatCode.End, CatCode.EndMatch, CatCode.ElementSep, CatCode.GroupSep, CatCode.VarArg, CatCode.Follow
   )
 }
 
@@ -51,21 +51,21 @@ class Lexer {
   
   def tokenize(line: String): Result[TokenStream] = try {
     val source: CharacterSource = new CharacterSource(Util.decomposeString(line))
-    tokenizePart(source, None, Set())
+    tokenizePart(source, Set(), Set()) ~ (_._1)
   } catch {
     case e: ImmediateError => e.error
   }
   
   def tokenizeAssignment(line: String): Result[PartialTokenStream] = try {
     val source: CharacterSource = new CharacterSource(Util.decomposeString(line))
-    val result = tokenizePart(source, None, Set(), tokenizeAssignment = true)
-    result ~ (tokens => PartialTokenStream(tokens, source.remaining))
+    val result = tokenizePart(source, Set(), Set(), tokenizeAssignment = true)
+    result ~ (_._1) ~ (tokens => PartialTokenStream(tokens, source.remaining))
   } catch {
     case e: ImmediateError => e.error
   }
   
   @throws[ImmediateError]
-  private def tokenizePart(source: CharacterSource, closingCatCode: Option[CatCode], breakAt: Set[CatCode], tokenizeAssignment: Boolean = false, canEmitFollow: Boolean = false): Result[TokenStream] = {
+  private def tokenizePart(source: CharacterSource, closingCatCodes: Set[CatCode], breakAt: Set[CatCode], tokenizeAssignment: Boolean = false, canEmitFollow: Boolean = false): Result[(TokenStream, Option[String])] = {
     val tokens: ListBuffer[Token] = ListBuffer()
     
     object CatCodeGrouper {
@@ -93,7 +93,8 @@ class Lexer {
             finish()
             tokens.lastOption match {
               case Some(_: Token.Identifier) | Some(_: Token.Number) | Some(_: Token.Post) | Some(_: Token.Error)
-                   | Some(_: Token.Group) | Some(_: Token.Application) | Some(_: Token.List) | Some(_: Token.Vector)
+                   | Some(_: Token.Group) | Some(_: Token.Application) | Some(_: Token.PrimaryBracket)
+                   | Some(_: Token.SecondaryBracket) | Some(_: Token.TertiaryBracket) | Some(_: Token.Match)
                    | Some(_: Token.Lambda) | Some(Token.Answer) =>
                 tokens.addOne(Token.Operator(Util.makeString(content)))
               case Some(_: Token.Sign) | Some(_: Token.Operator) | Some(_: Token.Post) if tokens.init.lastOption.contains(Token.Reference) =>
@@ -189,29 +190,29 @@ class Lexer {
       CatCodeGrouper.finish()
       tokens.addOne(token)
     }
-    def finish(isAssignToken: Boolean = false): Result[TokenStream] = {
+    def finish(closingToken: Option[String], isAssignToken: Boolean = false): Result[(TokenStream, Option[String])] = {
       CatCodeGrouper.finish()
       if (tokenizeAssignment && !isAssignToken) {
         Result.Error("Input ended prematurely, expected an assignment token.")
       } else if (!tokenizeAssignment && isAssignToken) {
         Result.Error("Invalid catcode configuration.")
       } else {
-        Result.Value(TokenStream(tokens.toVector))
+        Result.Value((TokenStream(tokens.toVector), closingToken))
       }
     }
 
     while (true) this.catCodes.tokCode(source) match {
-      case TokResult.Eof if closingCatCode.isEmpty => return finish()
-      case TokResult.Eof => return Result.Error("Closed expression is not terminated. Expected " + closingCatCode.get)
+      case TokResult.Eof if closingCatCodes.isEmpty => return finish(None)
+      case TokResult.Eof => return Result.Error("Closed expression is not terminated. Expected one of " + closingCatCodes.mkString(", "))
       case TokResult.Ambiguity(matches) => return Result.Error("Ambiguous tok-codes: Multiple matches: " + matches.mkString(", "))
       case CharacterMapping(code, content) => 
         // If there is the possibility to break before a lookahead catcode, we must always break when a comment starts
         // or we might actually read after the comment.
-        if (breakAt.contains(code) || (breakAt.nonEmpty && code == CatCode.Comment)) return finish()
+        if (breakAt.contains(code) || (breakAt.nonEmpty && code == CatCode.Comment)) return finish(None)
         source.advance(content.length)
         code match {
-          case _ if closingCatCode.contains(code) => return finish()
-          case CatCode.Assign if tokenizeAssignment && !CatCodeGrouper.isGroupingOperator => return finish(isAssignToken = true)
+          case _ if closingCatCodes.contains(code) => return finish(Some(Util.makeString(content)))
+          case CatCode.Assign if tokenizeAssignment && !CatCodeGrouper.isGroupingOperator => return finish(None, isAssignToken = true)
           case CatCode.Letter | CatCode.Digit | CatCode.DecimalSep | CatCode.Exp | CatCode.Operator | CatCode.Assign | CatCode.Sign | CatCode.Post => CatCodeGrouper.consume(code, content) match {
             case Some(result) => return result
             case None =>
@@ -228,41 +229,52 @@ class Lexer {
             CatCodeGrouper.finish()
             tokens.lastOption match {
               case Some(_: Token.Identifier) | Some(_: Token.Number) | Some(_: Token.Post) | Some(_: Token.Application)
-                   | Some(_: Token.Group) | Some(_: Token.Error) | Some(_: Token.List) | Some(_: Token.Match)
-                   | Some(_: Token.Vector) | Some(_: Token.Lambda) | Some(Token.PartialApplication) | Some(Token.Answer) =>
-                this.tokenizePart(source, Some(CatCode.Close), Set()) match {
-                  case Result.Value(tokens: TokenStream) => emit(Token.Application(tokens))
+                   | Some(_: Token.Group) | Some(_: Token.Error) | Some(_: Token.PrimaryBracket) | Some(_: Token.SecondaryBracket)
+                   | Some(_: Token.TertiaryBracket) | Some(_: Token.Match) | Some(_: Token.Lambda) | Some(Token.PartialApplication)
+                   | Some(Token.Answer) =>
+                this.tokenizePart(source, Set(CatCode.Close), Set()) match {
+                  case Result.Value((tokens: TokenStream, _)) => emit(Token.Application(tokens))
                   case result => return result
                 }
               // References to operators can be applied
               case Some(_: Token.Operator) | Some(_: Token.Sign) | Some(_: Token.Post) if tokens.length >= 2 && tokens(tokens.length - 2) == Token.Reference =>
-                this.tokenizePart(source, Some(CatCode.Close), Set()) match {
-                  case Result.Value(tokens: TokenStream) => emit(Token.Application(tokens))
+                this.tokenizePart(source, Set(CatCode.Close), Set()) match {
+                  case Result.Value((tokens: TokenStream, _)) => emit(Token.Application(tokens))
                   case result => return result
                 }
               case _ =>
-                this.tokenizePart(source, Some(CatCode.Close), Set()) match {
-                  case Result.Value(tokens: TokenStream) => emit(Token.Group(tokens))
+                this.tokenizePart(source, Set(CatCode.Close), Set()) match {
+                  case Result.Value((tokens: TokenStream, _)) => emit(Token.Group(tokens))
                   case result => return result
                 }
             }
-          case CatCode.StartList => this.tokenizePart(source, Some(CatCode.End), Set()) match {
-            case Result.Value(tokens: TokenStream) => emit(Token.List(tokens))
+          case CatCode.StartPrimary => this.tokenizePart(source, Set(CatCode.End, CatCode.EndMatch), Set()) match {
+            case Result.Value((bracketTokens: TokenStream, _)) if bracketTokens.tokens.nonEmpty && tokens.lastOption.contains(Token.Reference) => return Result.Error("Bracket reference can't contain elements.")
+            case Result.Value((bracketTokens: TokenStream, Some(closingToken: String))) => emit(Token.PrimaryBracket(Util.makeString(content), closingToken, bracketTokens))
+            case Result.Value(_) => return Result.Error("Could not tokenize input: Closed expression was gobbled without an end token when parsing primary. This should not happen.")
             case result => return result
           }
-          case CatCode.StartVector => this.tokenizePart(source, Some(CatCode.End), Set()) match {
-            case Result.Value(tokens: TokenStream) => emit(Token.Vector(tokens))
+          case CatCode.StartSecondary => this.tokenizePart(source, Set(CatCode.End, CatCode.EndMatch), Set()) match {
+            case Result.Value((bracketTokens: TokenStream, _)) if bracketTokens.tokens.nonEmpty && tokens.lastOption.contains(Token.Reference) => return Result.Error("Bracket reference can't contain elements.")
+            case Result.Value((bracketTokens: TokenStream, Some(closingToken: String))) => emit(Token.SecondaryBracket(Util.makeString(content), closingToken, bracketTokens))
+            case Result.Value(_) => return Result.Error("Could not tokenize input: Closed expression was gobbled without an end token when parsing secondary. This should not happen.")
             case result => return result
           }
-          case CatCode.StartMatch => this.tokenizePart(source, Some(CatCode.End), Set(), canEmitFollow = true) match {
-            case Result.Value(tokens: TokenStream) => emit(Token.Match(tokens))
+          case CatCode.StartTertiary => this.tokenizePart(source, Set(CatCode.End, CatCode.EndMatch), Set()) match {
+            case Result.Value((bracketTokens: TokenStream, _)) if bracketTokens.tokens.nonEmpty && tokens.lastOption.contains(Token.Reference) => return Result.Error("Bracket reference can't contain elements.")
+            case Result.Value((bracketTokens: TokenStream, Some(closingToken: String))) => emit(Token.TertiaryBracket(Util.makeString(content), closingToken, bracketTokens))
+            case Result.Value(_) => return Result.Error("Could not tokenize input: Closed expression was gobbled without an end token when parsing tertiary. This should not happen.")
             case result => return result
           }
-          case CatCode.Close | CatCode.End if closingCatCode.isEmpty => return Result.Error("Dangling token: " + code)
-          case CatCode.Close | CatCode.End => return Result.Error("Wrong closing token, expected " + closingCatCode.get + ", got " + code)
-          case CatCode.Lambda => this.tokenizePart(source, Some(CatCode.Follow), Set()) match {
-            case Result.Value(argumentTokens: TokenStream) => this.tokenizePart(source, None, Lexer.LambdaTerminators) match {
-              case Result.Value(definitionTokens: TokenStream) => emit(Token.Lambda(argumentTokens, definitionTokens))
+          case CatCode.StartMatch => this.tokenizePart(source, Set(CatCode.EndMatch), Set(), canEmitFollow = true) match {
+            case Result.Value((matchTokens: TokenStream, _)) => emit(Token.Match(matchTokens))
+            case result => return result
+          }
+          case CatCode.Close | CatCode.End | CatCode.EndMatch if closingCatCodes.isEmpty => return Result.Error("Dangling token: " + code)
+          case CatCode.Close | CatCode.End | CatCode.EndMatch => return Result.Error("Wrong closing token, expected one of " + closingCatCodes.mkString(", ") + ", got " + code)
+          case CatCode.Lambda => this.tokenizePart(source, Set(CatCode.Follow), Set()) match {
+            case Result.Value((argumentTokens: TokenStream, _)) => this.tokenizePart(source, Set(), Lexer.LambdaTerminators) match {
+              case Result.Value((definitionTokens: TokenStream, _)) => emit(Token.Lambda(argumentTokens, definitionTokens))
               case result => return result
             }
             case result => return result
@@ -278,7 +290,7 @@ class Lexer {
           }
           case CatCode.Special => emit(Token.Special)
           case CatCode.Guard => emit(Token.Guard)
-          case CatCode.Comment if closingCatCode.isEmpty => return finish()
+          case CatCode.Comment if closingCatCodes.isEmpty => return finish(None)
           case CatCode.Comment => return Result.Error("Comment inside closed expression")
           case CatCode.VarArg => emit(Token.Vararg)
           case CatCode.Partial => emit(Token.PartialApplication)

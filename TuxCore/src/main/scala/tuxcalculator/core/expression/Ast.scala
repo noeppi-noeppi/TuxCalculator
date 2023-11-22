@@ -16,21 +16,31 @@ object Ast {
   }
   
   case class DefCommand(target: DefTarget, priority: Option[Expression], sig: Signature) extends Command {
-    def string(calc: Calculator): String = "def" + (if (priority.isDefined) "[" + priority.get.string(calc) + "]" else "") + " " + target.name + "(" + sig + ")"
+    def string(calc: Calculator): String = "def" + (if (priority.isDefined) "[" + priority.get.string(calc) + "]" else "") + " " + target.toString + "(" + sig + ")"
   }
   
   sealed trait DefTarget {
     val name: String
+    override def toString: String = name
   }
   object DefTarget {
     case class Function(name: String) extends DefTarget
     case class Operator(name: String) extends DefTarget
     case class SignOrOperator(name: String) extends DefTarget
     case class Post(name: String) extends DefTarget
+    case class PrimaryBracket(name: String, close: String) extends DefTarget {
+      override def toString: String = name + close
+    }
+    case class SecondaryBracket(name: String, close: String) extends DefTarget {
+      override def toString: String = name + close
+    }
+    case class TertiaryBracket(name: String, close: String) extends DefTarget {
+      override def toString: String = name + close
+    }
   }
   
   case class RemCommand(target: DefTarget) extends Command {
-    def string(calc: Calculator): String = "rem " + target.name
+    def string(calc: Calculator): String = "rem " + target.toString
   }
   
   case class SetCommand(name: String) extends Command {
@@ -86,19 +96,23 @@ object Ast {
   }
 
   case class Reference(target: DefTarget) extends Expression {
-    override def string(calc: Calculator): String = "@" + target.name
+    override def string(calc: Calculator): String = "@" + target.toString
   }
 
   case class Special(name: String) extends Expression {
     override def string(calc: Calculator): String = "#" + name
   }
 
-  case class List(values: Vector[Argument]) extends Expression {
-    override def string(calc: Calculator): String = "[" + values.map(_.string(calc)).mkString(", ") + "]"
+  case class PrimaryBracket(open: String, close: String, value: Expression) extends Expression {
+    override def string(calc: Calculator): String = open + value + close
   }
 
-  case class Matrix(values: Vector[Vector[Expression]]) extends Expression {
-    override def string(calc: Calculator): String = "#[" + values.map(col => col.map(_.string(calc)).mkString(", ")).mkString(" ; ") + "]"
+  case class SecondaryBracket(open: String, close: String, values: Vector[Argument]) extends Expression {
+    override def string(calc: Calculator): String = open + values.map(_.string(calc)).mkString(", ") + close
+  }
+
+  case class TertiaryBracket(open: String, close: String, values: Vector[Vector[Expression]]) extends Expression {
+    override def string(calc: Calculator): String = open + values.map(col => col.map(_.string(calc)).mkString(", ")).mkString(" ; ") + close
   }
 
   case class Lambda(sig: Signature, code: Expression, definitionCode: Expression) extends Expression {
@@ -109,7 +123,7 @@ object Ast {
   }
   
   case class Match(entries: Vector[MatchEntry]) extends Expression {
-    override def string(calc: Calculator): String = "@[" + entries.map(_.string(calc)).mkString(" ; ") + "]"
+    override def string(calc: Calculator): String = "\\[" + entries.map(_.string(calc)).mkString(" ; ") + "]"
   }
   
   case class MatchEntry(sig: Signature, elementGuards: Vector[Option[DefExpression]], mainGuard: Option[DefExpression], code: Expression, definitionCode: Expression) {

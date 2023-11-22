@@ -26,10 +26,6 @@ object ComputationLogic {
     def process(expr: Ast.Expression): MathValue = expr match {
       case Ast.Group(nested) => process(nested)
       case Ast.Value(value) => value
-      case Ast.List(args) => MathList(args.flatMap(processArg))
-      case Ast.Matrix(args) if args.nonEmpty && args.map(col => col.length).distinct.size != 1 => MathError("Matrix literal with different sized columns")
-      case Ast.Matrix(args) if args.isEmpty || args.head.isEmpty => MathError("Empty matrix")
-      case Ast.Matrix(args) => MathMatrix(args.map(col => col.map(process)))
       case Ast.Lambda(sig, code, definitionCode) => new LambdaFunction(sig, code, definitionCode)
       case Ast.Match(entries) if entries.isEmpty => MathError("Empty match")
       case ast @ Ast.Match(entries) => new MatchFunction(entries.map {
