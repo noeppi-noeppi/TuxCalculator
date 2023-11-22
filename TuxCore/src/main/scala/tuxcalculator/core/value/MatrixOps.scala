@@ -68,10 +68,19 @@ object MatrixOps {
     } else if (exp == 0) {
       identity(mat.width)
     } else if (exp > 0) {
-      (0 until (exp - 1)).foldLeft[Either[MathMatrix, String]](Left(mat))((m, _) => m match {
-        case Left(current) => doMul(current, mat)
-        case Right(err) => Right(err)
-      }) match {
+      def doRaise(theMat: MathMatrix, theExp: Int): Either[MathMatrix, String] = theExp match {
+        case 1 => Left(theMat)
+        case 2 => doMul(theMat, theMat)
+        case n if n % 2 == 0 => doRaise(theMat, n / 2) match {
+          case Left(halfRaised) => doMul(halfRaised, halfRaised)
+          case Right(err) => Right(err)
+        }
+        case n => doRaise(theMat, n - 1) match {
+          case Left(subRaised) => doMul(subRaised, mat)
+          case Right(err) => Right(err)
+        }
+      }
+      doRaise(mat, exp) match {
         case Left(result) => result
         case Right(err) => MathError(err)
       }
