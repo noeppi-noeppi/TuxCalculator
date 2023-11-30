@@ -3,7 +3,7 @@ package tuxcalculator.core.resolution
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.expression.{Ast, ExpressionHelper}
 import tuxcalculator.core.format.{AstIO, FormatContext}
-import tuxcalculator.core.function.{BracketFunction, GlobalFunction, MergedOperatorFunction, OperatorFunction}
+import tuxcalculator.core.function.{BracketFunction, GlobalFunction, ChainedOperatorFunction, OperatorFunction}
 import tuxcalculator.core.value.{MathError, MathNumber, MathValue, MathVoid}
 
 import java.io.{ByteArrayOutputStream, DataInput, DataOutput, DataOutputStream}
@@ -34,14 +34,16 @@ class ResolutionTable(private val calc: Calculator) {
   def tertiaryBracket(name: String, close: String): MathValue = tertiaries.get(name).map(f => if (close == f.close) f else MathError("Invalid closing bracket for " + name + ", expected " + f.close + ", got " + close)).getOrElse(MathError("Unbound tertiary bracket: '" + name + "'"))
   def reference(target: Ast.DefTarget): MathValue = target match {
     case Ast.DefTarget.Function(name) => functions.getOrElse(name, MathError("Unbound global function: '" + name + "'"))
-    case Ast.DefTarget.Operator(name) => operator(name)
-    case Ast.DefTarget.SignOrOperator(name) if operators.contains(name) && signs.contains(name) => new MergedOperatorFunction(name, signs(name), operators(name))
-    case Ast.DefTarget.SignOrOperator(name) if operators.contains(name) => operator(name)
-    case Ast.DefTarget.SignOrOperator(name) => sign(name)
-    case Ast.DefTarget.Post(name) => post(name)
+    case Ast.DefTarget.Operator(name) if operators.contains(name) => new ChainedOperatorFunction(name, priority(name), None, Some(operators(name)))
+    case Ast.DefTarget.SignOrOperator(name) if operators.contains(name) || signs.contains(name) => new ChainedOperatorFunction(name, priority(name), signs.get(name), operators.get(name))
+    case Ast.DefTarget.Post(name) if postfixes.contains(name) => new ChainedOperatorFunction(name, 0, postfixes.get(name), None)
     case Ast.DefTarget.PrimaryBracket(name, close) => primaryBracket(name, close)
     case Ast.DefTarget.SecondaryBracket(name, close) => secondaryBracket(name, close)
     case Ast.DefTarget.TertiaryBracket(name, close) => tertiaryBracket(name, close)
+    // These will always yield MathError
+    case Ast.DefTarget.Operator(name) => operator(name)
+    case Ast.DefTarget.SignOrOperator(name) => sign(name)
+    case Ast.DefTarget.Post(name) => post(name)
   }
 
   def tabCompleteIdentifier: Set[String] = (functions.keySet | variables.keySet).toSet

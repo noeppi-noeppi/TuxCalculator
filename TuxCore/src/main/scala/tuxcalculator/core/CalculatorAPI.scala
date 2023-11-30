@@ -38,7 +38,7 @@ object CalculatorAPI extends TuxCalculatorAPI {
       new CalculatorBuilderWrapper(FormatIO.load(frontend, in))
     } catch {
       case e: IOException => new ErroredCalculatorBuilder(Vector("IO error: " + e.getMessage))
-      case e: InvalidFormatException => new ErroredCalculatorBuilder(Vector(e.getMessage))
+      case e: InvalidFormatException => new ErroredCalculatorBuilder(Vector("Corrupted format file.", e.getMessage))
       case e: Exception => new ErroredCalculatorBuilder(Vector("Error while loading format file.") ++ Util.getStacktrace(e))
     } finally {
       fmt.close()

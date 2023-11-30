@@ -215,12 +215,14 @@
     Using the reference notation, it's possible to convert global functions as well as operators and brackets into function values.
     \begin{verbatim}
         @sqrt     \x -> sqrt(x)
-        @-        \x -> -x       \a, b -> a - b
+        @-        \x -> -x       \a, b -> a - b    \a, b, c -> a - b - c
         @[]
     \end{verbatim}
     The first value is the square root function, which is equivalent to the lambda on the right.
     The second value is the minus function.
-    Depending on whether it's applied to one or two arguments, it's equivalent to one of the lambdas on the right.
+    If applied to one single argument, it behaves like the unary minus operator.
+    If applied to two or more arguments, it treats them as is they were written in an operator chain without any parenthesis.
+    That means associativity of the operator is taken into account.
     The third value is the list bracket function.
     This function will make a list from all its arguments.
     

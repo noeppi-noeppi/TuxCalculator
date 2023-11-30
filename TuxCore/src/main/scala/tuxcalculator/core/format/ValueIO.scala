@@ -2,7 +2,7 @@ package tuxcalculator.core.format
 
 import ch.obermuhlner.math.big.BigComplex
 import tuxcalculator.core.data.SpecialFunction
-import tuxcalculator.core.function.{BracketFunction, GlobalFunction, LambdaFunction, MatchFunction, MatchFunctionEntry, MemoizedFunction, MergedOperatorFunction, OperatorFunction, PartialAppliedFunction}
+import tuxcalculator.core.function.{BracketFunction, GlobalFunction, LambdaFunction, MatchFunction, MatchFunctionEntry, MemoizedFunction, ChainedOperatorFunction, OperatorFunction, PartialAppliedFunction}
 import tuxcalculator.core.value.{MathError, MathFalse, MathFunction, MathList, MathMatrix, MathNumber, MathTrue, MathValue, MathVoid}
 
 import java.io.{DataInput, DataOutput}
@@ -94,7 +94,13 @@ object ValueIO {
       new GlobalFunction(name, map.toMap)
     case 3 => new OperatorFunction(ctx.strings.get(in.readInt()), ctx.functions.get(in.readInt()))
     case 4 => new BracketFunction(ctx.strings.get(in.readInt()), ctx.strings.get(in.readInt()), ctx.functions.get(in.readInt()))
-    case 5 => new MergedOperatorFunction(ctx.strings.get(in.readInt()), ctx.functions.get(in.readInt()), ctx.functions.get(in.readInt()))
+    case 5 =>
+      val name = ctx.strings.get(in.readInt())
+      val priority = in.readInt()
+      val mask = in.readByte()
+      val function1 = if ((mask & 0x1) != 0) Some(ctx.functions.get(in.readInt())) else None
+      val functionN = if ((mask & 0x2) != 0) Some(ctx.functions.get(in.readInt())) else None
+      new ChainedOperatorFunction(name, priority, function1, functionN)
     case 6 =>
       val value = ctx.values.get(in.readInt())
       val len = in.readInt()
@@ -144,10 +150,13 @@ object ValueIO {
       out.writeInt(ctx.strings.add(op.name))
       out.writeInt(ctx.strings.add(op.close))
       out.writeInt(ctx.functions.add(op.function))
-    case op: MergedOperatorFunction => out.writeByte(5)
+    case op: ChainedOperatorFunction => out.writeByte(5)
       out.writeInt(ctx.strings.add(op.name))
-      out.writeInt(ctx.functions.add(op.function1))
-      out.writeInt(ctx.functions.add(op.function2))
+      out.writeInt(op.priority)
+      val mask = (0x1 * op.function1.size) | (0x2 * op.functionN.size)
+      out.writeByte(mask)
+      if (op.function1.isDefined) out.writeInt(ctx.functions.add(op.function1.get))
+      if (op.functionN.isDefined) out.writeInt(ctx.functions.add(op.functionN.get))
     case partial: PartialAppliedFunction => out.writeByte(6)
       out.writeInt(ctx.values.add(partial.value))
       out.writeInt(partial.partialArgs.length)
