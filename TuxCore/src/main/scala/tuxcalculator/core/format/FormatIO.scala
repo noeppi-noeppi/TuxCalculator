@@ -6,6 +6,7 @@ import tuxcalculator.core.data.CalculatorProperties
 import tuxcalculator.core.lexer.CatCode
 
 import java.io.{DataInput, DataOutput}
+import java.text.Normalizer
 
 object FormatIO {
   
@@ -32,6 +33,13 @@ object FormatIO {
     calc.properties.set(CalculatorProperties.Output, in.readInt())
     calc.properties.set(CalculatorProperties.Truncate, in.readInt())
     calc.properties.set(CalculatorProperties.Eager, in.readBoolean())
+    calc.properties.set(CalculatorProperties.Normalization, in.readInt() match {
+      case 0xFFFFFFFF => None
+      case ordinal => Normalizer.Form.values() match {
+        case values if values.indices contains ordinal => Some(values(ordinal))
+        case _ => throw new IllegalStateException("Invalid input normalization in format.")
+      }
+    })
     
     val answer = calc.resolution.read(in)
     calc.finish(answer)
@@ -63,6 +71,10 @@ object FormatIO {
     out.writeInt(calc.properties(CalculatorProperties.Output))
     out.writeInt(calc.properties(CalculatorProperties.Truncate))
     out.writeBoolean(calc.properties(CalculatorProperties.Eager))
+    calc.properties(CalculatorProperties.Normalization) match {
+      case Some(normalization) => out.writeInt(normalization.ordinal())
+      case None => out.writeInt(0xFFFFFFFF)
+    }
     
     calc.resolution.write(out)
   }

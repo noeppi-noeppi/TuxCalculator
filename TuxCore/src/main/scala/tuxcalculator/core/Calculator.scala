@@ -13,6 +13,7 @@ import tuxcalculator.core.value._
 
 import java.io.DataOutputStream
 import java.math.{MathContext, RoundingMode}
+import java.text.Normalizer
 
 class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingContext with PropertyAccess {
 
@@ -103,9 +104,14 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
     }
   }
   
-  def parse(line: String): Result[MathValue] = {
+  def parse(rawLine: String): Result[MathValue] = {
     if (!ready) throw new IllegalStateException("Calculator not ready.")
     if (dumpedUnusable) throw new IllegalStateException("Can't use calculator after dump.")
+    
+    val normalizedLine: String = properties(CalculatorProperties.Normalization) match {
+      case Some(normalization) => Normalizer.normalize(rawLine, normalization)
+      case None => rawLine
+    }
     
     def computeString(string: String): Result[MathValue] = lexer.tokenize(string) ~> computeTokens
     def computeTokens(tokens: TokenStream): Result[MathValue] = parser.expression(tokens) ~ computeAst
@@ -115,7 +121,7 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
     }
     
     val result: Result[MathValue] = try {
-      line.strip() match {
+      normalizedLine.strip() match {
         case commands.Let(cmdStr) => lexer.tokenizeAssignment(cmdStr) ~> {
           case PartialTokenStream(tokens, remaining) => parser.letCommand(tokens) ~> {
             case Ast.LetCommand(name: String) => computeString(remaining) ~ (value => resolution.let(name, value))
@@ -192,7 +198,7 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
             // In case exit does not work.
             return Result.Value(MathVoid)
         }
-        case _ => lexer.tokenize(line) match {
+        case _ => lexer.tokenize(normalizedLine) match {
           case Result.Value(TokenStream(Vector())) =>
             // No tokens, return void result without changing answer
             return Result.Value(MathVoid)
