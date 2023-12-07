@@ -2,7 +2,8 @@ package tuxcalculator.core.format
 
 import ch.obermuhlner.math.big.BigComplex
 import tuxcalculator.core.data.SpecialFunction
-import tuxcalculator.core.function.{BracketFunction, GlobalFunction, LambdaFunction, MatchFunction, MatchFunctionEntry, MemoizedFunction, ChainedOperatorFunction, OperatorFunction, PartialAppliedFunction}
+import tuxcalculator.core.function.{BracketFunction, ChainedOperatorFunction, GlobalFunction, LambdaFunction, MatchFunction, MatchFunctionEntry, MemoizedFunction, OperatorFunction, PartialAppliedFunction}
+import tuxcalculator.core.util.Util
 import tuxcalculator.core.value.{MathError, MathFalse, MathFunction, MathList, MathMatrix, MathNumber, MathTrue, MathValue, MathVoid}
 
 import java.io.{DataInput, DataOutput}
@@ -70,7 +71,7 @@ object ValueIO {
 
   private def writeNumber(value: BigDec, out: DataOutput): Unit = {
     out.writeInt(value.scale)
-    val data = value.unscaledValue.toByteArray
+    val data = Util.safeStripTrailingZeros(value).unscaledValue.toByteArray
     out.writeInt(data.length)
     out.write(data)
   }
