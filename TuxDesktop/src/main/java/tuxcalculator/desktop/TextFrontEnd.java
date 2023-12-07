@@ -6,7 +6,6 @@ import org.jline.reader.impl.history.DefaultHistory;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import tuxcalculator.api.TuxCalculator;
-import tuxcalculator.api.TuxCalculatorAPI;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -38,7 +37,7 @@ public final class TextFrontEnd extends DesktopFrontend {
     }
     
     private void runText(TuxCalculator calc) throws IOException {
-        System.out.println("This is TuxCalculator, Version " + TuxCalculatorAPI.VERSION + (calc.ini() ? " (INI)" : ""));
+        System.out.println(Main.title());
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         while (true) {
             String line = reader.readLine();
@@ -69,7 +68,7 @@ public final class TextFrontEnd extends DesktopFrontend {
                     .option(LineReader.Option.AUTO_MENU_LIST, false)
                     .option(LineReader.Option.RECOGNIZE_EXACT, false)
                     .build();
-            System.out.println("This is TuxCalculator, Version " + TuxCalculatorAPI.VERSION + (calc.ini() ? " (INI)" : ""));
+            System.out.println(Main.title());
             //noinspection InfiniteLoopStatement
             while (true) {
                 String line = reader.readLine();

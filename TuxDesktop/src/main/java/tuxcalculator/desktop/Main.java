@@ -22,6 +22,9 @@ import java.util.stream.Collectors;
 
 public class Main {
 
+    private static String title = "This is TuxCalculator, Version " + TuxCalculatorAPI.VERSION;
+    private static String windowTitle = "TuxCalculator " + TuxCalculatorAPI.VERSION;
+    
     public static void main(String[] args) throws IOException {
         Path defaultRcFile = Paths.get(System.getProperty("user.home")).resolve(".init.tuxc").toAbsolutePath().normalize();
 
@@ -46,8 +49,22 @@ public class Main {
             throw e;
         }
 
+        if (set.has(specIni)) {
+            title = "This is TuxCalculator, Version " + TuxCalculatorAPI.VERSION + " (INI)";
+            windowTitle = "TuxCalculator " + TuxCalculatorAPI.VERSION + " (INI)";
+        } else if (set.has(specFmt) && !Objects.equals(set.valueOf(specFmt), "plain")) {
+            String shortFmt = set.valueOf(specFmt);
+            if (shortFmt.contains("/")) shortFmt = shortFmt.substring(shortFmt.lastIndexOf('/') + 1);
+            if (shortFmt.contains("\\")) shortFmt = shortFmt.substring(shortFmt.lastIndexOf('\\') + 1);
+            title = "This is TuxCalculator, Version " + TuxCalculatorAPI.VERSION + " (fmt=" + shortFmt + ")";
+            windowTitle = "TuxCalculator " + TuxCalculatorAPI.VERSION;
+        } else {
+            title = "This is TuxCalculator, Version " + TuxCalculatorAPI.VERSION;
+            windowTitle = "TuxCalculator " + TuxCalculatorAPI.VERSION;
+        }
+        
         if (set.has(specVersion) || set.has(specHelp) || set.has(specLicenses)) {
-            System.out.println("This is TuxCalculator, Version " + TuxCalculatorAPI.VERSION + (set.has(specIni) ? " (INI)" : ""));
+            System.out.println(title());
             if (set.has(specLicenses)) {
                 LicensePrinter.printLicenses();
             }
@@ -117,5 +134,13 @@ public class Main {
         });
         
         System.exit(0);
+    }
+
+    public static String title() {
+        return Objects.requireNonNull(title);
+    }
+
+    public static String windowTitle() {
+        return Objects.requireNonNull(windowTitle);
     }
 }

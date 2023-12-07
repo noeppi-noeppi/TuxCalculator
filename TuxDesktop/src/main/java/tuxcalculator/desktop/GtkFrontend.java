@@ -5,7 +5,6 @@ import org.gnome.gdk.Rectangle;
 import org.gnome.gtk.*;
 import org.gnome.pango.Weight;
 import tuxcalculator.api.TuxCalculator;
-import tuxcalculator.api.TuxCalculatorAPI;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -13,10 +12,11 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class GtkFrontend extends GraphicalFrontend {
 
@@ -60,7 +60,7 @@ public class GtkFrontend extends GraphicalFrontend {
             builder.addFromString(windowDef);
             
             Window window = (Window) builder.getObject("tux_window");
-            window.setTitle("TuxCalculator " + TuxCalculatorAPI.VERSION + (calc.ini() ? " (INI)" : ""));
+            window.setTitle(Main.windowTitle());
             window.connect((Widget.Hide) widget -> this.exit());
             
             this.in = (TextView) builder.getObject("tux_term_input");

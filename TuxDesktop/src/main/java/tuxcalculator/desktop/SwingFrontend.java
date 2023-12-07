@@ -2,7 +2,6 @@ package tuxcalculator.desktop;
 
 import org.apache.commons.text.StringEscapeUtils;
 import tuxcalculator.api.TuxCalculator;
-import tuxcalculator.api.TuxCalculatorAPI;
 
 import javax.swing.*;
 import java.awt.*;
@@ -40,7 +39,7 @@ public class SwingFrontend extends GraphicalFrontend {
         JButton inputButton = new JButton("Apply");
 
         JFrame frame = new JFrame();
-        frame.setTitle("TuxCalculator " + TuxCalculatorAPI.VERSION + (calc.ini() ? " (INI)" : ""));
+        frame.setTitle(Main.windowTitle());
         GridBagLayout layout = new GridBagLayout();
         frame.setLayout(layout);
     

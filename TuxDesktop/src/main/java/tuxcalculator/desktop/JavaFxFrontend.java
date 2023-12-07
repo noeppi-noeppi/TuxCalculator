@@ -15,7 +15,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import tuxcalculator.api.TuxCalculator;
-import tuxcalculator.api.TuxCalculatorAPI;
 
 import java.io.IOException;
 import java.net.URL;
@@ -94,7 +93,7 @@ public class JavaFxFrontend extends GraphicalFrontend {
             Stage stage = new Stage();
 
             Parent root = FXMLLoader.load(res);
-            stage.setTitle("TuxCalculator " + TuxCalculatorAPI.VERSION + (calc.ini() ? " (INI)" : ""));
+            stage.setTitle(Main.windowTitle());
             stage.setScene(new Scene(root, root.prefWidth(0), root.prefHeight(0)));
 
             this.in = (TextField) root.lookup("#tux_term_input");
