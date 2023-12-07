@@ -334,6 +334,10 @@ let temp = \[(a:#ism):#eq(#wd(a),#ht(a))->#fold(#fill(#wd(a),\idx->a(idx+1,idx+1
 def tr(a) = temp(a)
 def adj(a) = #adj(a)
 def det(a) = #det(a)
+let temp = \[(a,n):#or(#or(n<1,n>#wd(a)))->a;(a,n)->#fill(#ht(a),#wd(a)-1,\r,c->a(r,#if(c<j,c,c+1)))]
+def minor(a,n) = temp(a,n)
+let temp = \[(a,i,j):#or(#or(i<1,i>#ht(a)),#or(j<1,j>#wd(a)))->a;(a,i,j)->#fill(#ht(a)-1,#wd(a)-1,\r,c->a(#if(r<i,r,r+1),#if(c<j,c,c+1)))]
+def minor(a,i,j) = temp(a,i,j)
 
 def sin(x) = #sin(x)
 let temp = \[(x):#eq(x,0)->1;(x)->#div(#sin(x),x)]

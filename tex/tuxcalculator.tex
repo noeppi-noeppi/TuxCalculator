@@ -756,11 +756,14 @@
         $ \mathrm{EM}(n,m,i,j) $                   & Gets an elementary matrix of size $ n \times m $ with all zeros except a one at position $ i, j $. \\
         $ \mathrm{IM}(n) $                         & Gets the identity matrix of size $ n \times n $. \\
         $ \mathrm{NM}(n) $                         & Gets the zero matrix of size $ n\times n $ \\
-        $ \mathrm{NM}(n,m) $                       & Gets the zero matrix of size $ n\times m $. \\
+        $ \mathrm{NM}(n, m) $                      & Gets the zero matrix of size $ n\times m $. \\
         $ \mathrm{diag}(l_1,l\dots) $              & Gets a diagonal matrix with the given entries on its main diagonal. \\
         $ \mathrm{cross}(a, b) $                   & Computes the cross product of two $ 3 $-dimensional vectors. \\
         $ \mathrm{tr}(a) $                         & Computes the trace of the square matrix $ a $. \\
         $ \mathrm{adj}(a) $                        & Computes the adjugate matrix of the square matrix $ a $. \\
+        $ \mathrm{det}(a) $                        & Computes the determinant of the square matrix $ a $. \\
+        $ \mathrm{minor}(a, n) $                   & Computes a matrix minor. The resulting matrix is the matrix $ a $ with the $ n $-th column removed. \\
+        $ \mathrm{minor}(a, i, j) $                & Computes a matrix minor. The resulting matrix is the matrix $ a $ with the $ i $-th row and the $ j $-th column removed. \\
         $ \mathrm{det}(a) $                        & Computes the determinant of the square matrix $ a $. \tabgap
         $ \mathrm{sin}(x) $                        & Computes the sine of $ x $. \\
         $ \mathrm{sinc}(x) $                       & The $ \mathrm{sinc} $ function $ \frac{\sin x}{x} $. $ \mathrm{sinc}(0) = 1 $. \\
