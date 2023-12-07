@@ -634,7 +634,7 @@
         $ \%\% $                     & \makebox[0pt][r]{$ -200 $} & Calculates the unsigned modulo of two numbers. \\
         $ \textrm{\textbrokenbar} $  & \makebox[0pt][r]{$ -200 $} & $ a \,\textrm{\textbrokenbar}\, b $ gets whether $ b $ is divisible by $ a $. \\
         $ ** $, $ \bullet $          & \makebox[0pt][r]{$ -200 $} & Calculates a scalar product of two vectors. \\
-        $ \times $                   & \makebox[0pt][r]{$ -200 $} & Calculates a cross product of two $ 3 $-dimensional vectors. \\
+        $ \times $                   & \makebox[0pt][r]{$ -200 $} & Calculates a cartesian product of two lists or a cross product of two $ 3 $-dimensional vectors. \\
         $ + $                        & \makebox[0pt][r]{$ -300 $} & Adds two numbers or concatenates two lists. \\
         $ - $                        & \makebox[0pt][r]{$ -300 $} & If both arguments are lists, $ a - b $ is the list $ a $ with all elements removed, that are contained in the list $ b $. Otherwise subtracts two numbers. \\
         $ \dblcolon $                & \makebox[0pt][r]{$ -399 $} & $ h \dblcolon t $ prepends $ h $ to the list $ t $. \\
@@ -711,6 +711,7 @@
         $ \mathrm{map}(l, f) $                     & Applies the function $ f $ to each element in the list $ l $ and creates a new list with all the results. \\
         $ \mathrm{flatMap}(l, f) $                 & Applies the function $ f $ to each element in the list $ l $. $ f $ is expected to produce a list. All the lists produced by $ f $ are flattened into one single result list. \\
         $ \mathrm{rev}(l) $                        & Reverses the list $ l $. \\
+        $ \mathrm{cprod}(l\dots) $                 & Calculates the cartesian products of some lists. \\
         $ \mathrm{forall}(l, f) $                  & Gets whether the function $ f $ yields \verb|true| for all elements of the list or matrix $ l $. If $ l $ is neither a list nor a matrix, the result is \verb|true|.  \\
         $ \mathrm{exists}(l, f) $                  & Gets whether the function $ f $ yields \verb|true| for at least one element of the list or matrix $ l $. If $ l $ is neither a list nor a matrix, the result is \verb|false|. \tabgap
         $ \mathrm{range}(n) $                      & Creates a list with all integers in the interval $ [1;n] $. \\

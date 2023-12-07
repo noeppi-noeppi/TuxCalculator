@@ -236,6 +236,9 @@ def join(l...) = #fold(l,[],\a,b->[a...,b...])
 def map(l,f) = #map(l,f)
 def flatMap(l,f) = join(map(l,f)...)
 def rev(l) = #rev(l)
+let temp = \[(l):#eq(#len(l),0)->[];(l)->#fill(#fold(l,1,\s,c->s*#len(c)),\i->#fill(#len(l),\j->l(j)(#mod(#fl(#div(i,#fold(take(l,j),1,\s,c->s*#len(c))),0),#len(l(j))))))]
+def cprod(l...) = temp(l)
+
 ? Temporary function to convert a matrix into list of all its elements
 let tempMatrixElems = \[(x:#isv)->[x...];(x:#ism)->#fill(#wd(x)*#ht(x),\n->x(1+(n%#ht(x)),1+(#fl(n/#ht(x),0))))]
 let temp = \l,f->#fold(#map(l,f),true,#and)
@@ -389,7 +392,8 @@ def(-500) ∈(e,l) = has(l,e)
 def(-500) ∉(e,l) = #if(has(l,e),false,true)
 def(-500) ∘(a,b) = \arg...->a(b(arg...))
 def(-200) ·(a,b) = a * b
-def(-200) ×(a,b) = cross(a,b)
+let temp = \[(a:#isv,b:#isv)->cross(a,b);(a:#isl,b:#isl)->cprod(a,b);(a,b)->'Can only use × on vectors and lists']
+def(-200) ×(a,b) = temp(a,b)
 def(-200) ∙(a,b) = a ** b
 def(-200) //(a,b) = trunc(#div(a,b))
 
