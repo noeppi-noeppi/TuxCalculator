@@ -77,6 +77,12 @@ object InputHighlighter {
               case CharacterMapping(CatCode.Sign, nestedContent) => advance(nestedContent.length, HighlightType.REFERENCE)
               case CharacterMapping(CatCode.Operator | CatCode.Assign, _) => advanceWhile(lookahead, HighlightType.REFERENCE, cat => cat.contains(CatCode.Operator) || cat.contains(CatCode.Assign))
               case CharacterMapping(CatCode.Post, _) => advanceWhile(lookahead, HighlightType.REFERENCE, cat => cat.contains(CatCode.Post))
+              case CharacterMapping(CatCode.StartPrimary | CatCode.StartSecondary | CatCode.StartTertiary, nestedContent) =>
+                advance(nestedContent.length, HighlightType.REFERENCE)
+                calc.lexer.lookup(lookahead) match {
+                  case CharacterMapping(CatCode.End | CatCode.EndMatch, endContent) => advance(endContent.length, HighlightType.REFERENCE)
+                  case _ =>
+                }
               case _ => advanceWhile(lookahead, HighlightType.REFERENCE, cat => cat.exists(Identifier.contains))
             }
           case CatCode.Special =>

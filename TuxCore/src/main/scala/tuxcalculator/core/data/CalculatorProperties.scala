@@ -41,6 +41,11 @@ class CalculatorProperties(private val calc: Calculator, val onChange: () => Uni
 
 object CalculatorProperties {
   
+  // For tab completion
+  def allProperties: Set[String] = Set[String](
+    "precision", "output", "truncate", "eager", "normalization"
+  )
+  
   def apply(name: String): Either[CalculatorProperty[_], String] = name match {
     case "precision" => Left(Precision)
     case "output" => Left(Output)

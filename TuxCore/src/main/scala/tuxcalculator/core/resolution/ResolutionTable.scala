@@ -47,7 +47,7 @@ class ResolutionTable(private val calc: Calculator) {
   }
 
   def tabCompleteIdentifier: Set[String] = (functions.keySet | variables.keySet).toSet
-  def tabCompleteReference: Set[String] = (functions.keySet | signs.keySet | operators.keySet | postfixes.keySet).toSet
+  def tabCompleteReference: Set[String] = (functions.keySet | signs.keySet | operators.keySet | postfixes.keySet | primaries.map(e => e._1 + e._2.close).toSet| secondaries.map(e => e._1 + e._2.close).toSet | tertiaries.map(e => e._1 + e._2.close).toSet).toSet
 
   def let(name: String, value: MathValue): MathValue = {
     variables(name) = value
