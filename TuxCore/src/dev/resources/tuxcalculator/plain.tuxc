@@ -71,6 +71,11 @@ def polar(r,a) = #polar(r,a)
 ? Basic functions for dealing with functions
 let temp=\f->(\x->x(x))(\x->f(\y...->x(x)(y...)))
 def Y(f)=temp(\s->\a...->f(s,a...))
+let temp = \[(s,n,f):#eq(n,1)->f;(s,n,f):#lt(1,n)->\a->s(#sub(n,1),f_a);(s,n,f)->'Non-positive curry']
+let temp = Y(temp)
+def curry(n,f) = temp(n,f)
+let temp = \[(n,f):#eq(n,1)->f;(n,f):#lt(1,n)->\[(l...):#eq(#len(l),n)->#fold(l,f,\sf,a->sf(a))];(n,f)->'Non-positive uncurry']
+def uncurry(n,f) = temp(n,f)
 
 ? Basic functions for dealing with lists
 let temp=#sub(0,1)
