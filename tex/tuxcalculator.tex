@@ -701,6 +701,7 @@
         $ \mathrm{med}(l\dots) $                   & Gets the median of its arguments. $ \mathrm{med}() $ without any arguments produces an error. \tabgap
         $ \mathrm{clamp}(x, l, u) $                & Gets $ x $ if it lies between $ l $ and $ u $, otherwise the bound that is closer to the value of $ x $. \\
         $ \mathrm{lerp}(p, a, b) $                 & Linearly interpolates from $ a $ to $ b $ using the percentage $ p \in [0;1] $. \tabgap
+        $ \mathrm{len}(l) $                        & Gets the length of a list $ l $. \\
         $ \mathrm{take}(l, n) $                    & Gets the first $ n $ elements of the list $ l $. \\
         $ \mathrm{drop}(l, n) $                    & Gets all elements except the first $ n $ from the list $ l $. \\
         $ \mathrm{slice}(l, a, b) $                & Gets all elements from the list $ l $ with indices satisfying $ a \leq idx < b $. \\
@@ -749,10 +750,14 @@
         $ \mathrm{prime}(n) $                      & Gets whether $ n $ is a prime number. \\
         $ \mathrm{totient}(n) $                    & Computer the euler totient function $ \phi(n) $. \tabgap
         $ \mathrm{vec}(l\dots) $                   & Creates a vector from all arguments. $ \mathrm{vec}() $ without any arguments produces an error. \\
+        $ \mathrm{dim}(a) $                        & Gets the dimensions of a matrix $ a $ as $ [ h, w ] $ with the width $ w $ and the height $ h $. \\
         $ \mathrm{T}(a) $                          & Gets the transpose of the matrix $ a $. \\
-        $ \mathrm{IM}(n) $                         & Gets the identity matrix of size $ n\times n $. \\
+        $ \mathrm{CT}(a) $                         & Gets the conjugate transpose of the matrix $ a $. \\
+        $ \mathrm{EM}(n,m,i,j) $                   & Gets an elementary matrix of size $ n \times m $ with all zeros except a one at position $ i, j $. \\
+        $ \mathrm{IM}(n) $                         & Gets the identity matrix of size $ n \times n $. \\
         $ \mathrm{NM}(n) $                         & Gets the zero matrix of size $ n\times n $ \\
         $ \mathrm{NM}(n,m) $                       & Gets the zero matrix of size $ n\times m $. \\
+        $ \mathrm{diag}(l_1,l\dots) $              & Gets a diagonal matrix with the given entries on its main diagonal. \\
         $ \mathrm{cross}(a, b) $                   & Computes the cross product of two $ 3 $-dimensional vectors. \\
         $ \mathrm{tr}(a) $                         & Computes the trace of the square matrix $ a $. \\
         $ \mathrm{adj}(a) $                        & Computes the adjugate matrix of the square matrix $ a $. \\

@@ -227,6 +227,7 @@ let temp = \[(x,l,u):l>x->l;(x,l,u):u<x->u;(x,l,u)->x]
 def clamp(x,l,u) = temp(x,l,u)
 def lerp(p,a,b) = a+(p*(b-a))
 
+def len(l) = #len(l)
 def take(l,n) = #filter(l,\elem,idx->idx<n)
 def drop(l,n) = #filter(l,\elem,idx->idx>=n)
 def slice(l,a,b) = #filter(l,\elem,idx->#and(idx>=a,idx<b))
@@ -318,10 +319,15 @@ def prime(n) = temp(n)
 let temp = \[(n:#isr):n<=0->0;(n)->count(n,\d->#eq(gcd(n,d),1))]
 def totient(n) = temp(n)
 
+def dim(a) = [#ht(a),#wd(a)]
 def T(a) = #fill(#wd(a),#ht(a),\r,c->a(c,r))
+def CT(a) = #fill(#wd(a),#ht(a),\r,c->conj(a(c,r)))
+def EM(n,m,i,j) = #fill(n,m,\r,c->#if(#and(i=r,j=c),1,0))
 def IM(n) = #fill(n,n,\r,c->#if(r=c,1,0))
 def NM(n,m) = #fill(n,m,\r,c->0)
 def NM(n) = #fill(n,n,\r,c->0)
+let temp = \l->#fill(#len(l),#len(l),\r,c->#if(r=c,l(r-1),0))
+def diag(l1,l...) = temp([l1,l...])
 let temp = \[(a:#isv,b:#isv):#len(a)=3&#len(b)=3->#[a(2)*b(3)-a(3)*b(2),a(3)*b(1)-a(1)*b(3),a(1)*b(2)-a(2)*b(1)];(a,b)->'Cross product needs two 3-dimensional vectors.']
 def cross(a,b) = temp(a,b)
 let temp = \[(a:#ism):#eq(#wd(a),#ht(a))->#fold(#fill(#wd(a),\idx->a(idx+1,idx+1)),0,@+);(a:#ism)->'Trace of non-square matrix.';(a)->'Trace needs a matrix.']
