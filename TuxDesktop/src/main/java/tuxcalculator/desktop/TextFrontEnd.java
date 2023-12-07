@@ -5,6 +5,9 @@ import org.jline.reader.*;
 import org.jline.reader.impl.history.DefaultHistory;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
+import org.jline.utils.AttributedString;
+import org.jline.utils.AttributedStringBuilder;
+import org.jline.utils.AttributedStyle;
 import tuxcalculator.api.TuxCalculator;
 
 import java.io.BufferedReader;
@@ -17,6 +20,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -55,11 +59,13 @@ public final class TextFrontEnd extends DesktopFrontend {
         builder.jansi(true);
         builder.jna(false);
         try (Terminal terminal = builder.build()) {
+            CalculatorHighlighter highlighter = new CalculatorHighlighter(calc);
             CalculatorCompleter completer = new CalculatorCompleter(calc);
             LineReader reader = LineReaderBuilder.builder()
                     .terminal(terminal)
                     .parser(new NothingParser())
                     .history(new DefaultHistory())
+                    .highlighter(highlighter)
                     .completer(completer)
                     .completionMatcher(completer)
                     .option(LineReader.Option.COMPLETE_MATCHER_TYPO, false)
@@ -136,6 +142,48 @@ public final class TextFrontEnd extends DesktopFrontend {
         @Override
         public List<String> words() {
             return List.of(preCursor(), postCursor());
+        }
+    }
+    
+    @SuppressWarnings("ClassCanBeRecord")
+    private static final class CalculatorHighlighter implements Highlighter {
+
+        private final TuxCalculator calculator;
+
+        private CalculatorHighlighter(TuxCalculator calculator) {
+            this.calculator = calculator;
+        }
+
+        @Override
+        public AttributedString highlight(LineReader reader, String buffer) {
+            List<TuxCalculator.HighlightPart> parts = calculator.highlight(buffer);
+            AttributedStringBuilder sb = new AttributedStringBuilder();
+            for (TuxCalculator.HighlightPart part : parts) {
+                AttributedStyle style = switch (part.type()) {
+                    case NUMBER -> AttributedStyle.DEFAULT.foreground(159);
+                    case GLOBAL -> AttributedStyle.DEFAULT.italic();
+                    case OPERATOR -> AttributedStyle.DEFAULT.foreground(46);
+                    case REFERENCE -> AttributedStyle.DEFAULT.foreground(184);
+                    case SPECIAL -> AttributedStyle.DEFAULT.foreground(201);
+                    case ERROR -> AttributedStyle.DEFAULT.foreground(203);
+                    case COMMAND -> AttributedStyle.DEFAULT.bold().foreground(214);
+                    case CONSTRUCT -> AttributedStyle.DEFAULT.foreground(219);
+                    case COMMENT -> AttributedStyle.DEFAULT.foreground(246);
+                    default -> AttributedStyle.DEFAULT;
+                };
+                sb.styled(style, part.content());
+            }
+            return sb.toAttributedString();
+        }
+
+        @Override
+        public void setErrorPattern(Pattern errorPattern) {
+            //
+        }
+
+        @Override
+        public void setErrorIndex(int errorIndex) {
+            //
         }
     }
     

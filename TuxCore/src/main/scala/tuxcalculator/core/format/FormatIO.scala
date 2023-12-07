@@ -40,6 +40,7 @@ object FormatIO {
         case _ => throw new IllegalStateException("Invalid input normalization in format.")
       }
     })
+    calc.properties.set(CalculatorProperties.Highlight, in.readBoolean())
     
     val answer = calc.resolution.read(in)
     calc.finish(answer)
@@ -75,6 +76,7 @@ object FormatIO {
       case Some(normalization) => out.writeInt(normalization.ordinal())
       case None => out.writeInt(0xFFFFFFFF)
     }
+    out.writeBoolean(calc.properties(CalculatorProperties.Highlight))
     
     calc.resolution.write(out)
   }

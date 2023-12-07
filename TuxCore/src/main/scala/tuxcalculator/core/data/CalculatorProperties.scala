@@ -43,7 +43,7 @@ object CalculatorProperties {
   
   // For tab completion
   def allProperties: Set[String] = Set[String](
-    "precision", "output", "truncate", "eager", "normalization"
+    "precision", "output", "truncate", "eager", "normalization", "highlight"
   )
   
   def apply(name: String): Either[CalculatorProperty[_], String] = name match {
@@ -52,6 +52,7 @@ object CalculatorProperties {
     case "truncate" => Left(Truncate)
     case "eager" => Left(Eager)
     case "normalization" => Left(Normalization)
+    case "highlight" => Left(Highlight)
     case _ => Right("Unknown calculator property: '" + name + "'")
   }
   
@@ -98,5 +99,10 @@ object CalculatorProperties {
       case MathError(str, _) => Right(MathError("Invalid value for normalization: " + str))
       case _ => Right(MathError("Invalid value for normalization: " + calc.format(value)))
     }
+  }
+  
+  case object Highlight extends CalculatorProperty[Boolean] {
+    override def default: Boolean = false
+    override def from(calc: Calculator, value: MathValue): Either[Boolean, MathValue] = ValueHelper.make(calc) { ValueHelper.boolean(value) }
   }
 }

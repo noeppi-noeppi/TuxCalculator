@@ -452,11 +452,16 @@
     However, if eager binding is enabled, it gives $ 1 $ as \verb|a| is bound to $ 1 $ the moment, the function is defined.
     Eager binding also affects lambda bodies, \verb|ans|, function references and operators.
     
-    \subsection{\texttt{normalization}}\label{subsec:eager}
+    \subsection{\texttt{normalization}}\label{subsec:normalization}
     \verb|normalization| controls, how TuxCalculator should normalize its input.
     Possible values are an empty error token for no normalization, \verb|'nfc'| or \verb|'nfd'| for the respective normalisation forms defined in the unicode standard.
     The default is \verb|nfc|.
     Although there is probably no practical use for it, TuxCalculator also allows the compatibility decomposition to be used (via \verb|'nfkc'| or \verb|'nfkd'|).
+    
+    \subsection{\texttt{highlight}}\label{subsec:highlight}
+    \verb|highlight| controls, whether the calculator should report highlighting data to the frontend.
+    It defaults to \verb|true|.
+    Currently only the text frontend supports syntax highlighting, other frontends will ignore this property.
     
     \section{Advanced}\label{sec:advanced}
     This section describes advanced features of TuxCalculator that are not necessary but still useful for using TuxCalculator and provide greater insight in how it works.
@@ -538,6 +543,7 @@
             \verb|truncate|      & $ 0 $        \\
             \verb|eager|         & \verb|false| \\
             \verb|normalization| & \verb|''|    \\
+            \verb|highlight|     & \verb|false| \\
         \end{tabular}
     \end{center}
     

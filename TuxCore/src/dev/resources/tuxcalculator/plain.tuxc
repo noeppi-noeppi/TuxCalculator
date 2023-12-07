@@ -29,6 +29,7 @@ tok 'ans' = answer
 set precision = 24
 set output = 16
 set normalization = 'nfc'
+set highlight = #t
 
 ? Eagerly bind all the definitions in this file, so later redefinitions won't break our functions
 ? Will be set back later

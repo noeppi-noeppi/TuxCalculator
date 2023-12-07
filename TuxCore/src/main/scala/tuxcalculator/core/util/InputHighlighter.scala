@@ -1,8 +1,8 @@
 package tuxcalculator.core.util
 
-import tuxcalculator.api.TuxCalculator.{HighlightType, HighlightPart}
+import tuxcalculator.api.TuxCalculator.{HighlightPart, HighlightType}
 import tuxcalculator.core.Calculator
-import tuxcalculator.core.data.CalculatorCommands
+import tuxcalculator.core.data.{CalculatorCommands, CalculatorProperties}
 import tuxcalculator.core.lexer.CatCode.CatCode
 import tuxcalculator.core.lexer.{CatCode, CharacterMapping, Lookahead, TokResult}
 
@@ -14,6 +14,8 @@ object InputHighlighter {
   private val Identifier: Set[CatCode] = Set(CatCode.Letter, CatCode.Digit, CatCode.Exp)
   
   def highlight(calc: Calculator, line: String): Vector[HighlightPart] = {
+    if (!calc.properties(CalculatorProperties.Highlight)) return Vector(new HighlightPart(HighlightType.PLAIN, line))
+    
     var idx: Int = 0
     val codePoints = Util.decomposeString(line)
     val parts: ListBuffer[HighlightPart] = ListBuffer()
