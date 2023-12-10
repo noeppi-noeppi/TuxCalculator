@@ -203,6 +203,7 @@ class Lexer {
 
     while (true) this.catCodes.tokCode(source) match {
       case TokResult.Eof if closingCatCodes.isEmpty => return finish(None)
+      case TokResult.Eof if closingCatCodes.sizeIs == 1 => return Result.Error("Closed expression is not terminated. Expected " + closingCatCodes.head)
       case TokResult.Eof => return Result.Error("Closed expression is not terminated. Expected one of " + closingCatCodes.mkString(", "))
       case TokResult.Ambiguity(matches) => return Result.Error("Ambiguous tok-codes: Multiple matches: " + matches.mkString(", "))
       case CharacterMapping(code, content) => 
