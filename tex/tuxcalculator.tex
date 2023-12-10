@@ -819,7 +819,8 @@
         \verb|#det|     & A function that computes the determinant of a matrix. \\
         \verb|#div|     & A function that divides two numbers or matrices. \\
         \verb|#e|       & The value of the constant $ e $ for the current precision. \\
-        \verb|#eq|      & Takes two values and yields whether they are equal. Functions that are not calculator specials will always yield \verb|false|. \\
+        \verb|#eq|      & Takes two values and yields whether they are equal.
+                          Functions that are not calculator specials will always yield \verb|false|. \\
         \verb|#f|       & The \verb|false| value. \\
         \verb|#fill|    & $ \mathrm{fill}(m,f) $ applies $ f $ to each number from $ 0 $ (inclusive) to $ m $ (exclusive) and puts the results in a list.
                           $ \mathrm{fill}(h,w,f) $ makes a matrix with height $ h $ and width $ w $, where each element is obtained by calling $ f(row,col) $. \\
@@ -871,4 +872,19 @@
                           Applies $ f $ to the value from $ a $ at a specific index and the value of $ b $ at that index and produces a new list or matrix containing all the results.
                           If one list or matrix is shorter/smaller than the other, the extra size on the larger one is ignored. \\
     \end{longtable}
+    
+    \subsection{Notes to some of the specials}\label{subsec:notes-special}
+    \paragraph{\texttt{\#memoize}} is a powerful special for optimization intended to be used inside format files.
+    It is usually not a good idea to expose this to the user.
+    A memoized function can cache its results at any time and also drop them from the cache at any time.
+    If such a function depends on values that change (variables, global functions, the answer value), it is unspecified which value the function will return.
+    
+    The only guarantee TuxCalculator gives is that a value that was cached in while the calculator precision was equal to $ p $ won't be used while the calculator precision is any value $ q $ where $ p \neq q $.
+    
+    You'll most likely make sure, one of the two cases below applies before memoizing a function $ f $:
+    \begin{itemize}
+        \item Any definition, $ f $ depends on (even transitively) was done in \textsl{eager} mode (see section~\ref{subsec:eager}).
+        \item $ f $ only lives to the end of the current statement and is never returned as an expression (even transitively) in a way that it could be bound to a variable or the last answer.
+    \end{itemize}
+    If neither of these criteria apply, it's probably best to not use \verb|#memoize|.
 \end{document}

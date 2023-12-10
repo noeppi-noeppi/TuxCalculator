@@ -302,7 +302,8 @@ def Beta(a,l...) = temp([a,l...])
 def Γ(x) = #gamma(x,0)
 def Γ(p,x) = #gamma(p,x)
 def γ(p,x) = #gamma(p,0)-#gamma(p,x)
-def H(n) = sum(n,#div_1)
+let temp = #memoize(\n->sum(n,#div_1))
+def H(n) = temp(n)
 
 let temp = \[(n,k):n<k->0;(n,k)->(n!)/((k!)*((n-k)!))]
 def nCr(n,k) = temp(n,k)
