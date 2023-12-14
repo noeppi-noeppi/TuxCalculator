@@ -72,7 +72,7 @@ case class MathMatrix(values: Vector[Vector[MathValue]]) extends MathValue {
         values(col.toInt - 1)(row.toInt - 1)
       }
     } else {
-      MathError("Matrices can only be applied to a two arguments")
+      MathError("Matrices can only be applied to two arguments")
     }
   }
 }
