@@ -10,7 +10,8 @@ import scala.collection.mutable.ListBuffer
 
 object InputHighlighter {
   
-  private val Number: Set[CatCode] = Set(CatCode.Digit, CatCode.DecimalSep, CatCode.Exp)
+  private val NumberStart: Set[CatCode] = Set(CatCode.Digit, CatCode.DecimalSep)
+  private val Number: Set[CatCode] = NumberStart | Set(CatCode.Exp)
   private val Identifier: Set[CatCode] = Set(CatCode.Letter, CatCode.Digit, CatCode.Exp)
   
   def highlight(calc: Calculator, line: String): Vector[HighlightPart] = {
@@ -91,7 +92,7 @@ object InputHighlighter {
             advance(content.length, HighlightType.SPECIAL) // Also updates the lookahead
             skipSpace()
             advanceWhile(lookahead, HighlightType.SPECIAL, cat => cat.exists(Identifier.contains))
-          case cat if Number.contains(cat) => advanceWhile(lookahead, HighlightType.NUMBER, cat => cat.exists(Number.contains))
+          case cat if NumberStart.contains(cat) => advanceWhile(lookahead, HighlightType.NUMBER, cat => cat.exists(Number.contains))
           case cat if Identifier.contains(cat) => advanceWhile(lookahead, HighlightType.IDENTIFIER, cat => cat.exists(Identifier.contains))
           case CatCode.Answer | CatCode.Lambda | CatCode.Follow | CatCode.VarArg | CatCode.Partial => advance(content.length, HighlightType.CONSTRUCT)
           case _ => advance(content.length, HighlightType.PLAIN)
