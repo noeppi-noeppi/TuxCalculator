@@ -12,19 +12,29 @@ object TabCompleter {
   private val TightCatCodes: Set[CatCode] = Set(CatCode.Reference, CatCode.Special)
   private val Identifier: Set[CatCode] = Set(CatCode.Letter, CatCode.Digit, CatCode.Exp)
   private val Reference: Set[CatCode] = Identifier | Set(CatCode.Sign, CatCode.Operator, CatCode.Post, CatCode.Assign)
+  private val JustSpace: Set[CatCode] = Set(CatCode.Space)
+  private val SpacedIdentifier: Set[CatCode] = Identifier | JustSpace
 
   def tabComplete(calc: Calculator, line: String): Result = {
     val codePoints = Util.decomposeString(line)
     
-    def findPrefix(catcodes: Set[CatCode], startsWith: Option[CatCode]): Option[Prefix] = {
-      val matchIdx = codePoints.lastIndexWhere(codePoint => !catcodes.contains(calc.lexer.catCode(codePoint)))
+    def findPrefix(catcodes: Set[CatCode], startsWith: CatCode = null, innerCatcodes: Set[CatCode] = Set()): Option[Prefix] = {
+      val matchIdx = codePoints.lastIndexWhere(codePoint => !catcodes.contains(calc.lexer.catCode(codePoint))) match {
+        case -1 => -1
+        // Inner catcodes may not on the beginning (on the end they are fine though).
+        // Treat inner catcodes at the start of the match string as not belonging to the match string
+        case outerMatchIdx => codePoints.indexWhere(codePoint => !innerCatcodes.contains(calc.lexer.catCode(codePoint)), outerMatchIdx + 1) match {
+          case -1 => codePoints.length - 1 // If all catcodes are inner catcodes, behave as if we have an empty match string
+          case idx => idx - 1
+        }
+      }
       val spaceSkipped = codePoints.lastIndexWhere(codePoint => calc.lexer.catCode(codePoint) != CatCode.Space, matchIdx)
-      startsWith match {
+      Option(startsWith) match {
         case Some(startCode) if spaceSkipped < 0 || calc.lexer.catCode(codePoints(spaceSkipped)) != startCode => None
-        case _ =>
+        case startOption =>
           // If there is a start cat code or we follow a tight cat code, skip the entire space.
           // Otherwise keep a single space if present
-          val spaceToSkip = if ((matchIdx - spaceSkipped) <= 0 || startsWith.isDefined || TightCatCodes.contains(calc.lexer.catCode(codePoints(spaceSkipped)))) spaceSkipped else spaceSkipped + 1
+          val spaceToSkip = if ((matchIdx - spaceSkipped) <= 0 || startOption.isDefined || TightCatCodes.contains(calc.lexer.catCode(codePoints(spaceSkipped)))) spaceSkipped else spaceSkipped + 1
           Some(Prefix(Util.makeString(codePoints.take(spaceToSkip + 1)), Util.makeString(codePoints.drop(spaceToSkip + 1)), Util.makeString(codePoints.drop(matchIdx + 1))))
       }
     }
@@ -37,25 +47,32 @@ object TabCompleter {
     }
     
     // Calculator properties
-    findPrefix(Identifier, None) match {
+    findPrefix(Identifier) match {
       case Some(Prefix(prefix, completionString, matchString)) if prefix.strip() == "set" =>
         return Result(prefix, completionString, findMatches(CalculatorProperties.allProperties, matchString), isIdentifier = false)
       case _ =>
     }
     
-    findPrefix(Identifier, Some(CatCode.Special)) match {
+    // Catcodes
+    findPrefix(SpacedIdentifier, innerCatcodes = JustSpace) match {
+      case Some(Prefix(prefix, completionString, matchString)) if (prefix.strip().startsWith("cat ") || prefix.strip().startsWith("tok ")) && calc.lexer.catCode(prefix.strip().codePoints().toArray.last) == CatCode.Assign =>
+        return Result(prefix, completionString, findMatches(CatCode.values.map(_.toString), matchString), isIdentifier = false)
+      case _ =>
+    }
+    
+    findPrefix(Identifier, startsWith = CatCode.Special) match {
       case Some(Prefix(prefix, completionString, matchString)) =>
         return Result(prefix, completionString, findMatches(calc.specials.keys, matchString), isIdentifier = false)
       case None =>
     }
     
-    findPrefix(Reference, Some(CatCode.Reference)) match {
+    findPrefix(Reference, startsWith = CatCode.Reference) match {
       case Some(Prefix(prefix, completionString, matchString)) =>
         return Result(prefix, completionString, findMatches(calc.resolution.tabCompleteReference, matchString), isIdentifier = false)
       case None =>
     }
     
-    findPrefix(Identifier, None) match {
+    findPrefix(Identifier) match {
       case Some(Prefix(prefix, completionString, matchString)) =>
         val baseMatches: Vector[String] = findMatches(calc.resolution.tabCompleteIdentifier, matchString)
         val matches: Vector[String] = if (prefix.isEmpty) {

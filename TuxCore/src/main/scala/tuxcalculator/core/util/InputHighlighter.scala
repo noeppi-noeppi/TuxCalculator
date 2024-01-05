@@ -20,6 +20,20 @@ object InputHighlighter {
     val codePoints = Util.decomposeString(line)
     val parts: ListBuffer[HighlightPart] = ListBuffer()
     
+    def advanceToEnd(highlight: String => HighlightType): Unit = {
+      val content = codePoints.slice(idx min codePoints.length, codePoints.length)
+      idx = codePoints.length
+      if (content.nonEmpty) {
+        val highlightType = highlight(Util.makeString(content))
+        parts.lastOption match {
+          case Some(hl) if hl.`type`() == highlightType =>
+            parts.remove(parts.length - 1)
+            parts.addOne(new HighlightPart(highlightType, hl.content() + Util.makeString(content)))
+          case _ => parts.addOne(new HighlightPart(highlightType, Util.makeString(content)))
+        }
+      }
+    }
+    
     def advance(amount: Int, highlight: HighlightType): Unit = if (amount != 0) {
       val content = codePoints.slice(idx min codePoints.length, (idx + amount) min codePoints.length)
       idx = (idx + amount) min codePoints.length
@@ -46,12 +60,14 @@ object InputHighlighter {
     }
     
     skipSpace()
-    var commandAssign: Boolean = CalculatorCommands.commands(calc).map(Util.decomposeString).find((cmd: Vector[Int]) => codePoints.drop(idx).startsWith(cmd)) match {
+    val commandName: Option[String] = CalculatorCommands.commands(calc).map(Util.decomposeString).find((cmd: Vector[Int]) => codePoints.drop(idx).startsWith(cmd)) match {
       case Some(cmd) if codePoints.drop(idx + cmd.length).headOption.forall(next => !Identifier.contains(calc.lexer.catCode(next))) =>
         advance(cmd.length, HighlightType.COMMAND)
-        CalculatorCommands.isAssignmentCommand(Util.makeString(cmd))
-      case _ => false
+        Some(Util.makeString(cmd))
+      case _ => None
     }
+    
+    var commandAssign: Boolean = commandName.exists(CalculatorCommands.isAssignmentCommand)
 
     // Lookahead that updates with each advance
     val lookahead: Lookahead[Int] = (ahead: Int) => codePoints.drop(idx).drop(ahead).headOption
@@ -70,6 +86,9 @@ object InputHighlighter {
           case CatCode.Assign if commandAssign =>
             advance(content.length, HighlightType.COMMAND)
             commandAssign = false
+            if (commandName.contains("cat") || commandName.contains("tok")) {
+              advanceToEnd(leftOver => if (CatCode.byName(leftOver.strip()).isDefined) HighlightType.CONSTRUCT else HighlightType.PLAIN)
+            }
           case CatCode.Operator | CatCode.Sign | CatCode.Post | CatCode.Assign => advance(content.length, HighlightType.OPERATOR)
           case CatCode.Reference =>
             advance(content.length, HighlightType.REFERENCE) // Also updates the lookahead
