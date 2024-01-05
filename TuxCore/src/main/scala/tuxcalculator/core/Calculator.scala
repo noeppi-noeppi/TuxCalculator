@@ -12,7 +12,7 @@ import tuxcalculator.core.util.{Result, Util}
 import tuxcalculator.core.value._
 
 import java.io.DataOutputStream
-import java.math.{MathContext, RoundingMode}
+import java.math.{MathContext, RoundingMode, BigDecimal => BigDec}
 import java.text.Normalizer
 
 class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingContext with PropertyAccess {
@@ -27,6 +27,7 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
     specials.propertyChange()
     _mathContext = null
     _outputMathContext = null
+    _constantPi = null
   })
   val specials: CalculatorSpecials = new CalculatorSpecials(this)
   val resolution: ResolutionTable = new ResolutionTable(this)
@@ -34,6 +35,7 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
 
   private[this] var _mathContext: MathContext = _
   private[this] var _outputMathContext: MathContext = _
+  private[this] var _constantPi: BigDec = _
   private[this] var _answer: MathValue = MathVoid
 
   def precision: Int = properties(CalculatorProperties.Precision)
@@ -53,6 +55,13 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
     }
     _outputMathContext
   }
+  
+  private def constantPi: BigDec = {
+    if (_constantPi == null) {
+      _constantPi = BigDecimalMath.pi(mathContext)
+    }
+    _constantPi
+  }
 
   def answer: MathValue = _answer
   def finish(answer: MathValue): Unit = if (ready) throw new IllegalStateException("Calculator already properly loaded.") else {
@@ -60,10 +69,13 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
     ready = true
   }
   
-  private def formatNum(value: BigDecimal, imaginary: Boolean = false): String = value.round(outputMathContext) match {
-    case v if v.abs < 1000000 && v.abs >= 0.0001 => Util.safeStripTrailingZeros(v).toPlainString + (if (imaginary) "i" else "")
-    case v if v.isWhole && v.abs < 100000000 => Util.safeStripTrailingZeros(v).toPlainString + (if (imaginary) "i" else "")
-    case v => Util.formatScientific(Util.safeStripTrailingZeros(v)) + (if (imaginary) " i" else "")
+  private def formatNum(value: BigDecimal, suffix: String = "", allowScientific: Boolean = true): String = {
+    new BigDecimal(value.round(outputMathContext).bigDecimal, mathContext) match {
+      case v if v.abs < 1000000 && v.abs >= 0.0001 => Util.safeStripTrailingZeros(v).toPlainString + suffix
+      case v if v.isWhole && v.abs < 100000000 => Util.safeStripTrailingZeros(v).toPlainString + suffix
+      case v if allowScientific => Util.formatScientific(Util.safeStripTrailingZeros(v)) + (if (suffix.nonEmpty) " " + suffix else "")
+      case v => Util.safeStripTrailingZeros(v).toPlainString + suffix
+    }
   }
   
   private def formatNoTrunc(value: MathValue): String = value match {
@@ -74,8 +86,12 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
     case MathList(values) => "[" + values.map(this.formatNoTrunc).mkString(", ") + "]"
     case MathMatrix(values) => "#[" + values.map(col => col.map(this.formatNoTrunc).mkString(",")).mkString(" ; ") + "]"
     case MathRealNumeric(real) => formatNum(real)
-    case MathNumber(num) if num.im.signum() == -1 => formatNum(num.re) + " - " + formatNum(num.im.negate(), imaginary = true)
-    case MathNumber(num) => formatNum(num.re) + " + " + formatNum(num.im, imaginary = true)
+    case MathNumber(num) if properties(CalculatorProperties.Polar) == CalculatorProperties.PolarType.Radians =>
+      formatNum(num.abs(mathContext)) + " ∠ " + formatNum(num.angle(mathContext), allowScientific = false)
+    case MathNumber(num) if properties(CalculatorProperties.Polar) == CalculatorProperties.PolarType.Degrees =>
+      formatNum(num.abs(mathContext)) + " ∠ " + formatNum(num.angle(mathContext).multiply(new BigDec("180"), mathContext).divide(constantPi, mathContext), allowScientific = false, suffix = "°")
+    case MathNumber(num) if num.im.signum() == -1 => formatNum(num.re) + " - " + formatNum(num.im.negate(), suffix = "i")
+    case MathNumber(num) => formatNum(num.re) + " + " + formatNum(num.im, suffix = "i")
     case func: MathFunction => func.string(this)
   }
   

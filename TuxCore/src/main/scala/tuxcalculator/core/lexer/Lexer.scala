@@ -2,7 +2,6 @@ package tuxcalculator.core.lexer
 
 import org.apache.commons.text.StringEscapeUtils
 import org.apache.commons.text.translate.{AggregateTranslator, LookupTranslator}
-import tuxcalculator.core.lexer.CatCode.CatCode
 import tuxcalculator.core.lexer.Lexer.UNESCAPE
 import tuxcalculator.core.util.{Result, Util}
 

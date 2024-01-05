@@ -3,7 +3,6 @@ package tuxcalculator.core.util
 import tuxcalculator.api.TuxCalculator.{HighlightPart, HighlightType}
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.data.{CalculatorCommands, CalculatorProperties}
-import tuxcalculator.core.lexer.CatCode.CatCode
 import tuxcalculator.core.lexer.{CatCode, CharacterMapping, Lookahead, TokResult}
 
 import scala.collection.mutable.ListBuffer

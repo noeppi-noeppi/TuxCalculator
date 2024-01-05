@@ -3,7 +3,6 @@ package tuxcalculator.core.util
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.data.{CalculatorCommands, CalculatorProperties}
 import tuxcalculator.core.lexer.CatCode
-import tuxcalculator.core.lexer.CatCode.CatCode
 
 import java.text.Normalizer
 import java.util.Locale

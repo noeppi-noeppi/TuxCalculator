@@ -6,8 +6,6 @@ import java.util.Locale
 import scala.collection.mutable
 
 object CatCode extends Enumeration {
-  type CatCode = Value
-  
   val Letter: CatCode = Value("letter")
   val Space: CatCode = Value("space")
   val Digit: CatCode = Value("digit")
@@ -46,8 +44,6 @@ object CatCode extends Enumeration {
     case _: NoSuchElementException => None
   }
 }
-
-import CatCode.CatCode
 
 trait Lookahead[T] {
   def lookupToken(ahead: Int): Option[T]

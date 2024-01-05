@@ -463,6 +463,12 @@
     It defaults to \verb|true|.
     Currently only the text frontend supports syntax highlighting, other frontends will ignore this property.
     
+    \subsection{\texttt{polar}}\label{subsec:polar}
+    \verb|polar| controls, how complex numbers are formatted.
+    It defaults to \verb|''| (complex numbers are formatted as $ a + bi $).
+    It can also take values \verb|'rad'| and \verb|'deg'| for formatting complex numbers in polar form with the angle given in radians or degrees respectively.
+    If assigned to a non-error value, a \textsl{true} value is treated as \verb|'rad'|, a \textsl{false} value is treated as \verb|''|.
+    
     \section{Advanced}\label{sec:advanced}
     This section describes advanced features of TuxCalculator that are not necessary but still useful for using TuxCalculator and provide greater insight in how it works.
     
@@ -544,6 +550,7 @@
             \verb|eager|         & \verb|false| \\
             \verb|normalization| & \verb|''|    \\
             \verb|highlight|     & \verb|false| \\
+            \verb|polar|         & \verb|''|    \\
         \end{tabular}
     \end{center}
     

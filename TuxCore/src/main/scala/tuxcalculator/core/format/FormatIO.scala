@@ -41,6 +41,12 @@ object FormatIO {
       }
     })
     calc.properties.set(CalculatorProperties.Highlight, in.readBoolean())
+    calc.properties.set(CalculatorProperties.Polar, in.readInt() match {
+      case 0 => CalculatorProperties.PolarType.None
+      case 1 => CalculatorProperties.PolarType.Radians
+      case 2 => CalculatorProperties.PolarType.Degrees
+      case _ => throw new IllegalStateException("Invalid polar formatting in format.")
+    })
     
     val answer = calc.resolution.read(in)
     calc.finish(answer)
@@ -77,6 +83,11 @@ object FormatIO {
       case None => out.writeInt(0xFFFFFFFF)
     }
     out.writeBoolean(calc.properties(CalculatorProperties.Highlight))
+    calc.properties(CalculatorProperties.Polar) match {
+      case CalculatorProperties.PolarType.None => out.writeInt(0)
+      case CalculatorProperties.PolarType.Radians => out.writeInt(1)
+      case CalculatorProperties.PolarType.Degrees => out.writeInt(2)
+    }
     
     calc.resolution.write(out)
   }

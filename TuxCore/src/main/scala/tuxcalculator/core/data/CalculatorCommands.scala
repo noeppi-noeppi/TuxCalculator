@@ -1,7 +1,6 @@
 package tuxcalculator.core.data
 
 import tuxcalculator.core.Calculator
-import tuxcalculator.core.lexer.CatCode.CatCode
 import tuxcalculator.core.lexer.{CatCode, Lexer}
 import tuxcalculator.core.util.Util
 
