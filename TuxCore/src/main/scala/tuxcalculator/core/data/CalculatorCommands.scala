@@ -21,7 +21,7 @@ class CalculatorCommands(private val lexer: Lexer) {
   case class Command(cmd: String) {
     def unapply(string: String): Option[String] = {
       val normString: String = Util.makeString(Util.decomposeString(string).dropWhile(codePoint => lexer.catCode(codePoint) == CatCode.Space))
-      if (!normString.toLowerCase(Locale.ROOT).startsWith(cmd)) return None
+      if (!normString.startsWith(cmd)) return None
       val remaining = normString.substring(cmd.length)
       if (remaining.isEmpty) return Some(remaining)
       val catCode: CatCode = lexer.catCode(remaining.codePointAt(0))
