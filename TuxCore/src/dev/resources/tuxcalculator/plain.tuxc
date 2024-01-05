@@ -60,6 +60,7 @@ let π = #pi
 let e = #e
 let i = #i
 let id = \x->x
+let nil = #fill(0,id)
 
 ? Basic functions for complex numbers
 def re(x) = #re(x)
