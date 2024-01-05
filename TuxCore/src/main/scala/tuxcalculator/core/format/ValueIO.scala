@@ -70,8 +70,9 @@ object ValueIO {
   }
 
   private def writeNumber(value: BigDec, out: DataOutput): Unit = {
-    out.writeInt(value.scale)
-    val data = Util.safeStripTrailingZeros(value).unscaledValue.toByteArray
+    val strippedValue = Util.safeStripTrailingZeros(value)
+    out.writeInt(strippedValue.scale)
+    val data = strippedValue.unscaledValue.toByteArray
     out.writeInt(data.length)
     out.write(data)
   }
