@@ -876,9 +876,8 @@
         \verb|#w|       & The lambert $ W $ function. \\
         \verb|#wd|      & Takes a matrix and returns its width. \\
         \verb|#xor|     & A function that computes logic or bitwise \verb|XOR| of two booleans or integers. \\
-        \verb|#zip|     & $ \mathrm{zip}(a,b,f) $ Given the two lists or matrices $ a $ and $ b $, matches up pairs of elements between $ a $ and $ b $ depending on their index.
-                          Applies $ f $ to the value from $ a $ at a specific index and the value of $ b $ at that index and produces a new list or matrix containing all the results.
-                          If one list or matrix is shorter/smaller than the other, the extra size on the larger one is ignored. \\
+        \verb|#zip|     & $ \mathrm{zip}(l,f) $ takes a list of same-sized lists or matrices $ l $, matches up elements between those depending on their index, applies $ f $ to these matched up elements and produces a new list or matrix containing all the results.
+                          For example, $ \mathrm{zip}([[u,x],[v,y],[w,z]],f) = [f(u, v, w), f(x, y, z)] $ \\
     \end{longtable}
     
     \subsection{Notes to some of the specials}\label{subsec:notes-special}

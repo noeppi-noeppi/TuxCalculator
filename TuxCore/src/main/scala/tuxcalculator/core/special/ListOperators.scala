@@ -64,20 +64,37 @@ object ListOperators {
     }}
   }
 
-  object Zip extends CalculatorSpecial.SimpleFunction("zip", 3) {
-    override protected def result(calc: Calculator, args: Vector[MathValue]): MathValue = ValueHelper.run(calc) {(ValueHelper.get(args(0)), ValueHelper.get(args(1))) match {
-      case (MathList(a), MathList(b)) =>
-        val func = ValueHelper.get(args(2))
-        MathList((a zip b).map(e => func.applyTo(calc, Vector(e._1, e._2))))
-      case (MathVector(a), MathVector(b)) =>
-        val func = ValueHelper.get(args(2))
-        MathVector((a zip b).map(e => func.applyTo(calc, Vector(e._1, e._2))))
-      case (a: MathMatrix, b: MathMatrix) =>
-        val func = ValueHelper.get(args(2))
-        val (width, height) = (a.width min b.width, a.height min b.height)
-        MathMatrix((0 until width).map(col => (0 until height).map(row => func.applyTo(calc, Vector(a.get(row, col), b.get(row, col)))).toVector).toVector)
-      case _ => MathError("Can't zip: " + calc.format(args.head))
-    }}
+  object Zip extends CalculatorSpecial.Function("zip") {
+    override protected def result(calc: Calculator, args: Vector[MathValue]): MathValue = ValueHelper.run(calc) {
+      val thingsToZip: Vector[MathValue] = ValueHelper.list(args(0))
+      val func: MathValue = ValueHelper.get(args(1))
+      
+      if (thingsToZip.isEmpty) {
+        MathError("zip on empty list.")
+      } else if (thingsToZip.forall(_.isInstanceOf[MathList])) {
+        val lists: Vector[MathList] = thingsToZip.map(_.asInstanceOf[MathList])
+        val lengthMin = lists.map(_.values.length).min
+        val lengthMax = lists.map(_.values.length).max
+        if (lengthMin == lengthMax) {
+          MathList((0 until lengthMin).map(idx => func.applyTo(calc, lists.map(lst => lst.values(idx)))).toVector)
+        } else {
+          MathError("Can't zip different sized lists.")
+        }
+      } else if (thingsToZip.forall(_.isInstanceOf[MathMatrix])) {
+        val matrices: Vector[MathMatrix] = thingsToZip.map(_.asInstanceOf[MathMatrix])
+        val (widthMin, heightMin) = (matrices.map(_.width).min, matrices.map(_.height).min)
+        val (widthMax, heightMax) = (matrices.map(_.width).max, matrices.map(_.height).max)
+        if (widthMin == widthMax && heightMin == heightMax) {
+          MathMatrix((0 until widthMin).map(col => (0 until heightMin).map(row => func.applyTo(calc, matrices.map(mat => mat.get(row, col)))).toVector).toVector)
+        } else {
+          MathError("Can't zip different sized matrices.")
+        }
+      } else if (thingsToZip.forall(elem => elem.isInstanceOf[MathList] || elem.isInstanceOf[MathMatrix])) {
+        MathError("Can't mix lists and matrices in zip.")
+      } else {
+        MathError("Can only zip lists or matrices.")
+      }
+    }
   }
   
   object Filter extends CalculatorSpecial.SimpleFunction("filter", 2) {
