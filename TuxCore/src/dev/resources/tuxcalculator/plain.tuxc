@@ -277,8 +277,9 @@ let temp = \[(l1:#isl,l)->temp([[]]*#len(l1),l1,l);(l1:#ism,l)->temp(#fill(#ht(l
 def zip(l1,l...)=temp(l1,l)
 def merge(f,l1,l...)=#map(zip(l1,l...),\elems->f(elems...))
 
-def sum(a,b,f) = #fold(#map(range(a,b),f),0,@+)
-def prod(a,b,f) = #fold(#map(range(a,b),f),1,@*)
+let temp = \[(l,f,e):#eq(#len(l),0)->e;(l,f,e)->l/f]
+def sum(a,b,f) = temp(#map(range(a,b),f),@+,0)
+def prod(a,b,f) = temp(#map(range(a,b),f),@*,0)
 def count(a,b,f) = #len(#filter(range(a,b),\elem,idx->f(elem)))
 def sum(n,f) = sum(1,n,f)
 def prod(n,f) = prod(1,n,f)

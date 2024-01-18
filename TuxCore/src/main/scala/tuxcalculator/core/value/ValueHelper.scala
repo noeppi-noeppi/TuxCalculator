@@ -60,15 +60,20 @@ object ValueHelper {
   
   def error(msg: String): Nothing = throw new AbortError(MathError(msg))
   def plainError(msg: String): Nothing = if (_calc.get() != null) error(msg) else throw new ArithmeticException(msg)
+
+  def complex(value: MathValue): BigComplex = get(value.number(calc)) match {
+    case MathNumeric(num) => num
+    case v => throw new AbortError(MathError("Expected a number, got: " + calc.format(v)))
+  }
+
+  def real(value: MathValue): BigDecimal = get(value.number(calc)) match {
+    case MathRealNumeric(real) => real.round(calc.mathContext)
+    case v => throw new AbortError(MathError("Expected a real number, got: " + calc.format(v)))
+  }
   
   def realInt(value: MathValue): BigInt = get(value.number(calc)) match {
     case MathRealNumeric(real) if real.isWhole => real.toBigInt
     case v => throw new AbortError(MathError("Expected a real integer, got: " + calc.format(v)))
-  }
-  
-  def realFloat(value: MathValue): BigDecimal = get(value.number(calc)) match {
-    case MathRealNumeric(real) => real.round(calc.mathContext)
-    case v => throw new AbortError(MathError("Expected a real number, got: " + calc.format(v)))
   }
   
   def boolean(value: MathValue): Boolean = get(value) match {
