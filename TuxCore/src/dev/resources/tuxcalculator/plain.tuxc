@@ -85,6 +85,7 @@ def has(l,v) = #if(#eq(#idx(l,0,#eq_v),temp),false,true)
 def distinct(l) = #fold(l,[],(\n,e->#if(has(n,e),n,[n...,e])))
 
 ? Basic functions for dealing with vectors
+def vec() = 'Empty vector'
 def vec(l...) = #fill(#len(l),1,\r,c->l(#sub(r,1))) ? Required to construct vectors with argument splatting.
 
 ? Distinct sorted lists
