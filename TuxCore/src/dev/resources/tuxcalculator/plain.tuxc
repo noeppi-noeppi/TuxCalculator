@@ -125,6 +125,8 @@ cat '÷' = operator
 cat '%' = operator
 cat '^' = operator
 cat '∠' = operator
+cat '⟨' = start secondary
+cat '⟩' = end
 let temp = \a,b->distinct([a...,b...])
 def(-900) ∪(a,b) = temp(a,b)
 let temp = \[(a:#isl,b:#isl)->temp(a,b);(a,b)->#or(a,b)]
@@ -164,8 +166,11 @@ def(-300) -(a,b) = temp(a,b)
 let temp = \l,n->#fill(#mul(#len(l),n),\i->l(#mod(i,#len(l))))
 let temp = \[(a:#isl,b:#isr)->temp(a,b);(a:#isr,b:#isl)->temp(b,a);(a,b)->#mul(a,b)]
 def(-200) *(a,b) = temp(a,b)
-let temp = \[(a:#isv,b:#isv):#len(a)=#len(b)->#fold([#zip([a,b],#mul)...],0,#add);(a,b)->'Can only compute scalar product of same sized vectors.']
-def(-200) **(a,b) = temp(a,b)
+? Make two match functions because #and has no lazy evaluation and we can't call len on non-vectors. Also this allows us to pre-compute the length for comparing it later.
+let temp = \[(lengths,l):#fold(#map(lengths,#eq_(#car(lengths))),true,#and)->#fold([#zip(l,\elems...->#fold(elems,1,#mul))...],0,#add);(lengths,l)->'Can only compute scalar product of same sized vectors.']
+let temp = \[(l):#eq(#len(l),0)->0;(l):#fold(#map(l,#isv),true,#and)->temp(#map(l,#len),l);(l)->'Can only compute scalar product of same sized vectors.']
+def ⟨⟩(l...) = temp(l)
+def(-200) **(a,b) = ⟨a,b⟩
 let temp = \[(a:#isl,b):#eq(#len(a),0)->'Reduce on an empty list.';(a:#isl,b)->#fold(#cdr(#rev(a)),#car(#rev(a)),(\h,t->b(t,h)));(a,b)->#div(a,b)]
 def(-200) /(a,b) = temp(a,b)
 def(-200) ¦(a,b) = #eq(#mod(b,a),0)

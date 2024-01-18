@@ -606,10 +606,11 @@
     
     \subsection{Brackets}
     Lists all brackets defined by the \textit{plain} format.
-    \begin{longtable}{p{0.18\textwidth}p{0.02\textwidth}p{\dimexpr0.8\textwidth-3\tabcolsep\relax}}
-        $ [ \cdots ] $   & \makebox[0pt][r]{secondary} & Creates a list from all its arguments. \\
-        $ \{ \cdots \} $ & \makebox[0pt][r]{secondary} & Creates a list from all its arguments removing duplicates and sorting the elements. \\
-        $ \#[ \cdots ] $ & \makebox[0pt][r]{tertiary}  & Creates a matrix from all its arguments. \\
+    \begin{longtable}{p{0.18\textwidth}p{0.02\textwidth}p{\dimexpr0.8\textwidth-4\tabcolsep\relax}}
+        $ [ \cdots ] $             & \makebox[0pt][r]{secondary} & Creates a list from all its arguments. \\
+        $ \{ \cdots \} $           & \makebox[0pt][r]{secondary} & Creates a list from all its arguments removing duplicates and sorting the elements. \\
+        $ \#[ \cdots ] $           & \makebox[0pt][r]{tertiary}  & Creates a matrix from all its arguments. \\
+        $ \langle \cdots \rangle $ & \makebox[0pt][r]{secondary} & Computes the scalar product of its arguments. \\
     \end{longtable}
     
     \subsection{Sign operators}
@@ -636,7 +637,7 @@
     
     \subsection{Binary operators}
     Lists all binary operators defined by the \textit{plain} format and their priorities.
-    \begin{longtable}{p{0.18\textwidth}p{0.02\textwidth}p{\dimexpr0.8\textwidth-3\tabcolsep\relax}}
+    \begin{longtable}{p{0.18\textwidth}p{0.02\textwidth}p{\dimexpr0.8\textwidth-4\tabcolsep\relax}}
         $ \angle $                   & \makebox[0pt][r]{$  100 $} & $ radius \angle magnitude $ specifies a complex number in polar form. \\
         $ \hat{\;} $                 & \makebox[0pt][r]{$  -99 $} & $ a \hat{\;} n $ raises $ a $ to the $ n $th power.  \\
         $ \sqrt{\vphantom{0}} $      & \makebox[0pt][r]{$  -99 $} & $ n \sqrt{\vphantom{0}} a $ computes the $ n $th root of $ a $.  \\
