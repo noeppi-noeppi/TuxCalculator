@@ -610,6 +610,9 @@
         $ [ \cdots ] $             & \makebox[0pt][r]{secondary} & Creates a list from all its arguments. \\
         $ \{ \cdots \} $           & \makebox[0pt][r]{secondary} & Creates a list from all its arguments removing duplicates and sorting the elements. \\
         $ \#[ \cdots ] $           & \makebox[0pt][r]{tertiary}  & Creates a matrix from all its arguments. \\
+        $ \#\{ \cdots \} $         & \makebox[0pt][r]{tertiary}  & Joins multiple matrices given in a rectangular shape into one big matrix.
+                                                                   Their widths and heights must match, so that a rectangular matrix can be produced.
+                                                                   Any element that is not a matrix is treated as a $ 1 \times 1 $ matrix containing that elment. \\
         $ \langle \cdots \rangle $ & \makebox[0pt][r]{secondary} & Computes the scalar product of its arguments. \\
     \end{longtable}
     
@@ -859,6 +862,8 @@
         \verb|#map|     & $ \mathrm{map}(l,f) $ applies $ f $ to each element in the list or matrix  $ l $ and produces a new list or matrix with the new results. \\
         \verb|#memoize| & Takes a function and returns a new function that invokes the old one but makes a best effort to memoize the results if called with the same arguments multiple times.
                           However, there is no guarantee that any caching is performed. \\
+        \verb|#mflat|   & Takes a matrix of matrices and flattens them into one big matrix.
+                          Their widths and heights must match in a way, a rectangular matrix can be produced in the end. \\
         \verb|#mod|     & A function that computes the modulo of two numbers. \\
         \verb|#mul|     & A function that multiplies two numbers or matrices. \\
         \verb|#or|      & A function that computes logic or bitwise \verb|OR| of two booleans or integers. \\

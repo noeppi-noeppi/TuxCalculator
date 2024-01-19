@@ -49,6 +49,7 @@ class CalculatorSpecials(private val calc: PropertyAccess) {
     ListOperators.Fill,
     MatrixOperators.Wd,
     MatrixOperators.Ht,
+    MatrixOperators.Mflat,
     MatrixOperators.Adj,
     MatrixOperators.Det,
     RelOperators.Eq,
