@@ -10,6 +10,7 @@
 \usepackage{lmodern}
 \usepackage[parfill]{parskip}
 \usepackage{longtable}
+\usepackage{amsfonts}
 \usepackage{mathtools}
 \usepackage[dvipdfm,hidelinks]{hyperref}
 
@@ -704,6 +705,8 @@
         $ \mathrm{sgn}(x) $                        & Calculates the sign of $ x $ which is the complex number on the unit circle that holds $ \mathrm{abs}(x) \cdot \mathrm{sgn}(x) = x $. The sign of $ 0 $ is $ 0 $. For vectors, $ \mathrm{sgn}(v) $ is the normalisation of the vector $ v $. \tabgap
         $ \mathrm{gcd}(a, b) $                     & Calculates the greatest common divisor of $ a $ and $ b $. \\
         $ \mathrm{lcm}(a, b) $                     & Calculates the lowest common multiple of $ a $ and $ b $. \tabgap
+        $ \mathrm{bezout}(a, b) $                  & Calculates the \textsl{b\'ezout coefficients} of $ a $ and $ b $. \\
+        $ \mathrm{rinv}(n, a) $                    & Calculates the inverse of $ a $ in the ring $ \mathbb{Z} / n\mathbb{Z} $. If $ a $ is not invertible in that ring, produces an error. \\
         $ \mathrm{round}(x) $                      & Rounds $ x $ to a whole number. \\
         $ \mathrm{round}(x, p) $                   & Rounds $ x $ to $ p $ decimal places ($ p $ may be negative). \\
         $ \mathrm{ceil}(x) $                       & Rounds $ x $ to a whole number, always rounding towards $ \infty $. \\
@@ -823,6 +826,7 @@
         \verb|#and|     & A function that computes logic or bitwise \verb|AND| of two booleans or integers. \\
         \verb|#asin|    & The arc sine function. \\
         \verb|#atan|    & The \verb|atan2| function. \\
+        \verb|#bezout|  & Takes two numbers and yields a list containing the \textsl{B\'ezout coefficients} of those numbers. \\
         \verb|#car|     & A function that gets the first element of a list or vector. \\
         \verb|#cdr|     & A function that gets all except the first element of a list or vector.
                           $ \mathrm{cdr} $ on a single-element vector is an error as empty vectors don't exist. \\

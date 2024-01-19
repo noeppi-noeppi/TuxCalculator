@@ -4,7 +4,7 @@ import ch.obermuhlner.math.big.{BigComplex, BigComplexMath, BigDecimalMath}
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.data.CalculatorSpecial
 import tuxcalculator.core.math.{ArithmeticGeometricMean, IncompleteGamma, LogarithmicIntegral, ProductLog}
-import tuxcalculator.core.value.{MathComplexNumeric, MathError, MathNumber, MathNumeric, MathRealNumeric, MathValue, ValueHelper}
+import tuxcalculator.core.value.{MathComplexNumeric, MathError, MathList, MathNumber, MathNumeric, MathRealNumeric, MathValue, ValueHelper}
 
 import java.math.MathContext
 import scala.math.BigDecimal.RoundingMode
@@ -94,6 +94,28 @@ object BuiltinFunctions {
       val a = ValueHelper.realInt(args(0))
       val b = ValueHelper.realInt(args(1))
       MathNumber(BigDecimal(a.abs gcd b.abs))
+    }
+  }
+  
+  object Bezout extends CalculatorSpecial.SimpleFunction("bezout", 2) {
+    override protected def result(calc: Calculator, args: Vector[MathValue]): MathValue = ValueHelper.run(calc) {
+      val a = ValueHelper.realInt(args(0))
+      val b = ValueHelper.realInt(args(1))
+      
+      var rl: BigInt = a
+      var sl: BigInt = 1
+      var tl: BigInt = 0
+      var r: BigInt = b
+      var s: BigInt = 0
+      var t: BigInt = 1
+      while (r != 0) {
+        val (q, rn) = rl /% r
+        val (sn, tn) = (sl - q * s, tl - q * t)
+        rl = r; r = rn
+        sl = s; s = sn
+        tl = t; t = tn
+      }
+      MathList(Vector(MathNumber(BigDecimal(sl)), MathNumber(BigDecimal(tl))))
     }
   }
   

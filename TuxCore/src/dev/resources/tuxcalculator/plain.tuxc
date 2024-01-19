@@ -210,6 +210,9 @@ let temp = \[(x:#isl)->'sgn of list';(x):x=0->0;(x:#isv):temp(x)->x;(x:#isr):x>0
 def sgn(x) = temp(x)
 def gcd(a,b) = #gcd(a,b)
 def lcm(a,b) = (a*b)/#gcd(a,b)
+def bezout(a,b) = #bezout(a,b)
+let temp = \[(a,n,c):#eq((a*c)%%n,1)->c%%n;(a,n,c)->'Ring element not invertible.']
+def rinv(n,a) = temp(a,n,#car(#bezout(a,n)))
 
 def round(x,p) = #rd(x,p)
 def round(x) = #rd(x,0)
