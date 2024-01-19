@@ -35,6 +35,9 @@ set highlight = #t
 ? Will be set back later
 set eager = #t
 
+? Allow error interpolation in this file
+cat '$' = interpolate
+
 ? booleans and void
 let void = #v
 let true = #t
@@ -187,7 +190,7 @@ def(100) ∠(r,a) = polar(r,a)
 cat '!' = post
 cat '°' = post
 def !(x) = #gamma(x+1,0)
-let temp = \[(x):#eq(x,-1)->[];(x):#eq(x,0)->[];(x:#isr):#lt(0,x)&#eq(#mod(x,2),0)->#fill(#cl(x/2,0),\n->2*n+2);(x:#isr):x>0->#fill(#cl(x/2,0),\n->2*n+1);(x)->'Can only compute the double factorial for non-negative integers.']
+let temp = \[(x):#eq(x,-1)->[];(x):#eq(x,0)->[];(x:#isr):#lt(0,x)&#eq(#mod(x,2),0)->#fill(#cl(x/2,0),\n->2*n+2);(x:#isr):x>0->#fill(#cl(x/2,0),\n->2*n+1);(x)->'Invalid value for the double factorial: $x']
 def !!(x) = #fold(temp(x),1,@*)
 def °(x) = x * #pi / 180
 
@@ -196,8 +199,8 @@ def sort(l) = #sort(l,@<)
 def sort(l,f) = #sort(l,f)
 let temp = \l,p->#sort(l,(\a,b->p(a)<p(b)))
 def arrange(l,p) = temp(l,#memoize(p))
-let temp = \[(x):#eq(x,-1)->'element not found in list';(x)->x]
-def index(l,v) = temp(#idx(l,0,#eq_v))
+let temp = \[(v,x):#eq(x,-1)->'$v not found in list';(v,x)->x]
+def index(l,v) = temp(v,#idx(l,0,#eq_v))
 
 def sqrt(x) = x^0.5
 def cbrt(x) = x^(1/3)
@@ -211,7 +214,7 @@ def sgn(x) = temp(x)
 def gcd(a,b) = #gcd(a,b)
 def lcm(a,b) = (a*b)/#gcd(a,b)
 def bezout(a,b) = #bezout(a,b)
-let temp = \[(a,n,c):#eq((a*c)%%n,1)->c%%n;(a,n,c)->'Ring element not invertible.']
+let temp = \[(a,n,c):#eq((a*c)%%n,1)->c%%n;(a,n,c)->'Ring element $a not invertible mod $n']
 def rinv(n,a) = temp(a,n,#car(#bezout(a,n)))
 
 def round(x,p) = #rd(x,p)
@@ -312,7 +315,7 @@ let temp = \[(n,k):n<k->0;(n,k)->(n!)/((k!)*((n-k)!))]
 def nCr(n,k) = temp(n,k)
 let temp = \[(n,k):n<k->0;(n,k)->(n!)/((n-k)!)]
 def nPr(n,k) = temp(n,k)
-let temp = #memoize(\[(n):#if(#eq(#fl(n,0),n),n<=0,true)->'fib is only defined for positive integers';(n):n<=2->1;(n)->(#[1,1;1,0]^(n-2)*#[1,1])(1)])
+let temp = #memoize(\[(n):#if(#eq(#fl(n,0),n),n<=0,true)->'fib is only defined for positive integers, got $n';(n):n<=2->1;(n)->(#[1,1;1,0]^(n-2)*#[1,1])(1)])
 def fib(n) = temp(n)
 def ln(x) = #ln(x)
 def W(x) = #w(x)
@@ -424,11 +427,13 @@ def chain(f...) = temp(f)
 rem temp
 
 ? Reset modifications made only for this file:
-? Remove the special catcode, so there is no access to specials by default
+? Remove the special catcode, so there is no access to specials by default.
+? Remove the interpolate catcode to disable error interpolation.
 ? As a last statement, evaluate void to explicitly set ans back to void.
 set eager = #f
 cat '?' = invalid
 cat '#' = invalid
+cat '$' = invalid
 void
 
 dump 'plain'
