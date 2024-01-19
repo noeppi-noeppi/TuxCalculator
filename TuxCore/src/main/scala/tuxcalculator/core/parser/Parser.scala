@@ -113,7 +113,7 @@ class CalculatorParsers(val ctx: ParsingContext) extends Parsers  {
       case Result.Error(msg) => Error(msg, TokenReader.Empty)
     }
     case Token.Answer => Success(Ast.Answer, TokenReader.Empty)
-    case Token.Error(msg) => Success(Ast.Value(MathError(msg)), TokenReader.Empty)
+    case Token.Error(_, head, tail) => Success(Ast.Error(head, tail), TokenReader.Empty)
     case Token.Group(tokens) => parseTokens(expression, tokens).map(expr => Ast.Group(expr))
     case Token.PrimaryBracket(open, close, tokens) => parseTokens(expression, tokens).map(expr => Ast.PrimaryBracket(open, close, expr))
     case Token.SecondaryBracket(open, close, tokens) => parseTokens(argument_list, tokens).map(expr => Ast.SecondaryBracket(open, close, expr.toVector))
@@ -229,19 +229,19 @@ class CalculatorParsers(val ctx: ParsingContext) extends Parsers  {
   }) ^^ { case priority ~ name ~ sig => Ast.DefCommand(name, priority, sig) }
   
   def cmd_cat: this.Parser[Ast.CatCommand] = flatAcceptMatch("character", {
-    case Token.Error(msg) => Util.decomposeString(msg) match {
+    case Token.Error(msg, _, _) => Util.decomposeString(msg) match {
       case Vector(codePoint) => Success(codePoint, TokenReader.Empty)
       case _ => Failure("expected a single character, got '" + StringEscapeUtils.escapeJava(msg) + "'", TokenReader.Empty)
     }
   }) ^^ (codePoint => Ast.CatCommand(codePoint))
   def cmd_tok: this.Parser[Ast.TokCommand] = flatAcceptMatch("token", {
-    case Token.Error(msg) => msg match {
+    case Token.Error(msg, _, _) => msg match {
       case "" => Failure("expected a token, got empty string", TokenReader.Empty)
       case _ => Success(msg, TokenReader.Empty)
     }
   }) ^^ (token => Ast.TokCommand(token))
   def cmd_dump: this.Parser[Ast.DumpCommand] = flatAcceptMatch("file name", {
-    case Token.Error(msg) => msg match {
+    case Token.Error(msg, _, _) => msg match {
       case "" => Failure("expected a file name, got empty string", TokenReader.Empty)
       case _ => Success(msg, TokenReader.Empty)
     }

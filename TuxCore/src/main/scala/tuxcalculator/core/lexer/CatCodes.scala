@@ -36,6 +36,7 @@ object CatCode extends Enumeration {
   val VarArg: CatCode = Value("vararg")
   val Partial: CatCode = Value("partial")
   val Answer: CatCode = Value("answer")
+  val Interpolate: CatCode = Value("interpolate")
   val Invalid: CatCode = Value("invalid")
   
   def byName(name: String): Option[CatCode] = try {
@@ -47,6 +48,7 @@ object CatCode extends Enumeration {
 
 trait Lookahead[T] {
   def lookupToken(ahead: Int): Option[T]
+  def offset(offset: Int): Lookahead[T] = (ahead: Int) => Lookahead.this.lookupToken(offset + ahead)
 }
 
 sealed trait TokResult

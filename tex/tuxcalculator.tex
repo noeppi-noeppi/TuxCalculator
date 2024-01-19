@@ -509,6 +509,7 @@
         \verb|vararg|          & Vararg token for splatting and definition of vararg functions. \\
         \verb|partial|         & Partial application. \\
         \verb|answer|          & Last result. \\
+        \verb|interpolate|     & Allows interpolating variables into errors. See below. \\
         \verb|invalid|         & Produces an error when encountered. \\
     \end{longtable}
     Catcodes are frozen once a statement has been typed in.
@@ -524,6 +525,19 @@
     
     While each character always has a catcode (if nothing was set, its \verb|invalid|), only specific sequences of characters have a tokcode.
     A tokcode can be unset by assigning it the \verb|invalid| catcode.
+
+    \subsection{Error interpolation}\label{subsec:errinterp}
+    The \verb|interpolate| catcode allows interpolating values from the calculator into error messages.
+    By default, there is no character assigned to this catcode but if you for example assigned the \verb|interpolate| to \verb|$|, you could write \verb|'$a'| to get an error which contains the value of the variable $ a $ as a string.
+    Only simple variables can be interpolated, no complex expressions or refereneces.
+    The specific rules for interpolation are outlined below:
+    \begin{itemize}
+        \item If the error token appears in a \verb|cat|, \verb|tok| or \verb|dump| command, no interpolation is performed.
+        \item Whenever a token with the \verb|interpolate| catcode is found that is not escaped by a backslash and immediately followed by a token with \verb|letter| or \verb|exp| catcode, the longest sequence of tokens with \verb|letter|, \verb|digit| or \verb|exp| catcodes is used as the name for a variable to interpolate.
+        \item When the expression is bound, the current value of the variable will be queried.
+              If that value is not an error value, it is inserted into the error string.
+              Otherwise no interpolation is performed.
+    \end{itemize}
     
     \subsection{\texttt{ini}-Mode}\label{subsec:inimode}
     Most functions and variables described so far, are actually not built into the core TuxCalculator itself.

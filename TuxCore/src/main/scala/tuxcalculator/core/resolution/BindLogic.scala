@@ -52,6 +52,26 @@ object BindLogic {
       case Ast.Group(nested) => process(nested)
       case Ast.Answer => Ast.Value(calc.answer)
       case Ast.Variable(name) if !freeVars.contains(name) => Ast.Value(checkError(name, variable(name)))
+      case Ast.Error(head, Vector()) => Ast.Value(MathError(head)) // Short path
+      case Ast.Error(head, tail) =>
+        val newParts: ListBuffer[(String, String)] = ListBuffer(("", head))
+        for ((varName, message) <- tail) {
+          if (freeVars.contains(varName)) {
+            newParts.addOne((varName, message))
+          } else {
+            val varStr = checkError(varName, variable(varName)) match {
+              case _: MathError => "$" + varName
+              case value => calc.format(value)
+            }
+            val modifiedLastPart = (newParts.last._1, newParts.last._2 + varStr + message)
+            newParts.dropInPlace(1).addOne(modifiedLastPart)
+          }
+        }
+        if (newParts.sizeIs == 1) {
+          Ast.Value(MathError(newParts.head._2))
+        } else {
+          Ast.Error(newParts.head._2, newParts.tail.toVector)
+        }
       case Ast.Reference(target) => Ast.Value(checkError(target.name, calc.resolution.reference(target)))
       case Ast.Special(name) => Ast.Value(checkError("#" + name, calc.specials(name)))
       case Ast.Lambda(sig, code, defCode) if eager =>

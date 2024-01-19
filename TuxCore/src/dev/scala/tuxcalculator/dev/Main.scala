@@ -31,7 +31,10 @@ object Main {
   }
   
   object DevFrontend extends TuxFrontend {
-    override def showError(err: String): Unit = throw new RuntimeException(err)
+    override def showError(err: String): Unit = {
+      System.err.println(err)
+      throw new RuntimeException(err.takeWhile(_ != '\n').strip())
+    }
     override def openFile(fileName: String): OutputStream = {
       val outPath = target.resolve("tuxcalculator").resolve(fileName)
       Files.createDirectories(outPath.getParent)

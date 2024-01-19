@@ -221,8 +221,8 @@ class Lexer {
           case CatCode.ElementSep => emit(Token.ElementSep)
           case CatCode.GroupSep => emit(Token.GroupSep)
           case CatCode.Reference => emit(Token.Reference)
-          case CatCode.Error => this.tokenizeStringUntil(source, CatCode.Error) match {
-            case Left(string) => emit(Token.Error(string))
+          case CatCode.Error => this.tokenizeInterpolatedStringUntil(source, CatCode.Error) match {
+            case Left(token) => emit(token)
             case Right(result) => return result;
           }
           case CatCode.Open =>
@@ -295,6 +295,7 @@ class Lexer {
           case CatCode.VarArg => emit(Token.Vararg)
           case CatCode.Partial => emit(Token.PartialApplication)
           case CatCode.Answer => emit(Token.Answer)
+          case CatCode.Interpolate => return Result.Error("Interpolation is not possible here.")
           case CatCode.Invalid => content.headOption match {
             case Some(char) => return Result.Error("Invalid character: " + Character.getName(char))
             case None => return Result.Error("Invalid tok-code")
@@ -304,7 +305,44 @@ class Lexer {
     throw new Error()
   }
   
-  private def tokenizeStringUntil(source: CharacterSource, code: CatCode): Either[String, Result[Nothing]] = {
+  private def tokenizeStringUntil(source: CharacterSource, code: CatCode): Either[String, Result[Nothing]] = tokenizeStringWithoutEscaping(source, code) match {
+    case Left(string) => Left(UNESCAPE.translate(string))
+    case Right(result) => Right(result)
+  }
+  
+  private def tokenizeInterpolatedStringUntil(source: CharacterSource, code: CatCode): Either[Token.Error, Result[Nothing]] = tokenizeStringWithoutEscaping(source, code) match {
+    case Left(string) =>
+      val source: CharacterSource = new CharacterSource(Util.decomposeString(string))
+      val parts: ListBuffer[(String, String)] = ListBuffer()
+      var interpolateName: String = ""
+      val sb: StringBuilder = new StringBuilder()
+      while (true) source.lookupToken(0) match {
+        case None =>
+          parts.addOne((interpolateName, UNESCAPE.translate(sb.toString())))
+          return Left(Token.Error(UNESCAPE.translate(string), parts.head._2, parts.tail.toVector))
+        case Some(currentChar) if sb.nonEmpty && sb.last == '\\' && (sb.toString.reverseIterator.takeWhile(_ == '\\').length % 2) != 0 =>
+          sb.append(Character.toString(currentChar))
+          source.advance(1)
+        case Some(currentChar) => this.catCodes.tokCode(source) match {
+          case CharacterMapping(CatCode.Interpolate, content) =>
+            source.advance(content.length)
+            this.catCodes.tokCode(source) match {
+              case CharacterMapping(CatCode.Letter | CatCode.Exp, _) =>
+                parts.addOne((interpolateName, UNESCAPE.translate(sb.toString())))
+                sb.clear()
+                interpolateName = consumeIdentifierFromSource(source)
+              case _ => sb.append(Util.makeString(content))
+            }
+          case _ =>
+            sb.append(Character.toString(currentChar))
+            source.advance(1)
+        }
+      }
+      throw new Error()
+    case Right(result) => Right(result)
+  }
+  
+  private def tokenizeStringWithoutEscaping(source: CharacterSource, code: CatCode): Either[String, Result[Nothing]] = {
     val sb = new StringBuilder()
     while (true) source.lookupToken(0) match {
       case None => return Right(Result.Error("Unclosed escape: expected " + code))
@@ -315,7 +353,7 @@ class Lexer {
         case CharacterMapping(matchCode, content) if code == matchCode =>
           source.advance(content.length)
           try {
-            return Left(UNESCAPE.translate(sb.toString()))
+            return Left(sb.toString())
           } catch {
             case e: IllegalArgumentException => return Right(Result.Error(e.getMessage))
           }
@@ -323,6 +361,17 @@ class Lexer {
           sb.append(Character.toString(currentChar))
           source.advance(1)
       }
+    }
+    throw new Error()
+  }
+  
+  private def consumeIdentifierFromSource(source: CharacterSource): String = {
+    val sb: StringBuilder = new StringBuilder()
+    while (true) this.catCodes.tokCode(source) match {
+      case CharacterMapping(code, content) if code == CatCode.Letter || code == CatCode.Digit || code == CatCode.Exp =>
+        source.advance(content.length)
+        sb.append(Util.makeString(content))
+      case _ => return sb.toString
     }
     throw new Error()
   }

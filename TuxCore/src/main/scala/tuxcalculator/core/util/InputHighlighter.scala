@@ -82,7 +82,25 @@ object InputHighlighter {
             advanceWhile(lookahead, HighlightType.IDENTIFIER, cat => !cat.contains(CatCode.Escape), takeFirstNonMatch = true)
           case CatCode.Error =>
             advance(content.length, HighlightType.ERROR) // Also updates the lookahead
-            advanceWhile(lookahead, HighlightType.ERROR, cat => !cat.contains(CatCode.Error), takeFirstNonMatch = true)
+            // Allow interpolation
+            while (calc.lexer.lookup(lookahead) match {
+              case TokResult.Eof => false
+              case CharacterMapping(CatCode.Error, content) =>
+                advance(content.length, HighlightType.ERROR)
+                false
+              case CharacterMapping(CatCode.Interpolate, content) => calc.lexer.lookup(lookahead.offset(content.length)) match {
+                case CharacterMapping(CatCode.Letter | CatCode.Exp, _) =>
+                  advance(content.length, HighlightType.CONSTRUCT)
+                  advanceWhile(lookahead, HighlightType.CONSTRUCT, cat => cat.exists(Identifier.contains))
+                  true
+                case _ =>
+                  advance(content.length, HighlightType.ERROR)
+                  true
+              }
+              case _ =>
+                advanceWhile(lookahead, HighlightType.ERROR, cat => !cat.contains(CatCode.Error) && !cat.contains(CatCode.Interpolate))
+                true
+            }) {}
           case CatCode.Assign if commandAssign =>
             advance(content.length, HighlightType.COMMAND)
             commandAssign = false

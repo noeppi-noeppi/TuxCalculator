@@ -10,7 +10,7 @@ case object Token {
   case class Sign(name: String) extends Token
   case class Post(name: String) extends Token
   case object Reference extends Token
-  case class Error(msg: String) extends Token
+  case class Error(nonInterpolatedString: String, interpolatedHead: String, interpolatedTail: Vector[(String, String)]) extends Token
   case class Application(tokens: TokenStream) extends Token
   case class Group(tokens: TokenStream) extends Token
   case class PrimaryBracket(open: String, close: String, tokens: TokenStream) extends Token

@@ -94,6 +94,10 @@ object Ast {
   case class Value(value: MathValue) extends Expression {
     override def string(calc: Calculator): String = calc.format(value)
   }
+  
+  case class Error(head: String, tail: Vector[(String, String)]) extends Expression {
+    override def string(calc: Calculator): String = "'" + head + tail.map(entry => "$" + entry._1 + " " + entry._2).mkString + "'"
+  }
 
   case class Reference(target: DefTarget) extends Expression {
     override def string(calc: Calculator): String = "@" + target.toString
