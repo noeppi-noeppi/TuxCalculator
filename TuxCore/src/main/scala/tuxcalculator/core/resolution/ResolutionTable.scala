@@ -188,7 +188,7 @@ class ResolutionTable(private val calc: Calculator) {
     val dataOut = new DataOutputStream(tableData)
 
     dataOut.writeInt(functions.size)
-    for ((name, func) <- functions) {
+    for ((name, func) <- functions.toVector.sortBy(_._1)) {
       dataOut.writeInt(ctx.strings.add(name))
       dataOut.writeInt(func.map.size)
       for ((desc, impl) <- func.map) {
@@ -198,45 +198,45 @@ class ResolutionTable(private val calc: Calculator) {
     }
 
     dataOut.writeInt(variables.size)
-    for ((name, value) <- variables) {
+    for ((name, value) <- variables.toVector.sortBy(_._1)) {
       dataOut.writeInt(ctx.strings.add(name))
       dataOut.writeInt(ctx.values.add(value))
     }
 
     dataOut.writeInt(operators.size)
-    for ((name, impl) <- operators) {
+    for ((name, impl) <- operators.toVector.sortBy(_._1)) {
       dataOut.writeInt(ctx.strings.add(name))
       dataOut.writeInt(ctx.functions.add(impl.function))
     }
 
     dataOut.writeInt(signs.size)
-    for ((name, impl) <- signs) {
+    for ((name, impl) <- signs.toVector.sortBy(_._1)) {
       dataOut.writeInt(ctx.strings.add(name))
       dataOut.writeInt(ctx.functions.add(impl.function))
     }
 
     dataOut.writeInt(postfixes.size)
-    for ((name, impl) <- postfixes) {
+    for ((name, impl) <- postfixes.toVector.sortBy(_._1)) {
       dataOut.writeInt(ctx.strings.add(name))
       dataOut.writeInt(ctx.functions.add(impl.function))
     }
     
     dataOut.writeInt(primaries.size)
-    for ((name, impl) <- primaries) {
+    for ((name, impl) <- primaries.toVector.sortBy(_._1)) {
       dataOut.writeInt(ctx.strings.add(name))
       dataOut.writeInt(ctx.strings.add(impl.close))
       dataOut.writeInt(ctx.functions.add(impl.function))
     }
 
     dataOut.writeInt(secondaries.size)
-    for ((name, impl) <- secondaries) {
+    for ((name, impl) <- secondaries.toVector.sortBy(_._1)) {
       dataOut.writeInt(ctx.strings.add(name))
       dataOut.writeInt(ctx.strings.add(impl.close))
       dataOut.writeInt(ctx.functions.add(impl.function))
     }
 
     dataOut.writeInt(tertiaries.size)
-    for ((name, impl) <- tertiaries) {
+    for ((name, impl) <- tertiaries.toVector.sortBy(_._1)) {
       dataOut.writeInt(ctx.strings.add(name))
       dataOut.writeInt(ctx.strings.add(impl.close))
       dataOut.writeInt(ctx.functions.add(impl.function))
@@ -244,7 +244,7 @@ class ResolutionTable(private val calc: Calculator) {
     
     val changedPriorities: Map[String, Int] = priorities.toMap.filter(_._2 != 0)
     dataOut.writeInt(changedPriorities.size)
-    for ((name, priority) <- changedPriorities) {
+    for ((name, priority) <- changedPriorities.toVector.sortBy(_._1)) {
       dataOut.writeInt(ctx.strings.add(name))
       dataOut.writeInt(priority)
     }
