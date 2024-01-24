@@ -147,8 +147,14 @@ object Ast {
     override def string(calc: Calculator): String = name + "_(" + args.map(_.string(calc)).mkString(", ") + ")"
   }
   
-  case class ShorthandInvocation(name: String, arg: Expression) extends Expression {
-    override def string(calc: Calculator): String = name + " " + arg.string(calc)
+  case class ShorthandInvocation(name: String, partialArgs: Vector[Ast.Expression], arg: Expression) extends Expression {
+    override def string(calc: Calculator): String = {
+      if (partialArgs.isEmpty) {
+        name + " " + arg.string(calc)
+      } else {
+        name + "_(" + partialArgs.map(_.string(calc)).mkString(", ") + ")(" + arg.string(calc) + ")"
+      }
+    }
   }
   
   case class Application(value: Expression, args: Vector[PartialArgument]) extends Expression {

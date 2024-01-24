@@ -138,16 +138,19 @@ class CalculatorParsers(val ctx: ParsingContext) extends Parsers  {
   
   def basic_expression: this.Parser[Ast.Expression] = value | variable | reference | special | failure("expression expected")
   
+  // Used by post_action_partial_apply_simple and shorthand_expression
+  def partial_apply_simple: this.Parser[Ast.Expression] = accept(Token.PartialApplication) ~> opt(acceptMatch("sign", { case Token.Sign(name) => name })) ~ (value | variable) ^^ {
+    case Some(sgn) ~ value => Ast.SignApplication(sgn, value)
+    case None ~ value => value
+  }
+  
   def post_action_apply: this.Parser[PostOperation.Application] = flatAcceptMatch("application", {
     case Token.Application(tokens) => parseTokens(partial_argument_list, tokens).map(args => PostOperation.Application(args.toVector))
   })
   def post_action_partial_apply_direct: this.Parser[PostOperation.PartialApplication] = accept(Token.PartialApplication) ~> flatAcceptMatch("partial application", {
     case Token.Application(tokens) => parseTokens(partial_argument_list, tokens).map(args => PostOperation.PartialApplication(args.toVector))
   })
-  def post_action_partial_apply_simple: this.Parser[PostOperation.PartialApplication] = accept(Token.PartialApplication) ~> opt(acceptMatch("sign", { case Token.Sign(name) => name })) ~ (value | variable) ^^ {
-    case Some(sgn) ~ value => PostOperation.PartialApplication(Vector(Ast.SignApplication(sgn, value)))
-    case None ~ value => PostOperation.PartialApplication(Vector(value))
-  }
+  def post_action_partial_apply_simple: this.Parser[PostOperation.PartialApplication] = partial_apply_simple ^^ (value => PostOperation.PartialApplication(Vector(value)))
   def post_action_any_apply: this.Parser[PostOperation] = post_action_partial_apply_direct | post_action_partial_apply_simple | post_action_apply
   def applied_expression: this.Parser[Ast.Expression] = leftRec[Ast.Expression, PostOperation](basic_expression, post_action_any_apply, (base, apply) => (base, apply) match {
     case (Ast.Variable(name), PostOperation.Application(app)) => Ast.Invocation(name, app)
@@ -174,9 +177,20 @@ class CalculatorParsers(val ctx: ParsingContext) extends Parsers  {
   // down to the no-token prefix.
   def shorthand_expression: this.Parser[Ast.Expression] = (in: Input) => {
     // calls list is in reverse
-    case class Possibility(calls: List[String], rest: Input)
-    def findPossibilities(calls: List[String], inp: Input): List[Possibility] = inp.first match {
-      case Token.Identifier(name) => Possibility(calls, inp) :: findPossibilities(name :: calls, inp.rest)
+    case class ShorthandFunction(name: String, args: List[Ast.Expression])
+    case class Possibility(calls: List[ShorthandFunction], rest: Input)
+    
+    def findPartialTail(inp: Input): (List[Ast.Expression], Input) = partial_apply_simple(inp) match {
+      case Success(partial, rest) =>
+        val (tailArgs, tailRest) = findPartialTail(rest)
+        (partial :: tailArgs, tailRest)
+      case _ => (Nil, inp)
+    }
+    
+    def findPossibilities(calls: List[ShorthandFunction], inp: Input): List[Possibility] = inp.first match {
+      case Token.Identifier(name) =>
+        val (args, rest) = findPartialTail(inp.rest)
+        Possibility(calls, inp) :: findPossibilities(ShorthandFunction(name, args) :: calls, rest)
       case _ => Possibility(calls, inp) :: Nil
     }
     val possibilities: List[Possibility] = findPossibilities(Nil, in)
@@ -184,11 +198,11 @@ class CalculatorParsers(val ctx: ParsingContext) extends Parsers  {
       case h :: t => solution(t) match {
         case r @ Success(_, _) => r
         case _ => post_expression(h.rest) match {
-          case Success(expr, nextInp) => Success(h.calls.foldLeft(expr)((expr, name) => Ast.ShorthandInvocation(name, expr)), nextInp)
+          case Success(expr, nextInp) => Success(h.calls.foldLeft(expr)((expr, sf) => Ast.ShorthandInvocation(sf.name, sf.args.toVector, expr)), nextInp)
           case fail => fail
         }
       }
-      case Nil => Failure("No shorthand", in)
+      case Nil => Failure("No shorthand. This is a bug.", in)
     }
     solution(possibilities)
   }

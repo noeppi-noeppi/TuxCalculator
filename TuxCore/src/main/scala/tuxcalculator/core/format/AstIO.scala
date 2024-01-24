@@ -65,8 +65,10 @@ object AstIO {
       Ast.PartialInvocation(name, args.toVector)
     case 17 =>
       val name = ctx.strings.get(in.readInt())
+      val partialLen = in.readInt()
+      val partialArgs = for (_ <- 0 until partialLen) yield ctx.ast.get(in.readInt())
       val arg = ctx.ast.get(in.readInt())
-      Ast.ShorthandInvocation(name, arg)
+      Ast.ShorthandInvocation(name, partialArgs.toVector, arg)
     case 18 =>
       val value = ctx.ast.get(in.readInt())
       val len = in.readInt()
@@ -172,8 +174,10 @@ object AstIO {
       out.writeInt(ctx.strings.add(name))
       out.writeInt(args.length)
       for (elem <- args) writeArgument(ctx, elem, out)
-    case Ast.ShorthandInvocation(name, arg) => out.writeByte(17)
+    case Ast.ShorthandInvocation(name, partialArgs, arg) => out.writeByte(17)
       out.writeInt(ctx.strings.add(name))
+      out.writeInt(partialArgs.length)
+      for (partialArg <- partialArgs) out.writeInt(ctx.ast.add(partialArg))
       out.writeInt(ctx.ast.add(arg))
     case Ast.Application(expr, args) => out.writeByte(18)
       out.writeInt(ctx.ast.add(expr))

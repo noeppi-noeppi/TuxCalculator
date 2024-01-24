@@ -210,7 +210,9 @@
     \verb|f(l...)| passes all elements of the list \verb|l| to the function as separate arguments.
     
     A global function with a single argument that does not contain binary operators can also be called without parentheses like \verb|ln 2|.
+    The global function can also be partially applied to some arguments when using the shorthand calling style: \verb|log_e 2|.
     However, \verb|ln -2| does not work, it is parsed as $ 2 $ subtracted from the variable \verb|ln|.
+    Also \verb|log_(e) 2| is an error because shorthand calling can't be used with partial application in parenthesis style.
 
     \subsubsection{References to functions}
     Using the reference notation, it's possible to convert global functions as well as operators and brackets into function values.

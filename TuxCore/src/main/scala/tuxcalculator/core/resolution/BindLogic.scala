@@ -109,7 +109,7 @@ object BindLogic {
       }
       case Ast.Invocation(name, args) => Ast.Application(Ast.Value(checkError(name, invocation(name))), args.map(processPartialArg))
       case Ast.PartialInvocation(name, args) => Ast.PartialApplication(Ast.Value(checkError(name, invocation(name))), args.map(processPartialArg))
-      case Ast.ShorthandInvocation(name, arg) => Ast.Application(Ast.Value(calc.resolution.globalFunction(name)), Vector(process(arg)))
+      case Ast.ShorthandInvocation(name, partialArgs, arg) => Ast.Application(Ast.Value(calc.resolution.globalFunction(name)), partialArgs.map(process) ++ Vector(process(arg)))
       case Ast.Application(value, args) => Ast.Application(process(value), args.map(processPartialArg))
       case Ast.PartialApplication(value, args) => Ast.PartialApplication(process(value), args.map(processPartialArg))
       case Ast.SignApplication(name, arg) => Ast.Application(Ast.Value(checkError(name, calc.resolution.sign(name))), Vector(process(arg)))
