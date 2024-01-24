@@ -263,7 +263,6 @@ def cprod(l...) = temp(l)
 
 ? Temporary function to convert a matrix into list of all its elements
 let tempMatrixElems = \[(x:#isv)->[x...];(x:#ism)->#fill(#wd(x)*#ht(x),\n->x(1+(n%#ht(x)),1+(#fl(n/#ht(x),0))))]
-let temp = \l,f->#fold(#map(l,f),true,#and)
 let temp = \[(l:#isl,f)->#fold(#map(l,f),true,#and);(l:#ism,f)->#fold(#map(tempMatrixElems(l),f),true,#and);(l,f)->true]
 def forall(l,f) = temp(l,f)
 let temp = \[(l:#isl,f)->#fold(#map(l,f),false,#or);(l:#ism,f)->#fold(#map(tempMatrixElems(l),f),false,#or);(l,f)->false]
