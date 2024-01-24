@@ -46,15 +46,33 @@ object InputHighlighter {
     }
     
     def skipSpace(): Unit = advance(codePoints.drop(idx).takeWhile(cp => calc.lexer.catCode(cp) == CatCode.Space).length, HighlightType.PLAIN)
-    def advanceWhile(lookahead: Lookahead[Int], highlight: HighlightType, test: Option[CatCode] => Boolean, takeFirstNonMatch: Boolean = false): Unit = {
+    def advanceEscaped(lookahead: Lookahead[Int], highlight: HighlightType, breakAt: CatCode*)(inner: PartialFunction[TokResult, Boolean]): Unit = {
+      var escape: Boolean = false
+      while (calc.lexer.lookup(lookahead) match {
+        case TokResult.Eof => false
+        case CharacterMapping(_, content) if escape && content.nonEmpty =>
+          advance(1, highlight)
+          escape = false
+          true
+        case CharacterMapping(_, content) if content.startsWith("\\") =>
+          advance(1, highlight)
+          escape = true
+          true
+        case inner(continue) => continue
+        case _ =>
+          advanceWhile(lookahead, HighlightType.ERROR, cat => !cat.exists(breakAt.contains), consumeBackslash = false)
+          true
+      }) {}
+    }
+    def advanceWhile(lookahead: Lookahead[Int], highlight: HighlightType, test: Option[CatCode] => Boolean, consumeBackslash: Boolean = true): Unit = {
       var amount = 0
-      val nonMatchFactor = if (takeFirstNonMatch) 1 else 0
       while(calc.lexer.lookup((ahead: Int) => lookahead.lookupToken(amount + ahead)) match {
         case TokResult.Eof => amount += 1; false // Prevent an infinite loop
-        case CharacterMapping(code, content) if test(Some(code)) => amount += content.length; true
-        case CharacterMapping(_, content) => amount += (content.length * nonMatchFactor); false
+        case CharacterMapping(code, _) if !test(Some(code)) => false
+        case CharacterMapping(_, content) if !consumeBackslash && content.contains('\\') => amount += content.indexOf('\\'); false
+        case CharacterMapping(_, content) => amount += content.length; true
         case _ if test(None) => amount += 1; true
-        case _  => amount += (1 * nonMatchFactor); false
+        case _ => false
       }) {}
       advance(amount, highlight)
     }
@@ -79,12 +97,14 @@ object InputHighlighter {
           case CatCode.Comment => advance(codePoints.length, HighlightType.COMMENT)
           case CatCode.Escape =>
             advance(content.length, HighlightType.IDENTIFIER) // Also updates the lookahead
-            advanceWhile(lookahead, HighlightType.IDENTIFIER, cat => !cat.contains(CatCode.Escape), takeFirstNonMatch = true)
+            advanceEscaped(lookahead, HighlightType.IDENTIFIER, CatCode.Escape) {
+              case CharacterMapping(CatCode.Error, content) =>
+                advance(content.length, HighlightType.IDENTIFIER)
+                false
+            }
           case CatCode.Error =>
             advance(content.length, HighlightType.ERROR) // Also updates the lookahead
-            // Allow interpolation
-            while (calc.lexer.lookup(lookahead) match {
-              case TokResult.Eof => false
+            advanceEscaped(lookahead, HighlightType.ERROR, CatCode.Error, CatCode.Interpolate) {
               case CharacterMapping(CatCode.Error, content) =>
                 advance(content.length, HighlightType.ERROR)
                 false
@@ -97,10 +117,7 @@ object InputHighlighter {
                   advance(content.length, HighlightType.ERROR)
                   true
               }
-              case _ =>
-                advanceWhile(lookahead, HighlightType.ERROR, cat => !cat.contains(CatCode.Error) && !cat.contains(CatCode.Interpolate))
-                true
-            }) {}
+            }
           case CatCode.Assign if commandAssign =>
             advance(content.length, HighlightType.COMMAND)
             commandAssign = false
