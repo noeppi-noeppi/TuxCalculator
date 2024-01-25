@@ -5,6 +5,7 @@ import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -12,6 +13,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import tuxcalculator.api.TuxCalculator;
@@ -181,9 +183,16 @@ public class JavaFxFrontend extends GraphicalFrontend {
     protected void appendLine(String term, TuxCalculator.Result result) {
         Label input = new Label(term);
         input.setAlignment(Pos.BASELINE_LEFT);
+        input.setTextAlignment(TextAlignment.LEFT);
+        input.setWrapText(true);
         
         Label output = new Label(result.toString());
         output.setAlignment(Pos.BASELINE_RIGHT);
+        output.setTextAlignment(TextAlignment.RIGHT);
+        output.setWrapText(true);
+        Insets padding = output.getPadding();
+        output.setPadding(new Insets(padding.getTop(), padding.getRight(), padding.getBottom() + 2, padding.getLeft()));
+
         if (result instanceof TuxCalculator.Error err) {
             output.setStyle("-fx-font-weight:bold;-fx-text-fill:#DD0000;");
             if (!err.trace().isEmpty()) {
