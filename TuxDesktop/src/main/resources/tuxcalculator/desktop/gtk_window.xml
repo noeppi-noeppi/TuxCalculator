@@ -1,35 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.22.2 -->
+<!-- Generated with glade 3.38.2 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
   <object class="GtkWindow" id="tux_window">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="title" translatable="no">TuxCalculator</property>
-    <property name="default_width">440</property>
-    <property name="default_height">250</property>
-    <child type="titlebar">
-      <placeholder/>
-    </child>
+    <property name="can-focus">False</property>
+    <property name="title">TuxCalculator</property>
+    <property name="default-width">440</property>
+    <property name="default-height">250</property>
     <child>
       <object class="GtkBox">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <property name="orientation">vertical</property>
         <child>
           <object class="GtkScrolledWindow" id="tux_term_scroll">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="shadow_type">in</property>
+            <property name="can-focus">True</property>
+            <property name="shadow-type">in</property>
             <child>
               <object class="GtkTextView" id="tux_term_output">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="margin_top">3</property>
-                <property name="margin_bottom">5</property>
+                <property name="can-focus">True</property>
+                <property name="margin-top">3</property>
+                <property name="margin-bottom">5</property>
                 <property name="editable">False</property>
-                <property name="cursor_visible">False</property>
-                <property name="accepts_tab">False</property>
+                <property name="cursor-visible">False</property>
+                <property name="accepts-tab">False</property>
               </object>
             </child>
           </object>
@@ -42,18 +39,18 @@
         <child>
           <object class="GtkBox">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <child>
               <object class="GtkTextView" id="tux_term_input">
-                <property name="height_request">20</property>
+                <property name="height-request">20</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
+                <property name="can-focus">True</property>
                 <property name="valign">center</property>
-                <property name="margin_top">1</property>
-                <property name="margin_bottom">1</property>
-                <property name="wrap_mode">char</property>
-                <property name="left_margin">2</property>
-                <property name="right_margin">2</property>
+                <property name="margin-top">1</property>
+                <property name="margin-bottom">1</property>
+                <property name="wrap-mode">char</property>
+                <property name="left-margin">2</property>
+                <property name="right-margin">2</property>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -66,9 +63,9 @@
               <object class="GtkButton" id="tux_term_enter">
                 <property name="label">gtk-apply</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="use-stock">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
