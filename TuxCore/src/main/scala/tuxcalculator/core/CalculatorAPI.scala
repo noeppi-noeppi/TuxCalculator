@@ -37,7 +37,9 @@ object CalculatorAPI extends TuxCalculatorAPI {
       val in = new DataInputStream(fmt)
       new CalculatorBuilderWrapper(FormatIO.load(frontend, in))
     } catch {
-      case e: IOException => new ErroredCalculatorBuilder(Vector("IO error: " + e.getMessage))
+      case e: EOFException => new ErroredCalculatorBuilder(Vector("Truncated format file.") ++ Option(e.getMessage).toVector)
+      case e: UTFDataFormatException => new ErroredCalculatorBuilder(Vector("Charset error.") ++ Option(e.getMessage).toVector)
+      case e: IOException => new ErroredCalculatorBuilder(Vector("Generic IO error.") ++ Option(e.getMessage).toVector)
       case e: InvalidFormatException => new ErroredCalculatorBuilder(Vector("Corrupted format file.", e.getMessage))
       case e: Exception => new ErroredCalculatorBuilder(Vector("Error while loading format file.") ++ Util.getStacktrace(e))
     } finally {

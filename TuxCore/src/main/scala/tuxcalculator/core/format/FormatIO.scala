@@ -5,17 +5,25 @@ import tuxcalculator.core.Calculator
 import tuxcalculator.core.data.CalculatorProperties
 import tuxcalculator.core.lexer.CatCode
 
-import java.io.{DataInput, DataOutput}
+import java.io.{DataInput, DataOutput, EOFException}
 import java.text.Normalizer
 
 object FormatIO {
   
   @throws[InvalidFormatException]
   def load(frontend: TuxFrontend, in: DataInput): Calculator = {
-    val magic = in.readInt()
-    if (magic != 0x40956A19) throw new InvalidFormatException("Invalid format file")
+    val magic: Int = try {
+      val byte1: Int = try in.readByte() & 0xFF catch { case _: EOFException => throw new InvalidFormatException("Empty format file.") }
+      val byte2: Int = in.readByte() & 0xFF
+      val byte3: Int = in.readByte() & 0xFF
+      val byte4: Int = in.readByte() & 0xFF
+      (byte1 << 24) | (byte2 << 16) | (byte3 << 8) | byte4
+    } catch {
+      case _: EOFException => throw new InvalidFormatException("Not a TuxCalculator Format file.");
+    }
+    if (magic != 0x40956A19) throw new InvalidFormatException("Not a TuxCalculator Format file.")
     val ver = in.readUTF()
-    if (ver != TuxCalculatorAPI.VERSION) throw new InvalidFormatException("Format file was made for version " + ver +  ". Can't load it on version " + TuxCalculatorAPI.VERSION + ".")
+    if (ver != TuxCalculatorAPI.VERSION) throw new InvalidFormatException("Format file was compiled for version " + ver +  ". Can't load it on version " + TuxCalculatorAPI.VERSION + ".")
     
     val calc = new Calculator(frontend, ini = false)
     
@@ -37,7 +45,7 @@ object FormatIO {
       case 0xFF => None
       case ordinal => Normalizer.Form.values() match {
         case values if values.indices contains ordinal => Some(values(ordinal))
-        case _ => throw new IllegalStateException("Invalid input normalization in format.")
+        case _ => throw new InvalidFormatException("Invalid input normalization in format.")
       }
     })
     calc.properties.set(CalculatorProperties.Highlight, in.readBoolean())
@@ -45,7 +53,7 @@ object FormatIO {
       case 0 => CalculatorProperties.PolarType.None
       case 1 => CalculatorProperties.PolarType.Radians
       case 2 => CalculatorProperties.PolarType.Degrees
-      case _ => throw new IllegalStateException("Invalid polar formatting in format.")
+      case _ => throw new InvalidFormatException("Invalid polar formatting in format.")
     })
     
     val answer = calc.resolution.read(in)
