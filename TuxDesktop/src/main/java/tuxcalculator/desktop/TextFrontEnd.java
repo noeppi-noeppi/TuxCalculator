@@ -1,6 +1,5 @@
 package tuxcalculator.desktop;
 
-import org.fusesource.jansi.Ansi;
 import org.jline.reader.*;
 import org.jline.reader.impl.history.DefaultHistory;
 import org.jline.terminal.Terminal;
@@ -56,8 +55,10 @@ public final class TextFrontEnd extends DesktopFrontend {
         TerminalBuilder builder = TerminalBuilder.builder();
         builder.name("TuxCalculator");
         builder.system(true);
-        builder.jansi(true);
+        builder.ffm(false);
+        builder.jni(true);
         builder.jna(false);
+        builder.jansi(false);
         try (Terminal terminal = builder.build()) {
             CalculatorHighlighter highlighter = new CalculatorHighlighter(calc);
             CalculatorCompleter completer = new CalculatorCompleter(calc);
@@ -81,16 +82,24 @@ public final class TextFrontEnd extends DesktopFrontend {
                 if (line == null) continue;
                 TuxCalculator.Result result = calc.parse(line);
                 if (result instanceof TuxCalculator.Error) {
-                    terminal.writer().println(Ansi.ansi().reset().fgBrightRed().a(result).reset().toString());
+                    terminal.writer().println(ansiString(result.toString(), 8 + AttributedStyle.RED));
                     terminal.flush();
                 } else if (!(result instanceof TuxCalculator.Void)) {
-                    terminal.writer().println(Ansi.ansi().reset().fgBrightCyan().a(result).reset().toString());
+                    terminal.writer().println(ansiString(result.toString(), 8 + AttributedStyle.CYAN));
                     terminal.flush();
                 }
             }
         } catch (EndOfFileException | UserInterruptException e) {
             //
         }
+    }
+    
+    public static String ansiString(String text, int color) {
+        AttributedStringBuilder sb = new AttributedStringBuilder();
+        sb.style(AttributedStyle.DEFAULT.foreground(color));
+        sb.append(text);
+        sb.style(AttributedStyle.DEFAULT);
+        return sb.toAnsi();
     }
 
     private static final class NothingParser implements Parser {

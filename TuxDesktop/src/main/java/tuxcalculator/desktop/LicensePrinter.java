@@ -14,7 +14,6 @@ public class LicensePrinter {
         printLicense("commons-text", "NOTICE-commons-text", "LICENSE-commons-text");
         printLicense("jsr305", "LICENSE-jsr305");
         printLicense("big-math", "LICENSE-big-math");
-        printLicense("jansi", "LICENSE-jansi");
         printLicense("jline3", "LICENSE-jline3");
     }
     
