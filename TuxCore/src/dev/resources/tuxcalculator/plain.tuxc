@@ -290,6 +290,9 @@ def count(n,f) = count(1,n,f)
 def deg(x) = x * 180 / #pi
 def rad(x) = x * #pi / 180
 
+def bernoulli(n) = #bernoulli(n)
+let temp = \[(n):#eq(n,1)->0.5;(n)->#bernoulli(n)]
+def Bernoulli(n) = temp(n)
 ? For non-negative real integers, only take real part.
 ? Prevents rounding errors on the imaginary parts
 let temp = \[(x:#isr):#eq(#fl(x,0),x)->#re(#gamma(x+1,-1)/#e);(x)->#gamma(x+1,-1)/#e]

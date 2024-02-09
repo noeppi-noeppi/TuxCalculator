@@ -29,6 +29,15 @@ object BuiltinFunctions {
     }}
   }
   
+  object Bernoulli extends CalculatorSpecial.SimpleFunction("bernoulli", 1) {
+    override protected def result(calc: Calculator, args: Vector[MathValue]): MathValue = ValueHelper.run(calc) {
+      val n = ValueHelper.realInt(args(0))
+      if (!n.isValidInt) ValueHelper.error("Bernoulli index too large: " + n)
+      if (n < 0) ValueHelper.error("Negative bernoulli index: " + n)
+      MathNumber(BigDecimalMath.bernoulli(n.toInt, calc.mathContext))
+    }
+  }
+  
   object Ln extends CalculatorSpecial.SimpleFunction("ln", 1) {
     override protected def result(calc: Calculator, args: Vector[MathValue]): MathValue = ValueHelper.run(calc) {ValueHelper.get(args.head) match {
       case MathNumeric(num) if num == BigComplex.ZERO => MathError("ln(0) is undefined.")

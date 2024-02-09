@@ -56,6 +56,7 @@ class CalculatorSpecials(private val calc: PropertyAccess) {
     RelOperators.Lt,
     BuiltinFunctions.Abs,
     BuiltinFunctions.Gamma,
+    BuiltinFunctions.Bernoulli,
     BuiltinFunctions.Ln,
     BuiltinFunctions.W,
     BuiltinFunctions.Li,
