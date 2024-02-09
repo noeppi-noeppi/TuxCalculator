@@ -1,4 +1,4 @@
-% arara: clean: { extensions: [ aux, toc, dvi, pdf ] }
+% arara: clean: { extensions: [ aux, toc, out, dvi, pdf ] }
 % arara: latex
 % arara: latex until !found('log', 'Rerun to get cross-references right.')
 % arara: halt if found('log', 'There were undefined references.')
@@ -768,17 +768,21 @@
         $ \mathrm{count}(a, b, f) $                & Applies $ f $ to all integers in the interval $ [a;b] $ and counts for how many of them $ f $ yields \verb|true|. \tabgap
         $ \mathrm{deg}(x) $                        & Converts $ x $ from radians to degrees. \\
         $ \mathrm{rad}(x) $                        & Converts $ x $ from degrees to radians. \tabgap
-        $ \mathrm{bernoulli}(n) $                  & Computes the bernoulli numbers $ B_n^{-} $. $ \mathrm{bernoulli}(1) = -\frac{1}{2} $. \\
-        $ \mathrm{Bernoulli}(n) $                  & Computes the bernoulli numbers $ B_n^{+} $. $ \mathrm{Bernoulli}(1) = \frac{1}{2} $. \tabgap
         $ \mathrm{sf}(x) $                         & Calculates the subfactorial: $ !x $. \\
         $ \mathrm{Gamma}(x) $, $ \Gamma(x) $       & Computes $ \Gamma(x) $. \\
         $ \mathrm{Gamma}(p, x) $, $ \Gamma(p, x) $ & The incomplete Gamma-function $ \Gamma(p, x) $. \\
         $ \mathrm{gamma}(p, x) $, $ \gamma(p, x) $ & Computes $ \gamma(p, x) = \Gamma(p) - \Gamma(p, x) $. \\
         $ \mathrm{Beta}(a, b) $                    & Computes the beta function $ \mathrm{B}(a, b) = \frac{\Gamma(a) \cdot \Gamma(b)}{\Gamma(a + b)} $. \\
-        $ \mathrm{Beta}(a_1, a...) $               & Computes the multivariate beta function $ \mathrm{B}(a_1, \dots, a_n) = \Big(\Gamma\big(\sum_k a_k\big)\Big)^{-1} \cdot \prod_k \Gamma(a_k) $. \\
+        $ \mathrm{Beta}(a_1, a...) $               & Computes the multivariate beta function $ \mathrm{B}(a_1, \dots, a_n) = \Big(\Gamma\big(\sum_k a_k\big)\Big)^{-1} \cdot \prod_k \Gamma(a_k) $. \tabgap
+        $ \mathrm{bernoulli}(n) $                  & Computes the $ n $th bernoulli number $ B_n^{-} $. $ \mathrm{bernoulli}(1) = -\frac{1}{2} $. \\
+        $ \mathrm{Bernoulli}(n) $                  & Computes the $ n $th bernoulli number $ B_n^{+} $. $ \mathrm{Bernoulli}(1) = \frac{1}{2} $. \\
         $ \mathrm{H}(n) $                          & Computes the $ n $th harmonic number. \tabgap
+        $ \mathrm{faq}(n) $                        & Computes the factorial of a number. \\
+        $ \mathrm{faq}(q, n) $                     & Computes the $ q $-factorial of a number $ [n]_q! $. \\
         $ \mathrm{nCr}(n, k) $                     & Computes $ \footnotesize\Bigl(\kern-2\nulldelimiterspace\begin{array}{c}n\\k\end{array}\kern-2\nulldelimiterspace\Bigr) $ \\
-        $ \mathrm{nPr}(n, k) $                     & Computes $ \footnotesize\frac{n!}{(n-k)!} $ \\
+        $ \mathrm{nCr}(q, n, k) $                  & Computes $ \footnotesize\Bigl[\kern-2\nulldelimiterspace\begin{array}{c}n\\k\end{array}\kern-2\nulldelimiterspace\Bigr]_q $, the q-binomial coefficient. \\
+        $ \mathrm{nPr}(n, k) $                     & Computes $ \footnotesize\frac{n!}{(n-k)!} $. \\
+        $ \mathrm{nPr}(q, n, k) $                  & Computes $ \footnotesize\frac{[n]_q!}{[n-k]_q!} $. \\
         $ \mathrm{fib}(n) $                        & Computes the $ n $th element of the fibonacci-sequence. Indices start at $ 1 $. \\
         $ \mathrm{ln}(x) $                         & Computes the natural logarithm of $ x $. \\
         $ \mathrm{W}(x) $                          & Computes $ W(x) $ such that $ W(x) \cdot e^{W(x)} = x $. \\
