@@ -9,7 +9,7 @@ buildscript {
 }
 
 plugins {
-    id 'com.android.application' version '8.1.2'
+    id 'com.android.application' version '8.2.0'
 }
 
 apply plugin: 'org.moddingx.ljc'
