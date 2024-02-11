@@ -67,6 +67,7 @@ let e = #e
 let i = #i
 let id = \x->x
 let nil = #fill(0,id)
+let X = #pol([0,1])
 
 ? Basic functions for complex numbers
 def re(x) = #re(x)
@@ -212,7 +213,9 @@ let temp = \x->#eq(#idx([x...],0,\elem->#if(#eq(elem,0),false,true)),-1)
 let temp = \[(x:#isl)->'sgn of list';(x):x=0->0;(x:#isv):temp(x)->x;(x:#isr):x>0->1;(x:#isr):x<0->-1;(x)->x/abs(x)]
 def sgn(x) = temp(x)
 def gcd(a,b) = #gcd(a,b)
+def gcd(l1,l...) = #fold(l,l1,#gcd)
 def lcm(a,b) = (a*b)/#gcd(a,b)
+def lcm(l1,l...) = #fold(l,l1,@lcm)
 def bezout(a,b) = #bezout(a,b)
 let temp = \[(a,n,c):#eq((a*c)%%n,1)->c%%n;(a,n,c)->'Ring element $a not invertible mod $n']
 def rinv(n,a) = temp(a,n,#car(#bezout(a,n)))
@@ -315,12 +318,12 @@ def Bernoulli(n) = temp(n)
 def H(n) = temp(n)
 
 let temp = #memoize(\k,q->#fold(#fill(k,id),[0,1],\l,elem->[l(0)+l(1),q*l(1)])(0))
-def faq(n) = n!
 def faq(q,n) = #fold(#fill(n,\idx->temp(idx+1,q)),1,#mul)
+def faq(n) = n!
 let temp = \[(q,n,k):n<k->0;(q,n,k)->faq(q,n)/(faq(q,k)*faq(q,n-k))]
 def nCr(n,k) = temp(1,n,k)
 def nCr(q,n,k) = temp(q,n,k)
-let temp = \[(q,n,k):n<k->0;(n,k)->faq(q,n)/faq(q,n-k)]
+let temp = \[(q,n,k):n<k->0;(q,n,k)->faq(q,n)/faq(q,n-k)]
 def nPr(n,k) = temp(1,n,k)
 def nPr(q,n,k) = temp(q,n,k)
 let temp = #memoize(\[(n):#if(#eq(#fl(n,0),n),n<=0,true)->'fib is only defined for positive integers, got $n';(n):n<=2->1;(n)->(#[1,1;1,0]^(n-2)*#[1,1])(1)])
@@ -359,6 +362,18 @@ let temp = \[(i,j,a):#and(#or(i<1,i>#ht(a)),#or(j<1,j>#wd(a)))->a;(i,j,a):#or(i<
 def minor(n,a) = temp(0,n,a)
 def minor(i,j,a) = temp(i,j,a)
 
+let temp = \[(cc,n):#or(#if(#eq(#fl(n,0),n),#f,#t),#lt(n,0))->'Can\'t get $n th coefficient of polynomial';(cc,n):#lt(n,#len(cc))->cc(n);(cc,n)->0]
+def coeff(p,n) = temp(#coeff(p),n)
+let temp = \[(c):#eq(c,nil)->'Degree of the 0-polynomial';(c)->#len(c)-1]
+def pdeg(p) = temp(#coeff(p))
+let temp = \[(c):#eq(c,nil)->nil;(c)->#map(c,\elem->elem/c(#len(c)-1))]
+def monic(p) = #pol(temp(#coeff(p)))
+let temp = \cc->#cdr(#zip([cc,#fill(#len(cc),id)],@*))
+def deriv(p) = #pol(temp(#coeff(p)))
+let temp = \cc,c->c::#zip([cc,#fill(#len(cc),#add_1)],@/)
+def integ(p) = #pol(temp(#coeff(p),0))
+def integ(p,c) = #pol(temp(#coeff(p),c))
+
 def sin(x) = #sin(x)
 let temp = \[(x):#eq(x,0)->1;(x)->#div(#sin(x),x)]
 def sinc(x) = temp(x)
@@ -389,7 +404,11 @@ def acoth(x) = atanh(1/x)
 
 ? More signs or operators that need the functions to be in place
 cat '√' = sign
+cat '∂' = sign
+cat '∫' = sign
 def √(x) = sqrt(x)
+def ∂(p) = deriv(p)
+def ∫(p) = integ(p)
 def(-99) √(n,x) = root(n,x)
 
 cat '∧' = operator
@@ -420,12 +439,13 @@ def(-600) ≤(a,b) = a <= b
 def(-600) ≥(a,b) = a >= b
 def(-500) ∈(e,l) = has(l,e)
 def(-500) ∉(e,l) = #if(has(l,e),false,true)
-def(-500) ∘(a,b) = \arg...->a(b(arg...))
+let temp = \[(a:#isp,b:#isp):#if(#or(#isn(a),#isn(b)),#f,#t)->a(b);(a,b)->\arg...->a(b(arg...))]
+def(-500) ∘(a,b) = temp(a,b)
 def(-200) ·(a,b) = a * b
 let temp = \[(a:#isv,b:#isv)->cross(a,b);(a:#isl,b:#isl)->cprod(a,b);(a,b)->'Can only use × on vectors and lists']
 def(-200) ×(a,b) = temp(a,b)
 def(-200) ∙(a,b) = a ** b
-def(-200) //(a,b) = trunc(#div(a,b))
+def(-200) //(a,b) = #tdiv(a,b)
 
 ? More functions that rely on the advanced operators
 let temp = \[(f):#eq(#len(f),0)->id;(f)->f/@∘]

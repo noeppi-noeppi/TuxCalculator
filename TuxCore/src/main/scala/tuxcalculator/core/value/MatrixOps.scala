@@ -42,6 +42,15 @@ object MatrixOps {
     case Left(mat) => mat
     case Right(err) => MathError(err)
   }
+
+  def zero(width: Int, height: Int): MathValue = {
+    if (width <= 0 || height <= 0) return MathError("Can't make zero matrix with size " + height + "x" + width)
+    val builder = new MatrixBuilder(width, height)
+    for (row <- 0 until height; col <- 0 until width) {
+      builder(row, col) = MathNumber.Zero
+    }
+    builder.build
+  }
   
   def identity(size: Int): MathValue = {
     if (size <= 0) return MathError("Can't make identity matrix with size " + size)
@@ -76,7 +85,7 @@ object MatrixOps {
           case Right(err) => Right(err)
         }
         case n => doRaise(theMat, n - 1) match {
-          case Left(subRaised) => doMul(subRaised, mat)
+          case Left(subRaised) => doMul(subRaised, theMat)
           case Right(err) => Right(err)
         }
       }

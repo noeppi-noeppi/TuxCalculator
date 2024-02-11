@@ -44,6 +44,12 @@ object BasicOperators {
       NumberHelper.div(args(0), args(1))
     }
   }
+
+  object TruncatingDiv extends CalculatorSpecial.SimpleFunction("tdiv", 2) {
+    override protected def result(calc: Calculator, args: Vector[MathValue]): MathValue = ValueHelper.run(calc) {
+      NumberHelper.truncatingDiv(args(0), args(1))
+    }
+  }
   
   object Mod extends CalculatorSpecial.SimpleFunction("mod", 2) {
     override protected def result(calc: Calculator, args: Vector[MathValue]): MathValue = ValueHelper.run(calc) {

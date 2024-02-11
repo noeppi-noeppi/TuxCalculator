@@ -6,7 +6,7 @@ import tuxcalculator.core.Calculator
 object ValueHelper {
 
   class AbortError(val err: MathError) extends Exception
-  class VoidError() extends Exception
+  class VoidError extends Exception
   
   private val _calc: ThreadLocal[Calculator] = new ThreadLocal()
   def calc: Calculator = _calc.get() match {

@@ -3,8 +3,9 @@ package tuxcalculator.core.special
 import ch.obermuhlner.math.big.{BigComplex, BigComplexMath, BigDecimalMath}
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.data.CalculatorSpecial
-import tuxcalculator.core.math.{ArithmeticGeometricMean, IncompleteGamma, LogarithmicIntegral, ProductLog}
-import tuxcalculator.core.value.{MathComplexNumeric, MathError, MathList, MathNumber, MathNumeric, MathRealNumeric, MathValue, ValueHelper}
+import tuxcalculator.core.math.algebra.Algebras
+import tuxcalculator.core.math.{ArithmeticGeometricMean, GreatestCommonDivisor, IncompleteGamma, LogarithmicIntegral, ProductLog}
+import tuxcalculator.core.value.{MathComplexNumeric, MathError, MathList, MathNumber, MathNumeric, MathPolynomial, MathPolynomic, MathRealNumeric, MathValue, ValueHelper}
 
 import java.math.MathContext
 import scala.math.BigDecimal.RoundingMode
@@ -100,31 +101,41 @@ object BuiltinFunctions {
   
   object Gcd extends CalculatorSpecial.SimpleFunction("gcd", 2) {
     override protected def result(calc: Calculator, args: Vector[MathValue]): MathValue = ValueHelper.run(calc) {
-      val a = ValueHelper.realInt(args(0))
-      val b = ValueHelper.realInt(args(1))
-      MathNumber(BigDecimal(a.abs gcd b.abs))
+      (args(0), args(1)) match {
+        case (n1 @ MathNumeric(_), n2 @ MathNumeric(_)) =>
+          // If both arguments are degree 0 polynomials (numbers), compute numeric gcd.
+          val a = ValueHelper.realInt(n1)
+          val b = ValueHelper.realInt(n2)
+          MathNumber(BigDecimal(a.abs gcd b.abs))
+        case (MathPolynomic(c1), MathPolynomic(c2)) =>
+          val result = GreatestCommonDivisor.gcd(Algebras.polynomials(calc))(c1, c2)
+          if (result.gcd.isEmpty) return MathPolynomial(result.gcd)
+          val factor: BigComplex = result.gcd.last.num
+          MathPolynomial(result.gcd.init.map(coefficient => MathNumber(coefficient.num.divide(factor, calc.mathContext))) ++ Vector(MathNumber.One))
+        case (a, b) => MathError("Invalid gcd(" + calc.format(a) + ", " + calc.format(b) + ")")
+      }
     }
   }
   
   object Bezout extends CalculatorSpecial.SimpleFunction("bezout", 2) {
     override protected def result(calc: Calculator, args: Vector[MathValue]): MathValue = ValueHelper.run(calc) {
-      val a = ValueHelper.realInt(args(0))
-      val b = ValueHelper.realInt(args(1))
-      
-      var rl: BigInt = a
-      var sl: BigInt = 1
-      var tl: BigInt = 0
-      var r: BigInt = b
-      var s: BigInt = 0
-      var t: BigInt = 1
-      while (r != 0) {
-        val (q, rn) = rl /% r
-        val (sn, tn) = (sl - q * s, tl - q * t)
-        rl = r; r = rn
-        sl = s; s = sn
-        tl = t; t = tn
+      (args(0), args(1)) match {
+        case (n1 @ MathNumeric(_), n2 @ MathNumeric(_)) =>
+          // If both arguments are degree 0 polynomials (numbers), compute numeric gcd.
+          val a = ValueHelper.realInt(n1)
+          val b = ValueHelper.realInt(n2)
+          val result = GreatestCommonDivisor.gcd(Algebras.integers)(a, b)
+          MathList(Vector(MathNumber(BigDecimal(result.bezout1)), MathNumber(BigDecimal(result.bezout2))))
+        case (MathPolynomic(c1), MathPolynomic(c2)) =>
+          val result = GreatestCommonDivisor.gcd(Algebras.polynomials(calc))(c1, c2)
+          if (result.gcd.isEmpty) return MathList(Vector(MathPolynomial(result.bezout1), MathPolynomial(result.bezout2)))
+          val factor: BigComplex = result.gcd.last.num
+          MathList(Vector(
+            MathPolynomial(result.bezout1.map(coefficient => MathNumber(coefficient.num.divide(factor, calc.mathContext)))),
+            MathPolynomial(result.bezout2.map(coefficient => MathNumber(coefficient.num.divide(factor, calc.mathContext))))
+          ))
+        case (a, b) => MathError("Invalid bezout(" + calc.format(a) + ", " + calc.format(b) + ")")
       }
-      MathList(Vector(MathNumber(BigDecimal(sl)), MathNumber(BigDecimal(tl))))
     }
   }
   

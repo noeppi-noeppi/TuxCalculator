@@ -13,7 +13,7 @@ object RelOperators {
         // General functions can't be easily compared. For consistency they always yield false
         // Especially we don't compare global functions (references) because:
         //   1. We can't compare by name as the function might change after a `def' but the reference won't.
-        //   2. We can't compare by value because then a reference loaded fro ma format file and a newly created one
+        //   2. We can't compare by value because then a reference loaded from a format file and a newly created one
         //      would not be equal.
         case (_: MathFunction, _: MathFunction) => MathFalse
         case (v1, v2) => MathBoolean(v1 == v2)

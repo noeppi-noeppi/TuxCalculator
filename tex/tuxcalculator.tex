@@ -189,6 +189,27 @@
     If the matrix is a vector, its elements can also be accessed by \verb|M(row)|.
     Unlike with lists, indices start at 1.
 
+    \subsection{Formal Polynomials}\label{subsec:polynomials}
+    Polynomials are formal objects that behave similar to polynomic functions with complex coefficients but can also be added, subtracted, multiplied and divided.
+    TuxCalculator defines the polynomial variable $ X $ which can be used to construct polynomials.
+    \begin{verbatim}
+        X^2 - 1
+        (X - 1) * (X + 1)
+        (X^3 - X) / X
+    \end{verbatim}
+    All those polynomials describe the $ X^2 - 1 $ polynomial.
+    Note that not all polynomials can be divided.
+    TuxCalculator will only allow division of divisible polynomials by default.
+    However, you can use the \verb|//| operator to drop any remainder and divide any polynomials.
+    
+    Polynomials can be applied to arguments:
+    \begin{verbatim}
+        (X^2 - 1)(4)              15
+        (X^2 - 1)(#[1,2;-1,3])    #[-2,8 ; -4,6]
+    \end{verbatim}
+    Unlike the coefficients, the argument does not have to be a number. It just has to be something that can be summed up, has a scalar and an inner multiplication.
+    This includes numbers, matrices and other polynomials.
+    
     \subsection{Functions \& Lambdas}\label{subsec:lambdas}
     Lambdas are anonymous functions that take zero or more parameters and return a value.
     A lambda is defined like this:
@@ -614,6 +635,7 @@
         $ pi $, $ \pi $     & The ratio of a circle's circumference to its diameter. \\
         $ e $               & The euler number $ e $. \\
         $ i $               & The imaginary unit $ i $. \\
+        $ X $               & The identity polynomial $ X $. \\
         $ void $            & The void value. \\
         $ true $, $ \top $  & The true value $ \top $. \\
         $ false $, $ \bot $ & The false value $ \bot $. \\
@@ -644,7 +666,9 @@
         $ \neg $                & The logical or bitwise \texttt{NOT} function. \\
         $ \bar{\;} $            & The complex conjugate function. $ \bar{\;}(a + b \cdot i) = a - b \cdot i $. \\
         $ \dblcolon $           & Gets all elements except the first of a list. \\
-        $ \sqrt{\vphantom{0}} $ & The square root of a value.
+        $ \sqrt{\vphantom{0}} $ & The square root of a value. \\
+        $ \partial $            & Computes the derivative of a polynomial. \\
+        $ \int $                & Integrates a polynomial. \\
     \end{longtable}
     
     \subsection{Postfix operators}
@@ -719,8 +743,8 @@
         $ \mathrm{root}(n, x) $                    & Calculates the $ n $th root of $ x $. \tabgap
         $ \mathrm{abs}(x) $                        & Calculates the absolute value of $ x $ which for a number $ a + bi$ is $ \sqrt{a^2 + b^2} $. The absolute value of a vector is its magnitude. \\
         $ \mathrm{sgn}(x) $                        & Calculates the sign of $ x $ which is the complex number on the unit circle that holds $ \mathrm{abs}(x) \cdot \mathrm{sgn}(x) = x $. The sign of $ 0 $ is $ 0 $. For vectors, $ \mathrm{sgn}(v) $ is the normalisation of the vector $ v $. \tabgap
-        $ \mathrm{gcd}(a, b) $                     & Calculates the greatest common divisor of $ a $ and $ b $. \\
-        $ \mathrm{lcm}(a, b) $                     & Calculates the lowest common multiple of $ a $ and $ b $. \tabgap
+        $ \mathrm{gcd}(l_1, l\dots) $              & Calculates the greatest common divisor of some numbers or polynomials. The polynomial $ \mathrm{gcd} $ will always be monic. \\
+        $ \mathrm{lcm}(l_1, l\dots) $              & Calculates the lowest common multiple of some numbers. \tabgap
         $ \mathrm{bezout}(a, b) $                  & Calculates the \textsl{b\'ezout coefficients} of $ a $ and $ b $. \\
         $ \mathrm{rinv}(n, a) $                    & Calculates the inverse of $ a $ in the ring $ \mathbb{Z} / n\mathbb{Z} $. If $ a $ is not invertible in that ring, produces an error. \\
         $ \mathrm{round}(x) $                      & Rounds $ x $ to a whole number. \\
@@ -810,6 +834,12 @@
         $ \mathrm{minor}(n, a) $                   & Computes a matrix minor. The resulting matrix is the matrix $ a $ with the $ n $-th column removed. \\
         $ \mathrm{minor}(i, j, a) $                & Computes a matrix minor. The resulting matrix is the matrix $ a $ with the $ i $-th row and the $ j $-th column removed. $ i $ or $ j $ can be $ 0 $ to remove only a column or only a row. \\
         $ \mathrm{det}(a) $                        & Computes the determinant of the square matrix $ a $. \tabgap
+        $ \mathrm{coeff}(p, n) $                   & Gets the $ n $th coefficient of the polynomial $ p $. \\
+        $ \mathrm{pdeg}(p) $                       & Gets the degree of the polynomial $ p $. The degree of the zero-polynomial is undefined. \\
+        $ \mathrm{monic}(p) $                      & Converts the polynomial $ p $ into a monic polynomial by dividing by the leading coefficient. \\
+        $ \mathrm{deriv}(p) $                      & Computes the derivative of the polynomial $ p $. \\
+        $ \mathrm{integ}(p) $                      & Computes the integral of the polynomial $ p $ with constant part $ 0 $. \\
+        $ \mathrm{integ}(p, c) $                   & Computes the integral of the polynomial $ p $ with constant part $ c $. \tabgap
         $ \mathrm{sin}(x) $                        & Computes the sine of $ x $. \\
         $ \mathrm{sinc}(x) $                       & The $ \mathrm{sinc} $ function $ \frac{\sin x}{x} $. $ \mathrm{sinc}(0) = 1 $. \\
         $ \mathrm{cos}(x) $                        & Computes the cosine of $ x $. \\
@@ -842,21 +872,24 @@
     Lists all specials known to \textit{TuxCalculator}.
     \begin{longtable}{p{0.2\textwidth}p{\dimexpr0.8\textwidth-3\tabcolsep\relax}}
         \verb|#abs|       & A function that computes the absolute value of its argument. \\
-        \verb|#add|       & A function that adds two numbers or matrices together. \\
+        \verb|#add|       & A function that adds two numbers, matrices or polynomials together. \\
         \verb|#adj|       & A function that computes the adjugate of a matrix. \\
         \verb|#agm|       & A function that computes the arithmetic-geometric mean of tw o numbers. \\
         \verb|#and|       & A function that computes logic or bitwise \verb|AND| of two booleans or integers. \\
         \verb|#asin|      & The arc sine function. \\
         \verb|#atan|      & The \verb|atan2| function. \\
         \verb|#bernoulli| & Computes the bernoulli numbers. $ \mathrm{bernoulli}(1) = -\frac{1}{2} $. \\
-        \verb|#bezout|    & Takes two numbers and yields a list containing the \textsl{B\'ezout coefficients} of those numbers. \\
+        \verb|#bezout|    & Takes two numbers or polynomials and yields a list containing the \textsl{B\'ezout coefficients} of those numbers.
+                            The polynomial \textsl{B\'ezout coefficients} will always be chosen such that the $ \mathrm{gcd} $ is monic. \\
         \verb|#car|       & A function that gets the first element of a list or vector. \\
         \verb|#cdr|       & A function that gets all except the first element of a list or vector.
                             $ \mathrm{cdr} $ on a single-element vector is an error as empty vectors don't exist. \\
         \verb|#cl|        & $ \mathrm{cl}(n,p) $ ceils $ n $ to precision $ p $. \\
+        \verb|#coeff|     & Takes a polynomial and returns a list of all the coefficient.
+                            The leading coefficient is the last element in the list. \\
         \verb|#cosh|      & The hyperbolic cosine function. \\
         \verb|#det|       & A function that computes the determinant of a matrix. \\
-        \verb|#div|       & A function that divides two numbers or matrices. \\
+        \verb|#div|       & A function that divides two numbers, matrices or polynomials. \\
         \verb|#e|         & The value of the constant $ e $ for the current precision. \\
         \verb|#eq|        & Takes two values and yields whether they are equal.
                             Functions that are not calculator specials will always yield \verb|false|. \\
@@ -869,7 +902,8 @@
         \verb|#fold|      & $ \mathrm{fold}(l,s,f) $ yields $ s $ for an empty list $ l $.
                             For a non-empty list, apply $ f $ to $ s, l(0) $ and fold it with the tail of $ l $. \\
         \verb|#gamma|     & The incomplete gamma function $ \Gamma(p, x) $. \\
-        \verb|#gcd|       & Yields the greatest common divisor of two integers. \\
+        \verb|#gcd|       & Yields the greatest common divisor of two integers or polynomials.
+                            The polynomial $ \mathrm{gcd} $ will always be monic. \\
         \verb|#ht|        & Takes a matrix and returns its height. \\
         \verb|#i|         & The imaginary unit. \\
         \verb|#idx|       & $ \mathrm{idx}(l,i,f) $ gets the index of the first element in the list $ l $ for that $ f $ yields \verb|true| skipping the first $ i $ elements.
@@ -879,6 +913,8 @@
         \verb|#isb|       & A function that tests whether it's argument is a boolean value. \\
         \verb|#isl|       & A function that tests whether it's argument is a list. \\
         \verb|#ism|       & A function that tests whether it's argument is a vector or matrix. \\
+        \verb|#isn|       & A function that tests whether it's argument is number-like (a number or boolean). \\
+        \verb|#isp|       & A function that tests whether it's argument is a polynomial. Numbers are also treated as (degree $ 0 $) polynomials. \\
         \verb|#isr|       & A function that tests whether it's argument is a real number. \\
         \verb|#isv|       & A function that tests whether it's argument is a vector. \\
         \verb|#len|       & A function that yields the length of a list or a vector. \\
@@ -892,9 +928,11 @@
         \verb|#mflat|     & Takes a matrix of matrices and flattens them into one big matrix.
                             Their widths and heights must match in a way, a rectangular matrix can be produced in the end. \\
         \verb|#mod|       & A function that computes the modulo of two numbers. \\
-        \verb|#mul|       & A function that multiplies two numbers or matrices. \\
+        \verb|#mul|       & A function that multiplies two numbers, matrices or polynomials. \\
         \verb|#or|        & A function that computes logic or bitwise \verb|OR| of two booleans or integers. \\
         \verb|#pi|        & The value of the constant $ \pi $ for the current precision. \\
+        \verb|#pol|       & Takes a list of coefficients and constructs a polynomial.
+                            The leading coefficient should be the last element in the list. \\
         \verb|#polar|     & A function that creates a complex number from radius and angle. \\
         \verb|#pow|       & A function that raises a number or matrix to a power. \\
         \verb|#re|        & A function that gets the real part of a number. \\
@@ -903,8 +941,9 @@
         \verb|#sin|       & The sine function. \\
         \verb|#sinh|      & The hyperbolic sine function. \\
         \verb|#sort|      & $ \mathrm{sort}(l,f) $ sorts the list $ l $ given a function $ f $ which holds $ f(a,b) \iff a < b $ \\
-        \verb|#sub|       & A function that subtracts two numbers or matrices. \\
+        \verb|#sub|       & A function that subtracts two numbers, matrices or polynomials. \\
         \verb|#t|         & The \verb|true| value. \\
+        \verb|#tdiv|      & A function that divides two numbers, matrices or polynomials truncating any fractional part or ignoring any polynomial remainder. \\
         \verb|#v|         & The \verb|void| value. \\
         \verb|#w|         & The lambert $ W $ function. \\
         \verb|#wd|        & Takes a matrix and returns its width. \\

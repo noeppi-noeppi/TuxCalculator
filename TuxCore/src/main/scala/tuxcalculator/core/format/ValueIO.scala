@@ -4,7 +4,7 @@ import ch.obermuhlner.math.big.BigComplex
 import tuxcalculator.core.data.SpecialFunction
 import tuxcalculator.core.function.{BracketFunction, ChainedOperatorFunction, GlobalFunction, LambdaFunction, MatchFunction, MatchFunctionEntry, MemoizedFunction, OperatorFunction, PartialAppliedFunction}
 import tuxcalculator.core.util.Util
-import tuxcalculator.core.value.{MathError, MathFalse, MathFunction, MathList, MathMatrix, MathNumber, MathTrue, MathValue, MathVoid}
+import tuxcalculator.core.value.{MathError, MathFalse, MathFunction, MathList, MathMatrix, MathNumber, MathPolynomial, MathTrue, MathValue, MathVoid}
 
 import java.io.{DataInput, DataOutput}
 import java.math.{BigInteger, BigDecimal => BigDec}
@@ -31,7 +31,12 @@ object ValueIO {
       val width = in.readInt()
       val values = for (_ <- 0 until height) yield (for (_ <- 0 until width) yield ctx.values.get(in.readInt())).toVector
       MathMatrix(values.toVector)
-    case 8 => ctx.functions.get(in.readInt());
+    case 8 =>
+      val degree = in.readInt()
+      val values = (for (_ <- 0 until degree) yield ctx.values.get(in.readInt())).toVector
+      if (values.exists(value => !value.isInstanceOf[MathNumber])) throw new InvalidFormatException("Corrupted format: Polynomial did contain non-numerics.")
+      MathPolynomial(values.map(_.asInstanceOf[MathNumber]))
+    case 9 => ctx.functions.get(in.readInt());
     case b => throw new InvalidFormatException("Corrupted format: Unknown value type: " + b)
   }
 
@@ -55,7 +60,10 @@ object ValueIO {
       out.writeInt(mat.height)
       out.writeInt(mat.width)
       for (col <- values; elem <- col) out.writeInt(ctx.values.add(elem))
-    case func: MathFunction => out.writeByte(8)
+    case pol: MathPolynomial => out.writeByte(8)
+      out.writeInt(pol.coefficients.length)
+      for (elem <- pol.coefficients) out.writeInt(ctx.values.add(elem))
+    case func: MathFunction => out.writeByte(9)
       out.writeInt(ctx.functions.add(func))
     case _ => throw new IllegalStateException("Can't dump value: " + value + " (this is a bug!)")
   }

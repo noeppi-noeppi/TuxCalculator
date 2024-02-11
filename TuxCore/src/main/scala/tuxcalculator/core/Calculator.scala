@@ -1,6 +1,6 @@
 package tuxcalculator.core
 
-import ch.obermuhlner.math.big.BigDecimalMath
+import ch.obermuhlner.math.big.{BigComplex, BigDecimalMath}
 import tuxcalculator.api.TuxFrontend
 import tuxcalculator.core.data.{CalculatorCommands, CalculatorProperties, CalculatorSpecials, PropertyAccess}
 import tuxcalculator.core.expression.Ast
@@ -69,8 +69,11 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
     ready = true
   }
   
-  private def formatNum(value: BigDecimal, suffix: String = "", allowScientific: Boolean = true): String = {
-    new BigDecimal(value.round(outputMathContext).bigDecimal, mathContext) match {
+  private def formatReal(value: BigDecimal, suffix: String = "", allowScientific: Boolean = true, forceSpacedOutSign: Boolean = false): String = {
+    if (forceSpacedOutSign) {
+      val sign = if (value.signum == -1) " - " else " + "
+      sign + formatReal(value.abs, suffix = suffix, allowScientific = allowScientific, forceSpacedOutSign = false)
+    } else new BigDecimal(value.round(outputMathContext).bigDecimal, mathContext) match {
       case v if v.abs < 1000000 && v.abs >= 0.0001 => Util.safeStripTrailingZeros(v).toPlainString + suffix
       case v if v.isWhole && v.abs < 100000000 => Util.safeStripTrailingZeros(v).toPlainString + suffix
       case v if allowScientific => Util.formatScientific(Util.safeStripTrailingZeros(v)) + (if (suffix.nonEmpty) " " + suffix else "")
@@ -78,6 +81,37 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
     }
   }
   
+  private def formatComplex(value: BigComplex, forceSpacedOutSign: Boolean = false): String = {
+    value match {
+      case _ if value.isReal => formatReal(value.re, forceSpacedOutSign = forceSpacedOutSign)
+      case _ if properties(CalculatorProperties.Polar) == CalculatorProperties.PolarType.Radians =>
+        formatReal(value.abs(mathContext), forceSpacedOutSign = forceSpacedOutSign) + " ∠ " + formatReal(value.angle(mathContext), allowScientific = false)
+      case _ if properties(CalculatorProperties.Polar) == CalculatorProperties.PolarType.Degrees =>
+        formatReal(value.abs(mathContext), forceSpacedOutSign = forceSpacedOutSign) + " ∠ " + formatReal(value.angle(mathContext).multiply(new BigDec("180"), mathContext).divide(constantPi, mathContext), allowScientific = false, suffix = "°")
+      case _ => formatReal(value.re, forceSpacedOutSign = forceSpacedOutSign) + formatReal(value.im, suffix = "i", forceSpacedOutSign = true)
+    }
+  }
+  
+  private def formatPol(coefficients: Vector[MathNumber]): String = {
+    def partString(coefficient: MathNumber, power: Int): Option[String] = {
+      val variable: String = if (coefficient.num.isReal) "X" else " X"
+      val first = coefficients.size == power + 1
+      val plus: String = if (first) "" else " + "
+      val minus: String = if (first) "" else " - "
+      power match {
+        case _ if coefficient.num.round(outputMathContext) == BigComplex.ZERO => None
+        case 0 => Some(formatComplex(coefficient.num, forceSpacedOutSign = !first))
+        case 1 if coefficient.num.round(outputMathContext) == BigComplex.ONE => Some(plus + variable)
+        case 1 if coefficient.num.round(outputMathContext) == BigComplex.ONE.negate() => Some(minus + variable)
+        case 1 => Some(formatComplex(coefficient.num, forceSpacedOutSign = !first) + variable)
+        case n if coefficient.num.round(outputMathContext) == BigComplex.ONE => Some(plus + variable + Util.toSuperscript(n))
+        case n if coefficient.num.round(outputMathContext) == BigComplex.ONE.negate() => Some(minus + variable + Util.toSuperscript(n))
+        case n => Some(formatComplex(coefficient.num, forceSpacedOutSign = !first) + variable + Util.toSuperscript(n))
+      }
+    }
+    coefficients.zipWithIndex.reverse.flatMap(entry => partString(entry._1, entry._2)).mkString
+  }
+
   private def formatNoTrunc(value: MathValue): String = value match {
     case MathVoid => "()"
     case MathError(msg, _) => "Error: " + msg
@@ -85,13 +119,8 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
     case MathFalse => "false"
     case MathList(values) => "[" + values.map(this.formatNoTrunc).mkString(", ") + "]"
     case MathMatrix(values) => "#[" + values.map(col => col.map(this.formatNoTrunc).mkString(",")).mkString(" ; ") + "]"
-    case MathRealNumeric(real) => formatNum(real)
-    case MathNumber(num) if properties(CalculatorProperties.Polar) == CalculatorProperties.PolarType.Radians =>
-      formatNum(num.abs(mathContext)) + " ∠ " + formatNum(num.angle(mathContext), allowScientific = false)
-    case MathNumber(num) if properties(CalculatorProperties.Polar) == CalculatorProperties.PolarType.Degrees =>
-      formatNum(num.abs(mathContext)) + " ∠ " + formatNum(num.angle(mathContext).multiply(new BigDec("180"), mathContext).divide(constantPi, mathContext), allowScientific = false, suffix = "°")
-    case MathNumber(num) if num.im.signum() == -1 => formatNum(num.re) + " - " + formatNum(num.im.negate(), suffix = "i")
-    case MathNumber(num) => formatNum(num.re) + " + " + formatNum(num.im, suffix = "i")
+    case MathNumber(num) => formatComplex(num)
+    case MathPolynomial(coefficients) => formatPol(coefficients)
     case func: MathFunction => func.string(this)
   }
   

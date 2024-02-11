@@ -1,7 +1,7 @@
 package tuxcalculator.core.data
 
 import tuxcalculator.core.Calculator
-import tuxcalculator.core.special.{BasicOperators, BuiltinFunctions, Constants, FunctionOperators, ListOperators, LogicOperators, MatrixOperators, RelOperators, TestOperators}
+import tuxcalculator.core.special.{BasicOperators, BuiltinFunctions, Constants, FunctionOperators, ListOperators, LogicOperators, MatrixOperators, PolynomialOperators, RelOperators, TestOperators}
 import tuxcalculator.core.value.{MathError, MathFunction, MathValue}
 
 import java.math.MathContext
@@ -28,6 +28,7 @@ class CalculatorSpecials(private val calc: PropertyAccess) {
     BasicOperators.Sub,
     BasicOperators.Mul,
     BasicOperators.Div,
+    BasicOperators.TruncatingDiv,
     BasicOperators.Mod,
     BasicOperators.Pow,
     BasicOperators.Polar,
@@ -35,7 +36,9 @@ class CalculatorSpecials(private val calc: PropertyAccess) {
     TestOperators.IsMatrix,
     TestOperators.IsVector,
     TestOperators.IsBoolean,
+    TestOperators.IsNumber,
     TestOperators.IsReal,
+    TestOperators.IsPolynomial,
     ListOperators.Fold,
     ListOperators.Len,
     ListOperators.Rev,
@@ -52,6 +55,8 @@ class CalculatorSpecials(private val calc: PropertyAccess) {
     MatrixOperators.Mflat,
     MatrixOperators.Adj,
     MatrixOperators.Det,
+    PolynomialOperators.Pol,
+    PolynomialOperators.Coeff,
     RelOperators.Eq,
     RelOperators.Lt,
     BuiltinFunctions.Abs,

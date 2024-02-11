@@ -77,6 +77,35 @@ case class MathMatrix(values: Vector[Vector[MathValue]]) extends MathValue {
   }
 }
 
+case class MathPolynomial private (coefficients: Vector[MathNumber]) extends MathValue {
+  if (coefficients.length <= 1) {
+    throw new IllegalArgumentException("Degree <= 1 polynomial. This is a bug.")
+  } else if (coefficients.last.num == BigComplex.ZERO) {
+    throw new IllegalArgumentException("Polynomial with trailing zeroes. This is a bug.")
+  }
+  
+  override def applyTo(calc: Calculator, args: Vector[MathValue]): MathValue = {
+    if (args.length != 1) MathError("Polynomials can only be applied to a single argument") else ValueHelper.run(calc) {
+      val arg = ValueHelper.get(args(0))
+      val additiveIdentity = ValueHelper.get(NumberHelper.addIdentity(arg))
+      val multiplicativeIdentity = ValueHelper.get(NumberHelper.mulIdentity(arg))
+      val powers: Seq[MathValue] = (1 until coefficients.size).foldLeft(multiplicativeIdentity :: Nil)((lst, _) => NumberHelper.mul(arg, lst.head) :: lst).reverse
+      (coefficients zip powers).map(pair => NumberHelper.mul(pair._1, pair._2)).foldLeft(additiveIdentity)(NumberHelper.add)
+    }
+  }
+}
+
+object MathPolynomial {
+  def apply(coefficients: Vector[MathNumber]): MathValue = {
+    val strippedCoefficients: Vector[MathNumber] = coefficients.reverse.dropWhile(num => num.num == BigComplex.ZERO).reverse
+    strippedCoefficients match {
+      case Vector() => MathNumber.Zero
+      case Vector(single) => single
+      case _ => new MathPolynomial(strippedCoefficients)
+    }
+  }
+}
+
 trait MathFunction extends MathValue {
   def string(calc: Calculator): String
 }
@@ -132,3 +161,11 @@ object MathVector {
   }
 }
 
+object MathPolynomic {
+  def unapply(value: MathValue): Option[Vector[MathNumber]] = value match {
+    case MathNumeric(single) if single == BigComplex.ZERO => Some(Vector())
+    case MathNumeric(single) => Some(Vector(MathNumber(single)))
+    case MathPolynomial(coefficients) => Some(coefficients)
+    case _ => None
+  }
+}
