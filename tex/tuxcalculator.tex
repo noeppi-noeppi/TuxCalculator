@@ -792,6 +792,12 @@
         $ \mathrm{count}(a, b, f) $                & Applies $ f $ to all integers in the interval $ [a;b] $ and counts for how many of them $ f $ yields \verb|true|. \tabgap
         $ \mathrm{deg}(x) $                        & Converts $ x $ from radians to degrees. \\
         $ \mathrm{rad}(x) $                        & Converts $ x $ from degrees to radians. \tabgap
+        $ \mathrm{digits}(n) $                     & Converts a positive integer $ n $ into a list of digits. \\
+        $ \mathrm{digits}(b,n) $                   & Converts a positive integer $ n $ into a list of digits base $ b $. \\
+        $ \mathrm{dsum}(n) $                       & Gets the digit sum of a positive integer $ n $. \\
+        $ \mathrm{dsum}(b,n) $                     & Gets the digit sum of a positive integer $ n $ base $ b $. \\
+        $ \mathrm{dnum}(l) $                       & Takes a list of digits $ l $ and returns the number they represent. \\
+        $ \mathrm{dnum}(b,l) $                     & Takes a list of digits $ l $ and returns the number they represent base $ b $. \tabgap
         $ \mathrm{sf}(x) $                         & Calculates the subfactorial: $ !x $. \\
         $ \mathrm{Gamma}(x) $, $ \Gamma(x) $       & Computes $ \Gamma(x) $. \\
         $ \mathrm{Gamma}(p, x) $, $ \Gamma(p, x) $ & The incomplete Gamma-function $ \Gamma(p, x) $. \\
@@ -833,7 +839,7 @@
         $ \mathrm{det}(a) $                        & Computes the determinant of the square matrix $ a $. \\
         $ \mathrm{minor}(n, a) $                   & Computes a matrix minor. The resulting matrix is the matrix $ a $ with the $ n $-th column removed. \\
         $ \mathrm{minor}(i, j, a) $                & Computes a matrix minor. The resulting matrix is the matrix $ a $ with the $ i $-th row and the $ j $-th column removed. $ i $ or $ j $ can be $ 0 $ to remove only a column or only a row. \\
-        $ \mathrm{det}(a) $                        & Computes the determinant of the square matrix $ a $. \tabgap
+        $ \mathrm{charp}(a) $                      & Computes the characteristic polynomial of the square matrix $ a $. \tabgap
         $ \mathrm{coeff}(p, n) $                   & Gets the $ n $th coefficient of the polynomial $ p $. \\
         $ \mathrm{pdeg}(p) $                       & Gets the degree of the polynomial $ p $. The degree of the zero-polynomial is undefined. \\
         $ \mathrm{monic}(p) $                      & Converts the polynomial $ p $ into a monic polynomial by dividing by the leading coefficient. \\

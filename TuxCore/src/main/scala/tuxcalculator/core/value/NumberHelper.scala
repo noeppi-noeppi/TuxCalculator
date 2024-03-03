@@ -27,8 +27,8 @@ object NumberHelper {
     case (MathRealNumeric(n1), MathRealNumeric(n2)) => MathNumber(n1.bigDecimal.multiply(n2.bigDecimal, calc.mathContext))
     case (MathNumeric(n1), MathNumeric(n2)) => MathNumber(n1.multiply(n2, calc.mathContext))
     case (MathPolynomic(p1), MathPolynomic(p2)) => PolynomialOps.mul(calc, p1, p2)
-    case (mat: MathMatrix, num @ MathNumeric(_)) => MatrixOps.transform(mat, entry => mul(entry.value, num))
-    case (num @ MathNumeric(_), mat: MathMatrix) => MatrixOps.transform(mat, entry => mul(entry.value, num))
+    case (mat: MathMatrix, num @ MathPolynomic(_)) => MatrixOps.transform(mat, entry => mul(entry.value, num))
+    case (num @ MathPolynomic(_), mat: MathMatrix) => MatrixOps.transform(mat, entry => mul(entry.value, num))
     case (m1: MathMatrix, m2: MathMatrix) => MatrixOps.mul(m1, m2)
     case _ => MathError("Can't mul " + calc.format(v1) + " and " + calc.format(v2))
   }
@@ -39,7 +39,7 @@ object NumberHelper {
     case (MathNumeric(n1), MathRealNumeric(n2)) => MathNumber(n1.divide(n2.bigDecimal, calc.mathContext))
     case (MathNumeric(n1), MathNumeric(n2)) => MathNumber(n1.divide(n2, calc.mathContext))
     case (MathPolynomic(p1), MathPolynomic(p2)) => PolynomialOps.div(calc, p1, p2)
-    case (mat: MathMatrix, num @ MathNumeric(_)) => MatrixOps.transform(mat, entry => div(entry.value, num))
+    case (mat: MathMatrix, num @ MathPolynomic(_)) => MatrixOps.transform(mat, entry => div(entry.value, num))
     case (m1: MathMatrix, m2: MathMatrix) => mul(m1, MatrixOps.invert(m2))
     case _ => MathError("Can't div " + calc.format(v1) + " and " + calc.format(v2))
   }
@@ -54,7 +54,7 @@ object NumberHelper {
       case (MathNumeric(n1), MathRealNumeric(n2)) => MathNumber(truncateC(n1.divide(n2.bigDecimal, calc.mathContext)))
       case (MathNumeric(n1), MathNumeric(n2)) => MathNumber(truncateC(n1.divide(n2, calc.mathContext)))
       case (MathPolynomic(p1), MathPolynomic(p2)) => PolynomialOps.truncatingDiv(calc, p1, p2)
-      case (mat: MathMatrix, num @ MathNumeric(_)) => MatrixOps.transform(mat, entry => div(entry.value, num))
+      case (mat: MathMatrix, num @ MathPolynomic(_)) => MatrixOps.transform(mat, entry => truncatingDiv(entry.value, num))
       case (m1: MathMatrix, m2: MathMatrix) => mul(m1, MatrixOps.invert(m2))
       case _ => MathError("Can't div " + calc.format(v1) + " and " + calc.format(v2))
     }

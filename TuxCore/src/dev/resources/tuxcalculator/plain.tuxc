@@ -293,6 +293,15 @@ def count(n,f) = count(1,n,f)
 def deg(x) = x * 180 / #pi
 def rad(x) = x * #pi / 180
 
+let temp = \b,n,l->#rev(#fill(l,\idx->#mod(#tdiv(n,#pow(b,idx)),b)))
+let temp = \[(b,n):#eq(b,1)->#fill(n,\idx->0);(b,n):#lt(b,1)->'Invalid digit base.';(b,n):#if(#lt(0,n),#f,#t)->'Can only get digits of positive integers.';(b,n):#eq(n,0)->[];(b,n)->temp(b,#abs(n),#tdiv(#ln(#mul(b,#abs(n))),#ln(b)))]
+def digits(b,n) = temp(b,n)
+def digits(n) = temp(10,n)
+def dsum(b,n) = #fold(digits(b,n),0,#add)
+def dsum(n) = dsum(10,n)
+def dnum(b,l) = #fold(l,0,\num,digit->#add(#mul(num,b),digit))
+def dnum(l) = dnum(10,l)
+
 ? For non-negative real integers, only take real part.
 ? Prevents rounding errors on the imaginary parts
 let temp = \[(x:#isr):#eq(#fl(x,0),x)->#re(#gamma(x+1,-1)/#e);(x)->#gamma(x+1,-1)/#e]
@@ -361,6 +370,7 @@ def det(a) = #det(a)
 let temp = \[(i,j,a):#and(#or(i<1,i>#ht(a)),#or(j<1,j>#wd(a)))->a;(i,j,a):#or(i<1,i>#ht(a))->#fill(#ht(a),#wd(a)-1,\r,c->a(r,#if(c<j,c,c+1)));(i,j,a):#or(j<1,j>#wd(a))->#fill(#ht(a)-1,#wd(a),\r,c->a(#if(r<i,r,r+1),c));(i,j,a)->#fill(#ht(a)-1,#wd(a)-1,\r,c->a(#if(r<i,r,r+1),#if(c<j,c,c+1)))]
 def minor(n,a) = temp(0,n,a)
 def minor(i,j,a) = temp(i,j,a)
+def charp(a) = #det(#fill(#ht(a),#wd(a),\r,c->#if(r=c,X,0))-a)
 
 let temp = \[(cc,n):#or(#if(#eq(#fl(n,0),n),#f,#t),#lt(n,0))->'Can\'t get $n th coefficient of polynomial';(cc,n):#lt(n,#len(cc))->cc(n);(cc,n)->0]
 def coeff(p,n) = temp(#coeff(p),n)
