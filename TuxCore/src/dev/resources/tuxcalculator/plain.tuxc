@@ -279,8 +279,8 @@ def range(n) = range(1,n)
 def fill(a,b,f) = #map(range(a,b),f)
 def fill(n,f) = #map(range(n),f)
 
-def merge(f,l1,l...)=#zip([l1,l...],f)
-def zip(l1,l...)=merge(@[],l1,l...)
+def merge(f,l1,l...) = #zip([l1,l...],f)
+def zip(l1,l...) = merge(@[],l1,l...)
 
 let temp = \[(l,f,e):#eq(#len(l),0)->e;(l,f,e)->l/f]
 def sum(a,b,f) = temp(#map(range(a,b),f),@+,0)
@@ -318,12 +318,12 @@ def Beta(a,l...) = temp([a,l...])
 def Γ(x) = #gamma(x,0)
 def Γ(p,x) = #gamma(p,x)
 def γ(p,x) = #gamma(p,0)-#gamma(p,x)
-let temp = #memoize(\n->sum(n,#div_1))
-let temp = \[(n):n=0->0;(n)->temp(n)]
 
 def bernoulli(n) = #bernoulli(n)
 let temp = \[(n):#eq(n,1)->0.5;(n)->#bernoulli(n)]
 def Bernoulli(n) = temp(n)
+let temp = #memoize(\n->sum(n,#div_1))
+let temp = \[(n):n=0->0;(n)->temp(n)]
 def H(n) = temp(n)
 
 let temp = #memoize(\k,q->#fold(#fill(k,id),[0,1],\l,elem->[l(0)+l(1),q*l(1)])(0))
