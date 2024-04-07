@@ -772,6 +772,7 @@
         $ \mathrm{fold}(l, s, f) $                 & Folds the list $ l $ using a starting value $ s $ and a combination function $ f $. $ \mathrm{fold}([1,2,3,4],0,f) = f(f(f(f(0, 1), 2), 3), 4) $. \\
         $ \mathrm{join}(l\dots) $                  & Takes some lists as arguments and concatenates them to a single list. \\
         $ \mathrm{chain}(f\dots) $                 & Takes some functions and chains them in order: $ \mathrm{chain}(f, g, h) $ yields $ f(g(h(x))) $. $ \mathrm{chain} $ without any arguments yields the identity function. \\
+        $ \mathrm{nchain}(n, f) $                  & Takes a function $ f $ and chains it to itself $ n $ times. If $ n $ is zero, $ \mathrm{nchain} $ yields the identity function. \\
         $ \mathrm{map}(l, f) $                     & Applies the function $ f $ to each element in the list $ l $ and creates a new list with all the results. \\
         $ \mathrm{flatMap}(l, f) $                 & Applies the function $ f $ to each element in the list $ l $. $ f $ is expected to produce a list. All the lists produced by $ f $ are flattened into one single result list. \\
         $ \mathrm{rev}(l) $                        & Reverses the list $ l $. \\

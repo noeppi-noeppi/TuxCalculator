@@ -460,6 +460,7 @@ def(-200) //(a,b) = #tdiv(a,b)
 ? More functions that rely on the advanced operators
 let temp = \[(f):#eq(#len(f),0)->id;(f)->f/@∘]
 def chain(f...) = temp(f)
+def nchain(n, f) = temp(#fill(n,\idx->f))
 
 ? Remove our temporary value
 rem temp
