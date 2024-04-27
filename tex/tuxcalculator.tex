@@ -776,7 +776,13 @@
         $ \mathrm{map}(l, f) $                     & Applies the function $ f $ to each element in the list $ l $ and creates a new list with all the results. \\
         $ \mathrm{flatMap}(l, f) $                 & Applies the function $ f $ to each element in the list $ l $. $ f $ is expected to produce a list. All the lists produced by $ f $ are flattened into one single result list. \\
         $ \mathrm{rev}(l) $                        & Reverses the list $ l $. \\
-        $ \mathrm{cprod}(l\dots) $                 & Calculates the cartesian products of some lists. \\
+        $ \mathrm{cprod}(l\dots) $                 & Calculates the cartesian products of some lists. \tabgap
+        $ \mathrm{coeff}(p, n) $                   & Gets the $ n $th coefficient of the polynomial $ p $. \\
+        $ \mathrm{pdeg}(p) $                       & Gets the degree of the polynomial $ p $. The degree of the zero-polynomial is undefined. \\
+        $ \mathrm{monic}(p) $                      & Converts the polynomial $ p $ into a monic polynomial by dividing by the leading coefficient. \\
+        $ \mathrm{deriv}(p) $                      & Computes the derivative of the polynomial $ p $. \\
+        $ \mathrm{integ}(p) $                      & Computes the integral of the polynomial $ p $ with constant part $ 0 $. \\
+        $ \mathrm{integ}(p, c) $                   & Computes the integral of the polynomial $ p $ with constant part $ c $. \tabgap
         $ \mathrm{forall}(l, f) $                  & Gets whether the function $ f $ yields \verb|true| for all elements of the list or matrix $ l $. If $ l $ is neither a list nor a matrix, the result is \verb|true|.  \\
         $ \mathrm{exists}(l, f) $                  & Gets whether the function $ f $ yields \verb|true| for at least one element of the list or matrix $ l $. If $ l $ is neither a list nor a matrix, the result is \verb|false|. \tabgap
         $ \mathrm{range}(n) $                      & Creates a list with all integers in the interval $ [1;n] $. \\
@@ -814,7 +820,12 @@
         $ \mathrm{nCr}(q, n, k) $                  & Computes $ \footnotesize\Bigl[\kern-2\nulldelimiterspace\begin{array}{c}n\\k\end{array}\kern-2\nulldelimiterspace\Bigr]_q $, the q-binomial coefficient. \\
         $ \mathrm{nPr}(n, k) $                     & Computes $ \footnotesize\frac{n!}{(n-k)!} $. \\
         $ \mathrm{nPr}(q, n, k) $                  & Computes $ \footnotesize\frac{[n]_q!}{[n-k]_q!} $. \\
-        $ \mathrm{fib}(n) $                        & Computes the $ n $th element of the fibonacci-sequence. Indices start at $ 1 $. \\
+        $ \mathrm{fib}(n) $                        & Computes the $ n $th element of the fibonacci-sequence. Indices start at $ 1 $. \tabgap
+        $ \mathrm{catalan}(n) $                    & Computes the $ n $th catalan number. \\
+        $ \mathrm{bell}(n) $                       & Computes the $ n $th bell number. \\
+        $ \mathrm{fubini}(n) $                     & Computes the $ n $th fubini number (ordered bell number). \\
+        $ \mathrm{stirling1}(n, k) $               & Computes the stirling numbers of the first kind $ \footnotesize\Bigl[\kern-2\nulldelimiterspace\begin{array}{c}n\\k\end{array}\kern-2\nulldelimiterspace\Bigr] $. \\
+        $ \mathrm{stirling2}(n, k) $               & Computes the stirling numbers of the second kind $ \footnotesize\Bigl\{\kern-2\nulldelimiterspace\begin{array}{c}n\\k\end{array}\kern-2\nulldelimiterspace\Bigr\} $. \tabgap
         $ \mathrm{ln}(x) $                         & Computes the natural logarithm of $ x $. \\
         $ \mathrm{W}(x) $                          & Computes $ W(x) $ such that $ W(x) \cdot e^{W(x)} = x $. \\
         $ \mathrm{ld}(x) $                         & Computes the logarithm base $ 2 $ of $ x $. \\
@@ -841,12 +852,6 @@
         $ \mathrm{minor}(n, a) $                   & Computes a matrix minor. The resulting matrix is the matrix $ a $ with the $ n $-th column removed. \\
         $ \mathrm{minor}(i, j, a) $                & Computes a matrix minor. The resulting matrix is the matrix $ a $ with the $ i $-th row and the $ j $-th column removed. $ i $ or $ j $ can be $ 0 $ to remove only a column or only a row. \\
         $ \mathrm{charp}(a) $                      & Computes the characteristic polynomial of the square matrix $ a $. \tabgap
-        $ \mathrm{coeff}(p, n) $                   & Gets the $ n $th coefficient of the polynomial $ p $. \\
-        $ \mathrm{pdeg}(p) $                       & Gets the degree of the polynomial $ p $. The degree of the zero-polynomial is undefined. \\
-        $ \mathrm{monic}(p) $                      & Converts the polynomial $ p $ into a monic polynomial by dividing by the leading coefficient. \\
-        $ \mathrm{deriv}(p) $                      & Computes the derivative of the polynomial $ p $. \\
-        $ \mathrm{integ}(p) $                      & Computes the integral of the polynomial $ p $ with constant part $ 0 $. \\
-        $ \mathrm{integ}(p, c) $                   & Computes the integral of the polynomial $ p $ with constant part $ c $. \tabgap
         $ \mathrm{sin}(x) $                        & Computes the sine of $ x $. \\
         $ \mathrm{sinc}(x) $                       & The $ \mathrm{sinc} $ function $ \frac{\sin x}{x} $. $ \mathrm{sinc}(0) = 1 $. \\
         $ \mathrm{cos}(x) $                        & Computes the cosine of $ x $. \\

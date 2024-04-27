@@ -264,6 +264,19 @@ def rev(l) = #rev(l)
 let temp = \[(l):#eq(#len(l),0)->[];(l)->#fill(#fold(l,1,\s,c->s*#len(c)),\i->#fill(#len(l),\j->l(j)(#mod(#fl(#div(i,#fold(take(l,j),1,\s,c->s*#len(c))),0),#len(l(j))))))]
 def cprod(l...) = temp(l)
 
+? Functions for polynomials
+let temp = \[(cc,n):#or(#if(#eq(#fl(n,0),n),#f,#t),#lt(n,0))->'Can\'t get $n th coefficient of polynomial';(cc,n):#lt(n,#len(cc))->cc(n);(cc,n)->0]
+def coeff(p,n) = temp(#coeff(p),n)
+let temp = \[(c):#eq(c,nil)->'Degree of the 0-polynomial';(c)->#len(c)-1]
+def pdeg(p) = temp(#coeff(p))
+let temp = \[(c):#eq(c,nil)->nil;(c)->#map(c,\elem->elem/c(#len(c)-1))]
+def monic(p) = #pol(temp(#coeff(p)))
+let temp = \cc->#cdr(#zip([cc,#fill(#len(cc),id)],@*))
+def deriv(p) = #pol(temp(#coeff(p)))
+let temp = \cc,c->c::#zip([cc,#fill(#len(cc),#add_1)],@/)
+def integ(p) = #pol(temp(#coeff(p),0))
+def integ(p,c) = #pol(temp(#coeff(p),c))
+
 ? Temporary function to convert a matrix into list of all its elements
 let tempMatrixElems = \[(x:#isv)->[x...];(x:#ism)->#fill(#wd(x)*#ht(x),\n->x(1+(n%#ht(x)),1+(#fl(n/#ht(x),0))))]
 let temp = \[(l:#isl,f)->#fold(#map(l,f),true,#and);(l:#ism,f)->#fold(#map(tempMatrixElems(l),f),true,#and);(l,f)->true]
@@ -337,6 +350,20 @@ def nPr(n,k) = temp(1,n,k)
 def nPr(q,n,k) = temp(q,n,k)
 let temp = #memoize(\[(n):#if(#eq(#fl(n,0),n),n<=0,true)->'fib is only defined for positive integers, got $n';(n):n<=2->1;(n)->(#[1,1;1,0]^(n-2)*#[1,1])(1)])
 def fib(n) = temp(n)
+
+def catalan(n) = #rd(nCr(2*n,n)-nCr(2*n,n+1),0)
+let temp = #memoize(\n->#fold(#fill(n,\k->#if(k%2=0,1,-1)/(k!)),0,#add))
+let temp = #memoize(\n->#rd(#fold(#fill(n,\k->(((k+1)^n)*temp(n-k))/((k+1)!)),0,#add),0))
+let temp = \[(n):#eq(n,0)->1;(n)->temp(n)]
+def bell(n) = temp(n)
+let temp = #memoize(\n->#fold(#fill(n,\k->X-k),1,#mul))
+def stirling1(n,k) = coeff(temp(n),k)
+let temp = #memoize(\n,k->#rd(#fold(#fill(k+1,\j->(#if((k-j)%2=0,1,-1)*(j^n))/(((k-j)!)*(j!))),0,#add),0))
+let temp = \[(n,k):#and(#eq(n,0),#eq(k,0))->1;(n,k):#eq(n,0)->0;(n,k)->temp(n,k)]
+def stirling2(n,k) = temp(n,k)
+let temp = #memoize(\n->#rd(#fold(#fill(n+1,\k->(k!)*stirling2(n,k)),0,#add),0))
+def fubini(n) = temp(n)
+
 def ln(x) = #ln(x)
 def W(x) = #w(x)
 def ld(x) = #ln(x) / #ln(2)
@@ -371,18 +398,6 @@ let temp = \[(i,j,a):#and(#or(i<1,i>#ht(a)),#or(j<1,j>#wd(a)))->a;(i,j,a):#or(i<
 def minor(n,a) = temp(0,n,a)
 def minor(i,j,a) = temp(i,j,a)
 def charp(a) = #det(#fill(#ht(a),#wd(a),\r,c->#if(r=c,X,0))-a)
-
-let temp = \[(cc,n):#or(#if(#eq(#fl(n,0),n),#f,#t),#lt(n,0))->'Can\'t get $n th coefficient of polynomial';(cc,n):#lt(n,#len(cc))->cc(n);(cc,n)->0]
-def coeff(p,n) = temp(#coeff(p),n)
-let temp = \[(c):#eq(c,nil)->'Degree of the 0-polynomial';(c)->#len(c)-1]
-def pdeg(p) = temp(#coeff(p))
-let temp = \[(c):#eq(c,nil)->nil;(c)->#map(c,\elem->elem/c(#len(c)-1))]
-def monic(p) = #pol(temp(#coeff(p)))
-let temp = \cc->#cdr(#zip([cc,#fill(#len(cc),id)],@*))
-def deriv(p) = #pol(temp(#coeff(p)))
-let temp = \cc,c->c::#zip([cc,#fill(#len(cc),#add_1)],@/)
-def integ(p) = #pol(temp(#coeff(p),0))
-def integ(p,c) = #pol(temp(#coeff(p),c))
 
 def sin(x) = #sin(x)
 let temp = \[(x):#eq(x,0)->1;(x)->#div(#sin(x),x)]
