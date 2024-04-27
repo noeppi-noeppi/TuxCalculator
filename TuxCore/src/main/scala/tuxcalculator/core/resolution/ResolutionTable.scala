@@ -89,7 +89,7 @@ class ResolutionTable(private val calc: Calculator) {
   }
   
   def remove(target: Ast.DefTarget): MathValue = target match {
-    case Ast.DefTarget.Function(name) => MathNumber(BigDecimal(functions.remove(name).map(_.definitionCount).size + variables.remove(name).size))
+    case Ast.DefTarget.Function(name) => MathNumber(BigDecimal(functions.remove(name).map(_.definitionCount).getOrElse(0) + variables.remove(name).size))
     case Ast.DefTarget.Operator(name) => MathNumber(BigDecimal(operators.remove(name).size))
     case Ast.DefTarget.SignOrOperator(name) => MathNumber(BigDecimal(operators.remove(name).size + signs.remove(name).size))
     case Ast.DefTarget.Post(name) => MathNumber(BigDecimal(postfixes.remove(name).size))
