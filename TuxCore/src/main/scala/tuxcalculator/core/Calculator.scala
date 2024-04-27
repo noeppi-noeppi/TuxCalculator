@@ -97,7 +97,7 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
       val variable: String = if (coefficient.num.isReal) "X" else " X"
       val first = coefficients.size == power + 1
       val plus: String = if (first) "" else " + "
-      val minus: String = if (first) "" else " - "
+      val minus: String = if (first) "-" else " - "
       power match {
         case _ if coefficient.num.round(outputMathContext) == BigComplex.ZERO => None
         case 0 => Some(formatComplex(coefficient.num, forceSpacedOutSign = !first))
