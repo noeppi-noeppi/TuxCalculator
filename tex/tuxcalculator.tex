@@ -833,7 +833,10 @@
         $ \mathrm{log}(n, x) $                     & Computes the logarithm base $ n $ of $ x $. \tabgap
         $ \mathrm{li}(x) $                         & Computes the logarithmic integral $ \int_0^x \mathrm{ln}(u)^{-1}\,du $. \\
         $ \mathrm{Li}(x) $                         & Computes the eulerian offset logarithmic integral $ \mathrm{li}(x) - \mathrm{li}(2) $. \\
-        $ \mathrm{Ei}(x) $                         & Computes the exponential integral $ \int_{-\infty}^x u^{-1}\,e^u\,du $. \tabgap
+        $ \mathrm{Ei}(x) $                         & Computes the exponential integral $ \int_{-\infty}^x u^{-1}\,e^u\,du $. \\
+        $ \mathrm{si}(x) $                         & Computes the sine integral $ \int_x^{\infty} u^{-1}\,\sin u\,du $. \\
+        $ \mathrm{Si}(x) $                         & Computes the sine integral $ \int_0^x u^{-1}\,\sin u\,du $. \\
+        $ \mathrm{Ci}(x) $                         & Computes the cosine integral $ -\int_x^{\infty} u^{-1}\,\sin u\,du $. \\
         $ \mathrm{prime}(n) $                      & Gets whether $ n $ is a prime number. \\
         $ \mathrm{totient}(n) $                    & Computer the euler totient function $ \phi(n) $. \tabgap
         $ \mathrm{vec}(l\dots) $                   & Creates a vector from all arguments. $ \mathrm{vec}() $ without any arguments produces an error. \\
@@ -903,6 +906,7 @@
         \verb|#det|       & A function that computes the determinant of a matrix. \\
         \verb|#div|       & A function that divides two numbers, matrices or polynomials. \\
         \verb|#e|         & The value of the constant $ e $ for the current precision. \\
+        \verb|#ei|        & The exponential integral. \\
         \verb|#eq|        & Takes two values and yields whether they are equal.
                             Functions that are not calculator specials will always yield \verb|false|. \\
         \verb|#f|         & The \verb|false| value. \\

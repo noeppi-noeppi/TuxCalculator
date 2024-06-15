@@ -57,9 +57,7 @@ object IncompleteGamma {
     // Use the exponential integral instead.
     val theMc = new MathContext(mc.getPrecision << 1, RoundingMode.HALF_EVEN)
     val neg: BigComplex = x.negate()
-    val expInt: BigComplex = LogarithmicIntegral.logarithmicIntegral(BigComplexMath.exp(neg, theMc), mc) // regular mc
-    println(BigComplexMath.exp(neg, theMc))
-    println(expInt)
+    val expInt: BigComplex = ExponentialIntegral.exponentialIntegral(neg, mc) // regular mc
     val ln = BigComplexMath.log(x, theMc)
     val rLog: BigComplex = BigComplexMath.log(neg, theMc).subtract(BigComplexMath.log(BigComplexMath.reciprocal(neg, theMc), theMc), theMc)
     expInt.negate().add(rLog.divide(MathHelper.C_TWO, theMc)).subtract(ln)

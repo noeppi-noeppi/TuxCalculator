@@ -4,7 +4,7 @@ import ch.obermuhlner.math.big.{BigComplex, BigComplexMath, BigDecimalMath}
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.data.CalculatorSpecial
 import tuxcalculator.core.math.algebra.Algebras
-import tuxcalculator.core.math.{ArithmeticGeometricMean, GreatestCommonDivisor, IncompleteGamma, LogarithmicIntegral, ProductLog}
+import tuxcalculator.core.math.{ArithmeticGeometricMean, ExponentialIntegral, GreatestCommonDivisor, IncompleteGamma, ProductLog}
 import tuxcalculator.core.value.{MathComplexNumeric, MathError, MathList, MathNumber, MathNumeric, MathPolynomial, MathPolynomic, MathRealNumeric, MathValue, ValueHelper}
 
 import java.math.MathContext
@@ -58,8 +58,16 @@ object BuiltinFunctions {
   object Li extends CalculatorSpecial.SimpleFunction("li", 1) {
     override protected def result(calc: Calculator, args: Vector[MathValue]): MathValue = ValueHelper.run(calc) {ValueHelper.get(args.head) match {
       case MathNumeric(num) if num == BigComplex.ONE => MathError("li(1) is undefined.")
-      case MathNumeric(num) => MathNumber(LogarithmicIntegral.logarithmicIntegral(num, calc.mathContext))
+      case MathNumeric(num) => MathNumber(ExponentialIntegral.logarithmicIntegral(num, calc.mathContext))
       case v => MathError("li(" + calc.format(v) + ") is undefined.")
+    }}
+  }
+
+  object Ei extends CalculatorSpecial.SimpleFunction("ei", 1) {
+    override protected def result(calc: Calculator, args: Vector[MathValue]): MathValue = ValueHelper.run(calc) {ValueHelper.get(args.head) match {
+      case MathNumeric(num) if num == BigComplex.ZERO => MathError("Ei(0) is undefined.")
+      case MathNumeric(num) => MathNumber(ExponentialIntegral.exponentialIntegral(num, calc.mathContext))
+      case v => MathError("Ei(" + calc.format(v) + ") is undefined.")
     }}
   }
   

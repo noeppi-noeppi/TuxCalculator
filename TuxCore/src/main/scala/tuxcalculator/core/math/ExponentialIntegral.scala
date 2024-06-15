@@ -4,46 +4,69 @@ import ch.obermuhlner.math.big.{BigComplex, BigComplexMath, BigDecimalMath}
 
 import java.math.{MathContext, RoundingMode, BigDecimal => BigDec}
 
-object LogarithmicIntegral {
+object ExponentialIntegral {
+
+  private val LITTLE_LESS_THAN_PI = BigDec.valueOf(3.14159)
+  private val LITTLE_MORE_THAN_NEG_PI = LITTLE_LESS_THAN_PI.negate()
   
+  def exponentialIntegral(x: BigComplex, mc: MathContext): BigComplex = {
+    val theMc = new MathContext(mc.getPrecision << 2, RoundingMode.HALF_EVEN)
+    if (x.im.compareTo(LITTLE_MORE_THAN_NEG_PI) > 0 && x.im.compareTo(LITTLE_LESS_THAN_PI) < 1) {
+      // The series for li(x) is a lot better and for -pi < Im(x) < pi, Ei(x) = li(e^x) holds.
+      return logarithmicIntegral(BigComplexMath.exp(x, theMc), mc)
+    }
+    val exp = BigComplexMath.exp(x, theMc)
+    val log: BigComplex = if (BigDec.ZERO.compareTo(x.im) == 0 && BigDec.ZERO.compareTo(x.re) <= 0) {
+      BigComplexMath.log(x.re(), theMc).re()
+    } else {
+      BigComplexMath.log(x, theMc).re()
+    }
+    genericExponentialIntegral(x, exp, log, mc)
+  }
+
   def logarithmicIntegral(x: BigComplex, mc: MathContext): BigComplex = {
     if (BigComplex.ZERO.equals(x)) return BigComplex.ZERO
     val theMc = new MathContext(mc.getPrecision << 2, RoundingMode.HALF_EVEN)
-    val checkMc = new MathContext(mc.getPrecision << 1, RoundingMode.HALF_UP)
     val log: BigComplex = BigComplexMath.log(x, theMc)
     val llog: BigComplex = if (BigDec.ZERO.compareTo(x.im) == 0 && BigDec.ZERO.compareTo(x.re) <= 0 && BigDec.ONE.compareTo(x.re) >= 0) {
       BigComplexMath.log(log.re(), theMc).re() // li(x) has no imaginary value for real numbers in range 0 < x <= 1
     } else {
       BigComplexMath.log(log, theMc)
     }
-    
-    val sqrt: BigComplex = MathHelper.complexSqrt(x, theMc)
-    
+    genericExponentialIntegral(log, x, llog, mc)
+  }
+
+  private def genericExponentialIntegral(x: BigComplex, exp: BigComplex, log: BigComplex, mc: MathContext): BigComplex = {
+    val theMc = new MathContext(mc.getPrecision << 2, RoundingMode.HALF_EVEN)
+    val checkMc = new MathContext(mc.getPrecision << 1, RoundingMode.HALF_UP)
+
+    val expRoot: BigComplex = MathHelper.complexSqrt(exp, theMc)
+
     var sum: BigComplex = BigComplex.ZERO
     var current: BigComplex = BigComplex.ZERO
+    var numer: BigComplex = BigComplex.ONE.negate()
     var last: BigComplex = null
     var n: Int = 0
-    var faculty: BigDec = BigDec.ONE
+    var factorial: BigDec = BigDec.ONE
     var powerTwoNegOne: BigDec = BigDec.ONE
     while (current.round(checkMc) != last) {
       last = current.round(checkMc)
       n += 1
-      faculty = faculty.multiply(BigDec.valueOf(n), theMc)
+      factorial = factorial.multiply(BigDec.valueOf(n), theMc)
       if (n != 1) powerTwoNegOne = powerTwoNegOne.multiply(BigDec.valueOf(2), theMc)
-      
+
       var subSum = BigComplex.valueOf(0)
       for (k <- 0 to (n - 1) / 2) {
         subSum = subSum.add(BigComplexMath.reciprocal(BigComplex.valueOf((2 * k) + 1), theMc), theMc)
       }
-      
-      var numer = BigComplexMath.pow(log, BigDec.valueOf(n), theMc)
-      if (n % 2 == 0) numer = numer.negate()
-      val denom = faculty.multiply(powerTwoNegOne, theMc)
-      
+
+      numer = numer.multiply(x).negate()
+      val denom = factorial.multiply(powerTwoNegOne, theMc)
+
       sum = sum.add(numer.divide(denom, theMc).multiply(subSum, theMc), theMc)
-      current = sqrt.multiply(sum, theMc)
+      current = expRoot.multiply(sum, theMc)
     }
-    llog.add(gamma, theMc).add(current, theMc).round(mc)
+    log.add(gamma, theMc).add(current, theMc).round(mc)
   }
 
   // We have no really fast converging sequence for the euler-mascheroni constant, so we hardcode a lot of digits

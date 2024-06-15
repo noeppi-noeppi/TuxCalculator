@@ -65,6 +65,7 @@ class CalculatorSpecials(private val calc: PropertyAccess) {
     BuiltinFunctions.Ln,
     BuiltinFunctions.W,
     BuiltinFunctions.Li,
+    BuiltinFunctions.Ei,
     BuiltinFunctions.Sin,
     BuiltinFunctions.Sinh,
     BuiltinFunctions.Cosh,

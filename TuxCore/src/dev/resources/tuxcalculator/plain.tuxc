@@ -375,7 +375,12 @@ def log(n,x) = #ln(x) / #ln(n)
 
 def li(x) = #li(x)
 def Li(x) = #li(x) - #li(2)
-def Ei(x) = #li(#e^x)
+def Ei(x) = #ei(x)
+let temp = \[(x):#eq(x,0)->0;(x:#isr)->#im(Ei(i*x));(x)->(1/(2*i))*(Ei(i*x) - Ei(-i*x))]
+def si(x) = temp(x) - (#pi/2)
+def Si(x) = temp(x)
+let temp = \[(x):#eq(x,0)->'Ci(0) is undefined.';(x:#isr)->#re(Ei(i*x));(x)->0.5*(Ei(i*x) + Ei(-i*x))]
+def Ci(x) = temp(x)
 
 let temp = \[(n:#isr):n<=1->false;(n):n=2->true;(n:#isr):n=3->true;(n:#isr)->#eq(#idx(#fill(ceil(sqrt(n)),@+_2),0,\d->gcd(n,d)<>1),-1);(n)->false]
 def prime(n) = temp(n)
