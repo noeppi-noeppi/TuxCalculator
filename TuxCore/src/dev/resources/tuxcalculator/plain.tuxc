@@ -406,6 +406,7 @@ let temp = \[(i,j,a):#and(#or(i<1,i>#ht(a)),#or(j<1,j>#wd(a)))->a;(i,j,a):#or(i<
 def minor(n,a) = temp(0,n,a)
 def minor(i,j,a) = temp(i,j,a)
 def charp(a) = #det(#fill(#ht(a),#wd(a),\r,c->#if(r=c,X,0))-a)
+def bil(g) = \a,b->(T(a)*g*b)(1,1)
 
 def sin(x) = #sin(x)
 let temp = \[(x):#eq(x,0)->1;(x)->#div(#sin(x),x)]
