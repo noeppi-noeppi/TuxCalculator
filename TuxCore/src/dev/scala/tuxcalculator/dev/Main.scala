@@ -22,6 +22,7 @@ object Main {
     if (Files.isDirectory(target)) PathUtils.deleteDirectory(target)
     
     val calc = new Calculator(DevFrontend, ini = true)
+    calc.resolution.produceFrontendErrorOnUnboundValue()
     val errors = FileLoader.load(calc, source.resolve("tuxcalculator/plain.tuxc"))
     if (errors.nonEmpty) {
       System.err.println("There were errors compiling plain.tuxc")

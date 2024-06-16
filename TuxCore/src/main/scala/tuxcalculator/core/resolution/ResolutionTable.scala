@@ -22,18 +22,20 @@ class ResolutionTable(private val calc: Calculator) {
   
   private[this] val priorities: mutable.Map[String, Int] = mutable.Map()
   
+  private[this] var frontendErrorOnUnboundValue: Boolean = false
+  
   def priority(name: String): Int = priorities.getOrElse(name, 0)
-  def variable(name: String): MathValue = variables.getOrElse(name, MathError("Unbound value: '" + name + "'"))
-  def globalFunction(name: String): MathValue = functions.getOrElse(name, MathError("Unbound global function: '" + name + "'"))
+  def variable(name: String): MathValue = variables.getOrElse(name, unbound("Unbound value: '" + name + "'"))
+  def globalFunction(name: String): MathValue = functions.getOrElse(name, unbound("Unbound global function: '" + name + "'"))
   def maybeGlobalFunction(name: String): Option[MathValue] = functions.get(name)
-  def operator(name: String): MathValue = operators.getOrElse(name, MathError("Unbound operator: '" + name + "'"))
-  def sign(name: String): MathValue = signs.getOrElse(name, MathError("Unbound sign operator: '" + name + "'"))
-  def post(name: String): MathValue = postfixes.getOrElse(name, MathError("Unbound postfix: '" + name + "'"))
-  def primaryBracket(name: String, close: String): MathValue = primaries.get(name).map(f => if (close == f.close) f else MathError("Invalid closing bracket for " + name + ", expected " + f.close + ", got " + close)).getOrElse(MathError("Unbound primary bracket: '" + name + "'"))
-  def secondaryBracket(name: String, close: String): MathValue = secondaries.get(name).map(f => if (close == f.close) f else MathError("Invalid closing bracket for " + name + ", expected " + f.close + ", got " + close)).getOrElse(MathError("Unbound secondary bracket: '" + name + "'"))
-  def tertiaryBracket(name: String, close: String): MathValue = tertiaries.get(name).map(f => if (close == f.close) f else MathError("Invalid closing bracket for " + name + ", expected " + f.close + ", got " + close)).getOrElse(MathError("Unbound tertiary bracket: '" + name + "'"))
+  def operator(name: String): MathValue = operators.getOrElse(name, unbound("Unbound operator: '" + name + "'"))
+  def sign(name: String): MathValue = signs.getOrElse(name, unbound("Unbound sign operator: '" + name + "'"))
+  def post(name: String): MathValue = postfixes.getOrElse(name, unbound("Unbound postfix: '" + name + "'"))
+  def primaryBracket(name: String, close: String): MathValue = primaries.get(name).map(f => if (close == f.close) f else unbound("Invalid closing bracket for " + name + ", expected " + f.close + ", got " + close)).getOrElse(MathError("Unbound primary bracket: '" + name + "'"))
+  def secondaryBracket(name: String, close: String): MathValue = secondaries.get(name).map(f => if (close == f.close) f else unbound("Invalid closing bracket for " + name + ", expected " + f.close + ", got " + close)).getOrElse(MathError("Unbound secondary bracket: '" + name + "'"))
+  def tertiaryBracket(name: String, close: String): MathValue = tertiaries.get(name).map(f => if (close == f.close) f else unbound("Invalid closing bracket for " + name + ", expected " + f.close + ", got " + close)).getOrElse(MathError("Unbound tertiary bracket: '" + name + "'"))
   def reference(target: Ast.DefTarget): MathValue = target match {
-    case Ast.DefTarget.Function(name) => functions.getOrElse(name, MathError("Unbound global function: '" + name + "'"))
+    case Ast.DefTarget.Function(name) => functions.getOrElse(name, unbound("Unbound global function: '" + name + "'"))
     case Ast.DefTarget.Operator(name) if operators.contains(name) => new ChainedOperatorFunction(name, priority(name), None, Some(operators(name)))
     case Ast.DefTarget.SignOrOperator(name) if operators.contains(name) || signs.contains(name) => new ChainedOperatorFunction(name, priority(name), signs.get(name), operators.get(name))
     case Ast.DefTarget.Post(name) if postfixes.contains(name) => new ChainedOperatorFunction(name, 0, postfixes.get(name), None)
@@ -49,6 +51,12 @@ class ResolutionTable(private val calc: Calculator) {
   def tabCompleteIdentifier: Set[String] = (functions.keySet | variables.keySet).toSet
   def tabCompleteReference: Set[String] = (functions.keySet | signs.keySet | operators.keySet | postfixes.keySet | primaries.map(e => e._1 + e._2.close).toSet| secondaries.map(e => e._1 + e._2.close).toSet | tertiaries.map(e => e._1 + e._2.close).toSet).toSet
 
+  def produceFrontendErrorOnUnboundValue(): Unit = frontendErrorOnUnboundValue = true
+  private def unbound(message: String): MathValue = {
+    if (frontendErrorOnUnboundValue) calc.frontend.showError(message)
+    MathError(message)
+  }
+  
   def let(name: String, value: MathValue): MathValue = {
     variables(name) = value
     value
