@@ -20,13 +20,13 @@ dependencies {
     devOnly sourceSets.main.output
     devOnlyRuntime sourceSets.dev.output
     
-    api 'org.scala-lang:scala-library:2.13.12'
-    api 'org.scala-lang.modules:scala-parser-combinators_2.13:2.3.0'
+    api 'org.scala-lang:scala-library:2.13.14'
+    api 'org.scala-lang.modules:scala-parser-combinators_2.13:2.4.0'
     api 'ch.obermuhlner:big-math:2.3.2'
     api 'org.apache.commons:commons-lang3:3.14.0'
-    api 'org.apache.commons:commons-text:1.11.0'
+    api 'org.apache.commons:commons-text:1.12.0'
     
-    devOnly 'commons-io:commons-io:2.15.1'
+    devOnly 'commons-io:commons-io:2.16.1'
 }
 
 task buildDevResources(type: JavaExec) {
