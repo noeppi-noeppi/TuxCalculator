@@ -1,5 +1,6 @@
 package tuxcalculator.desktop;
 
+import org.jline.keymap.KeyMap;
 import org.jline.reader.*;
 import org.jline.reader.impl.history.DefaultHistory;
 import org.jline.terminal.Terminal;
@@ -7,6 +8,7 @@ import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
+import org.jline.utils.InfoCmp;
 import tuxcalculator.api.TuxCalculator;
 
 import java.io.BufferedReader;
@@ -16,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -75,18 +78,39 @@ public final class TextFrontEnd extends DesktopFrontend {
                     .option(LineReader.Option.AUTO_MENU_LIST, false)
                     .option(LineReader.Option.RECOGNIZE_EXACT, false)
                     .build();
-            System.out.println(Main.title());
+            AtomicReference<TuxCalculator.Error> pendingError = new AtomicReference<>();
+            reader.getWidgets().put("tuxc-show-trace", () -> {
+                TuxCalculator.Error err = pendingError.getAndSet(null);
+                if (err != null && !err.trace().isEmpty()) {
+                    reader.callWidget(LineReader.CLEAR);
+                    terminal.puts(InfoCmp.Capability.carriage_return);
+                    for (String line : err.trace()) {
+                        terminal.writer().println(ansiString("  " + line, AttributedStyle.BRIGHT + AttributedStyle.RED));
+                    }
+                    reader.callWidget(LineReader.REDRAW_LINE);
+                    reader.callWidget(LineReader.REDISPLAY);
+                    terminal.flush();
+                    return true;
+                } else {
+                    return err != null;
+                }
+            });
+            reader.getKeyMaps().get(LineReader.MAIN).bind(new Reference("tuxc-show-trace"), KeyMap.ctrl('t'));
+            terminal.writer().println(Main.title());
+            terminal.writer().flush();
             //noinspection InfiniteLoopStatement
             while (true) {
                 String line = reader.readLine();
                 if (line == null) continue;
                 TuxCalculator.Result result = calc.parse(line);
-                if (result instanceof TuxCalculator.Error) {
-                    terminal.writer().println(ansiString(result.toString(), 8 + AttributedStyle.RED));
+                if (result instanceof TuxCalculator.Error err) {
+                    terminal.writer().println(ansiString(result.toString(), AttributedStyle.BRIGHT + AttributedStyle.RED));
                     terminal.flush();
+                    pendingError.set(err);
                 } else if (!(result instanceof TuxCalculator.Void)) {
-                    terminal.writer().println(ansiString(result.toString(), 8 + AttributedStyle.CYAN));
+                    terminal.writer().println(ansiString(result.toString(), AttributedStyle.BRIGHT + AttributedStyle.CYAN));
                     terminal.flush();
+                    pendingError.set(null);
                 }
             }
         } catch (EndOfFileException | UserInterruptException e) {
