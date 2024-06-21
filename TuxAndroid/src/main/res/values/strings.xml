@@ -19,8 +19,8 @@
         \n
         \n
         Scala\n
-        Copyright (c) 2002-2023 EPFL\n
-        Copyright (c) 2011-2023 Lightbend, Inc.\n
+        Copyright (c) 2002-2024 EPFL\n
+        Copyright (c) 2011-2024 Lightbend, Inc.\n
         \n
         Scala includes software developed at\n
         LAMP/EPFL (https://lamp.epfl.ch/) and\n
@@ -38,8 +38,8 @@
         \n
         \n
         Scala parser combinators\n
-        Copyright (c) 2002-2023 EPFL\n
-        Copyright (c) 2011-2023 Lightbend, Inc.\n
+        Copyright (c) 2002-2024 EPFL\n
+        Copyright (c) 2011-2024 Lightbend, Inc.\n
         \n
         Scala includes software developed at\n
         LAMP/EPFL (https://lamp.epfl.ch/) and\n
@@ -63,7 +63,7 @@
         \n
         \n
         Apache Commons Text\n
-        Copyright 2014-2023 The Apache Software Foundation\n
+        Copyright 2014-2024 The Apache Software Foundation\n
         \n
         This product includes software developed at\n
         The Apache Software Foundation (https://www.apache.org/).\n
@@ -71,13 +71,14 @@
         \n
         \n
         Apache Commons IO\n
-        Copyright 2002-2023 The Apache Software Foundation\n
+        Copyright 2002-2024 The Apache Software Foundation\n
         \n
         This product includes software developed at\n
         The Apache Software Foundation (https://www.apache.org/).\n
         \n
         \n
         \n
+        big-math\n
         MIT License\n
         \n
         Copyright (c) 2017 Eric Obermühlner\n
