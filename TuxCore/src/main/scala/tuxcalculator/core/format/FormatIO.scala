@@ -41,7 +41,7 @@ object FormatIO {
     calc.properties.set(CalculatorProperties.Output, in.readInt())
     calc.properties.set(CalculatorProperties.Truncate, in.readInt())
     calc.properties.set(CalculatorProperties.Eager, in.readBoolean())
-    calc.properties.set(CalculatorProperties.Normalization, in.readByte() match {
+    calc.properties.set(CalculatorProperties.Normalization, in.readUnsignedByte() match {
       case 0xFF => None
       case ordinal => Normalizer.Form.values() match {
         case values if values.indices contains ordinal => Some(values(ordinal))
