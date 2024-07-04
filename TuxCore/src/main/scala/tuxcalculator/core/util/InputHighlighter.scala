@@ -5,6 +5,7 @@ import tuxcalculator.core.Calculator
 import tuxcalculator.core.data.{CalculatorCommands, CalculatorProperties}
 import tuxcalculator.core.lexer.{CatCode, CharacterMapping, Lookahead, TokResult}
 
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 object InputHighlighter {
@@ -59,8 +60,12 @@ object InputHighlighter {
           escape = true
           true
         case inner(continue) => continue
+        case CharacterMapping(_, content) =>
+          advance(content.size, highlight) // Prevent an infinite loop when a breakAt catcode is not matched by inner.
+          advanceWhile(lookahead, highlight, cat => !cat.exists(breakAt.contains), consumeBackslash = false)
+          true
         case _ =>
-          advanceWhile(lookahead, HighlightType.ERROR, cat => !cat.exists(breakAt.contains), consumeBackslash = false)
+          advanceWhile(lookahead, highlight, cat => !cat.exists(breakAt.contains), consumeBackslash = false)
           true
       }) {}
     }
@@ -89,6 +94,7 @@ object InputHighlighter {
 
     // Lookahead that updates with each advance
     val lookahead: Lookahead[Int] = (ahead: Int) => codePoints.drop(idx).drop(ahead).headOption
+    val bracketStack: mutable.Stack[CatCode] = mutable.Stack()
     //noinspection LoopVariableNotUpdated
     while (idx < codePoints.length) {
       skipSpace()
@@ -98,7 +104,7 @@ object InputHighlighter {
           case CatCode.Escape =>
             advance(content.length, HighlightType.IDENTIFIER) // Also updates the lookahead
             advanceEscaped(lookahead, HighlightType.IDENTIFIER, CatCode.Escape) {
-              case CharacterMapping(CatCode.Error, content) =>
+              case CharacterMapping(CatCode.Escape, content) =>
                 advance(content.length, HighlightType.IDENTIFIER)
                 false
             }
@@ -147,6 +153,21 @@ object InputHighlighter {
             advanceWhile(lookahead, HighlightType.SPECIAL, cat => cat.exists(Identifier.contains))
           case cat if NumberStart.contains(cat) => advanceWhile(lookahead, HighlightType.NUMBER, cat => cat.exists(Number.contains))
           case cat if Identifier.contains(cat) => advanceWhile(lookahead, HighlightType.IDENTIFIER, cat => cat.exists(Identifier.contains))
+          case CatCode.StartPrimary | CatCode.StartSecondary | CatCode.StartTertiary =>
+            bracketStack.push(code)
+            advance(content.length, HighlightType.PLAIN)
+          case CatCode.StartMatch =>
+            bracketStack.push(CatCode.StartMatch)
+            advance(content.length, HighlightType.CONSTRUCT)
+          case CatCode.End =>
+            if (bracketStack.nonEmpty) bracketStack.pop()
+            advance(content.length, HighlightType.PLAIN)
+          case CatCode.EndMatch =>
+            if (bracketStack.nonEmpty && bracketStack.pop() == CatCode.StartMatch) {
+              advance(content.length, HighlightType.CONSTRUCT)
+            } else {
+              advance(content.length, HighlightType.PLAIN)
+            }
           case CatCode.Answer | CatCode.Lambda | CatCode.Follow | CatCode.VarArg | CatCode.Partial => advance(content.length, HighlightType.CONSTRUCT)
           case _ => advance(content.length, HighlightType.PLAIN)
         }
