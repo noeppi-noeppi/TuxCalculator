@@ -51,7 +51,7 @@ object ComputationLogic {
       def resultOrVoid(result: => MathValue): MathValue = if (normArgs.contains(Some(MathVoid))) MathVoid else result
       val partial = forcePartial || normArgs.contains(None)
       
-      if (value == MathVoid) MathVoid else value match {
+      value match {
         case err: MathError if partial => err.trace("Partially applied to " + args.map(argString).mkString("(", ", ", ")"))
         case err: MathError => err.trace("Applied to " + args.map(argString).mkString("(", ", ", ")"))
         case _ => normArgs.flatMap[MathError] {
@@ -60,6 +60,7 @@ object ComputationLogic {
         }.headOption match {
           case Some(err) if partial => err.trace("Passed as partial argument to " + calc.format(value))
           case Some(err) => err.trace("Passed as argument to " + calc.format(value))
+          case None if value == MathVoid => MathVoid
           case None if partial && !normArgs.exists(_.isDefined) => resultOrVoid(value)
           case None if partial => resultOrVoid(PartialAppliedFunction.create(value, normArgs))
           case None => resultOrVoid(value.applyTo(calc, normArgs.map(_.get)))

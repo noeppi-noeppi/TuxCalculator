@@ -159,6 +159,7 @@
     An error value can be created by placing arbitrary text between single quotation marks.
     The error text supports the same escape sequences as identifier character escaping.
     Any expression that contains an error value will have that error value as a result, so the error propagates down and causes the whole expression to result in an error.
+    This also includes \verb|void| expressions, expressions containing both \verb|void| and an error value will yield the error value.
     Errors are created when trying to evaluate invalid expressions, like division by zero.
     
     \subsection{Lists}\label{subsec:lists}
