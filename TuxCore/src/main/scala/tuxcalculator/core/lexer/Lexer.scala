@@ -158,8 +158,16 @@ class Lexer {
       
       def finishNumber(): Unit = if (insideNumber) {
         if (insideFractional && fractionalNumber.isEmpty) {
-          // We got a decimal point but no fractional part. This is an error
+          // We got a decimal point but no fractional part. This is an error.
           throw new ImmediateError(Result.Error("Dangling decimal separator"))
+        }
+        if (insideExponent && numberExponent.isEmpty) {
+          // We got an exponent separator but no exponent. This is an error.
+          throw new ImmediateError(Result.Error("Dangling exponent separator"))
+        }
+        if (insideExponent && numberExponent.size == 1 && (numberExponent.head == 43 || numberExponent.head == 45)) {
+          // We got an exponent sign but no exponent. This is an error.
+          throw new ImmediateError(Result.Error("Dangling exponent sign"))
         }
         tokens.addOne(Token.Number(
           if (integralNumber.isEmpty) "0" else Util.makeString(integralNumber),
