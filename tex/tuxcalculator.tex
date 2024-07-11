@@ -44,17 +44,15 @@
     
     TuxCalculator is written in Scala and uses the following external libraries:
     \begin{itemize}
-        \item The scala library as well as the scala combinator parsing module.\\
-              \url{https://www.scala-lang.org/}
+        \item The scala library as well as the scala combinator parsing module: \url{https://www.scala-lang.org/}
         \item \textsl{JOpt Simple}: \url{https://jopt-simple.github.io/jopt-simple/}
         \item \textsl{big-math}: \url{https://eobermuhlner.github.io/big-math/}
         \item \textsl{commons-text}: \url{https://commons.apache.org/text/}
         \item \textsl{java-gnome}: \url{https://java-gnome.sourceforge.net/}
         \item \textsl{jline3}: \url{https://github.com/jline/jline3/}
-        \item \textsl{jansi}: \url{https://fusesource.github.io/jansi/}
     \end{itemize}
     
-    To start the calculator, simply execute the \verb|JAR|-file using at least Java 17.
+    To start the calculator, simply execute the \verb|JAR|-file using at least Java 21.
     It accepts the following options:
     \begin{center}
         \begin{tabular}{p{0.25\textwidth}p{0.65\textwidth}}
@@ -74,8 +72,8 @@
     TuxCalculator can run on different frontends.
     The frontend can be set using the \verb|--gui| or \verb|--nogui| command line options.
 
-    \paragraph{The text frontend} can be set using \verb|--gui=text| or \verb|--nogui| and is then default if Java is running in \textsl{headless} mode or \textit{TuxCalculator} was started in \verb|ini|-mode (see section~\ref{subsec:inimode}).
-    It reads from the standard input and outputs the result after each line until \verb|EOF| is reached.
+    \paragraph{The text frontend} can be set using \verb|--gui=text| or \verb|--nogui| and is the default if Java is running in \textsl{headless} mode or \textit{TuxCalculator} was started in \verb|ini|-mode (see section~\ref{subsec:inimode}).
+    It reads from the standard input and outputs the result after each line.
     
     \paragraph{The GTK frontend} can be set using \verb|--gui=gtk| and is the default if TuxCalculator can find \textsl{java-gnome} bindings.
     These have to be located at \texttt{/usr\~/share\~/java\~/gtk.jar} and are part of the \texttt{libjava-\~gnome-\~java} package on Ubuntu.
@@ -112,15 +110,20 @@
     \subsection{Numbers}\label{subsec:numbers}
     All numbers are complex decimals rounded to 24 significant places by default, where only 16 decimal places are shown.
     The precision can be changed by setting the \verb|precision| property (see section~\ref{subsec:precision}).
-    All entered numbers need an integral part which can be zero.
-    Then, a dot and a fractional part and/or an \verb|e| and an exponent can follow.
+    
+    Numbers consist of an integral part, a fractional part and an exponent.
+    The integral part is a non-empty sequence of digits.
+    The fractional part is a decimal separator followed by a non-empty sequence of digits.
+    The exponent is the letter \verb|e| or \verb|E| followed by an optional sign and a non-empty sequence of digits.
+    The exponent is optional and can be omitted.
+    It is also possible to omit either the integral or the fractional part but never both.
     
     Examples for valid numbers:
     \begin{verbatim}
-        127   0.126   2e10   0.3E-8
+        127   2.126   2e10   .3E-8
     \end{verbatim}
-    Note that \verb|-1| is not a number, but the negation operator applied to the number one.
-    It is not possible to type in negative or complex numbers on their own, both require usage of operators and/or constants.
+    Note that when you enter \verb|-1| this is negation operator applied to the number one.
+    It is not possible to type in negative or complex numbers as single number literals, both require usage of operators and/or constants.
     
     \subsection{Booleans}\label{subsec:booleans}
     There are two boolean values: \verb|true| and \verb|false|.
@@ -161,6 +164,10 @@
     Any expression that contains an error value will have that error value as a result, so the error propagates down and causes the whole expression to result in an error.
     This also includes \verb|void| expressions, expressions containing both \verb|void| and an error value will yield the error value.
     Errors are created when trying to evaluate invalid expressions, like division by zero.
+    
+    Errors also have a trace that keeps track of the expressions in which they appeared before reaching the user.
+    In graphical frontends, the trace of an error is shown when hovering the error.
+    In the text frontend, it is possible to view the error trace by pressing \verb|Ctrl| + \verb|T| after an erroneous result.
     
     \subsection{Lists}\label{subsec:lists}
     Lists are ordered collections of values and can be written like this:
@@ -231,22 +238,20 @@
     It is possible to \textsl{splat} a list or vector into multiple arguments:
     \verb|f(l...)| passes all elements of the list \verb|l| to the function as separate arguments.
     
-    A global function with a single argument that does not contain binary operators can also be called without parentheses like \verb|ln 2|.
-    The global function can also be partially applied to some arguments when using the shorthand calling style: \verb|log_e 2|.
-    However, \verb|ln -2| does not work, it is parsed as $ 2 $ subtracted from the variable \verb|ln|.
-    Also \verb|log_(e) 2| is an error because shorthand calling can't be used with partial application in parenthesis style.
+    A global function with a single argument that does not contain operators can also be called without parentheses like \verb|ln 2|.
+    However, \verb|ln -2| does not work as it contains a \verb|-| operator and is therefore interpreted as $ 2 $ subtracted from the variable \verb|ln|.
 
     \subsubsection{References to functions}
     Using the reference notation, it's possible to convert global functions as well as operators and brackets into function values.
     \begin{verbatim}
         @sqrt     \x -> sqrt(x)
-        @-        \x -> -x       \a, b -> a - b    \a, b, c -> a - b - c
-        @[]
+        @-        \x -> -x         \a,b -> a - b    \a,b,c -> a - b - c
+        @[]       \a... -> [a...]
     \end{verbatim}
     The first value is the square root function, which is equivalent to the lambda on the right.
     The second value is the minus function.
     If applied to one single argument, it behaves like the unary minus operator.
-    If applied to two or more arguments, it treats them as is they were written in an operator chain without any parenthesis.
+    If applied to two or more arguments, it treats them as if they were written in an operator chain without any parenthesis.
     That means associativity of the operator is taken into account.
     The third value is the list bracket function.
     This function will make a list from all its arguments.
@@ -289,11 +294,14 @@
     Partial application also supports placeholders that are not partially applied but will be filled in when the function is called.
     For example \verb|clamp_(_,0,1)| is a function that takes a single value and clamps it to the interval $ [0;1] $.
     The call \verb|clamp_(_,0,1)(x)| is equivalent to \verb|clamp(x,0,1)|.
-    If the argument list contains at least a single placeholder, the underscore between the function and the argument list can also be omitted, so the above function can also be written as \verb|clamp(_,0,1)|.
+    If the argument list contains at least a single placeholder, the underscore between the function and the argument list can be omitted, so the above function can also be written as \verb|clamp(_,0,1)|.
+
+    It is possible to use shorthand calling on partially applied functions as in \verb|log_e 2|.
+    However, \verb|log_(e) 2| doesn't work, shorthand calling can't be used with partial application in parenthesis style.
     
     \subsection{Operators}\label{subsec:sign-operators}
     \paragraph{Sign operators} are unary operators written in front of an expression.
-    Most notably, \verb|+| {\small(does nothing)} and \verb|-| {\small(negates its argument)}.
+    Most notably, \verb|+| {\small(identity on numbers)} and \verb|-| {\small(negates its argument)}.
 
     \paragraph{Postfix operators} are the opposite.
     They are written after an expression.
@@ -360,7 +368,7 @@
     
     If \verb|name| is an opening bracket followed by a closing bracket, \verb|def| defines a bracket.
     The bracket is uniquely identified by the opening delimiter but must always be closed with the closing delimiter given at definition time.
-    The type of bracket is determined by the \textsl{CatCode} of the opening delimiter (See~\ref{subsec:catcodes}).
+    The type of bracket is determined by the \textsl{catcode} of the opening delimiter (See section~\ref{subsec:catcodes}).
     Depending on the type of bracket, the function must take a different number of arguments:
     \begin{itemize}
         \item \textsl{Primary brackets} must take only a single argument.
@@ -533,7 +541,7 @@
         \verb|vararg|          & Vararg token for splatting and definition of vararg functions. \\
         \verb|partial|         & Partial application. \\
         \verb|answer|          & Last result. \\
-        \verb|interpolate|     & Allows interpolating variables into errors. See below. \\
+        \verb|interpolate|     & Allows interpolating variables into errors. See section~\ref{subsec:errinterp}. \\
         \verb|invalid|         & Produces an error when encountered. \\
     \end{longtable}
     Catcodes are frozen once a statement has been typed in.
@@ -970,7 +978,7 @@
                           For example, $ \mathrm{zip}([[u,x],[v,y],[w,z]],f) = [f(u, v, w), f(x, y, z)] $ \\
     \end{longtable}
     
-    \subsection{Notes to some of the specials}\label{subsec:notes-special}
+    \subsection{Notes on some of the specials}\label{subsec:notes-special}
     \paragraph{\texttt{\#memoize}} is a powerful special for optimization intended to be used inside format files.
     It is usually not a good idea to expose this to the user.
     A memoized function can cache its results at any time and also drop them from the cache at any time.
