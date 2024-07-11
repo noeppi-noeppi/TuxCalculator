@@ -81,7 +81,7 @@ object ValueHelper {
     case MathFalse => false
     case MathNumber(num) => num != BigComplex.ZERO
     case MathList(Vector()) => false
-    case MathMatrix(Vector()) => false
+    case MathMatrix(values) => values.iterator.flatten.exists(ValueHelper.boolean)
     case _ => true
   }
   
