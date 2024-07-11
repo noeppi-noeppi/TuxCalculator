@@ -2,7 +2,7 @@ package tuxcalculator.core.special
 
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.data.CalculatorSpecial
-import tuxcalculator.core.value.{MathBoolean, MathFalse, MathList, MathMatrix, MathNumeric, MathPolynomic, MathRealNumeric, MathTrue, MathValue, MathVector}
+import tuxcalculator.core.value._
 
 object TestOperators {
   

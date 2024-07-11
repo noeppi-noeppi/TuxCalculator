@@ -3,7 +3,7 @@ package tuxcalculator.core.function
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.expression.Ast
 import tuxcalculator.core.expression.Ast.Signature
-import tuxcalculator.core.value.{MathError, MathFunction, MathValue, MathVoid, ValueHelper}
+import tuxcalculator.core.value._
 
 import scala.annotation.tailrec
 

@@ -88,9 +88,9 @@ public class ApplicationState {
                 } else {
                     builder = TuxCalculatorAPI.get().createPlain(frontend);
                 }
-                List<String> errors = builder.checkError();
+                List<TuxCalculator.Error> errors = builder.checkError();
                 if (errors != null) {
-                    this.makeErrorFail(activity, "There were errors initialising:\n" + errors.stream().map(err -> "  " + err).collect(Collectors.joining("\n")));
+                    this.makeErrorFail(activity, "There were errors initialising:\n" + errors.stream().map(err -> "  " + err.message()).collect(Collectors.joining("\n")));
                 } else {
                     this.calculator = builder.build();
                     ContextCompat.getMainExecutor(activity).execute(() -> {

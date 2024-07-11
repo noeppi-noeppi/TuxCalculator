@@ -3,7 +3,7 @@ package tuxcalculator.core.resolution
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.expression.{Ast, ExpressionHelper}
 import tuxcalculator.core.format.{AstIO, FormatContext}
-import tuxcalculator.core.function.{BracketFunction, GlobalFunction, ChainedOperatorFunction, OperatorFunction}
+import tuxcalculator.core.function.{BracketFunction, ChainedOperatorFunction, GlobalFunction, OperatorFunction}
 import tuxcalculator.core.value.{MathError, MathNumber, MathValue, MathVoid}
 
 import java.io.{ByteArrayOutputStream, DataInput, DataOutput, DataOutputStream}

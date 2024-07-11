@@ -1,8 +1,8 @@
 package tuxcalculator.core.math.algebra
 
-import Algebra._
 import ch.obermuhlner.math.big.BigComplex
 import tuxcalculator.core.Calculator
+import tuxcalculator.core.math.algebra.Algebra._
 import tuxcalculator.core.value.{MathNumber, PolynomialOps}
 
 import java.math.{BigDecimal => BigDec}

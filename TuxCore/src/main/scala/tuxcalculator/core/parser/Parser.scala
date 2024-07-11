@@ -4,7 +4,7 @@ import org.apache.commons.text.StringEscapeUtils
 import tuxcalculator.core.expression.Ast
 import tuxcalculator.core.lexer.{Token, TokenStream}
 import tuxcalculator.core.util.{Result, Util}
-import tuxcalculator.core.value.{MathError, MathValue}
+import tuxcalculator.core.value.MathValue
 
 import scala.util.parsing.combinator.Parsers
 import scala.util.parsing.input.{NoPosition, Position, Reader}
@@ -110,7 +110,7 @@ class CalculatorParsers(val ctx: ParsingContext) extends Parsers  {
   def value: this.Parser[Ast.Expression] = flatAcceptMatch("struct", {
     case Token.Number(integral, fraction, exponent) => ctx.parseNumber(integral, fraction, exponent) match {
       case Result.Value(num) => Success(Ast.Value(num), TokenReader.Empty)
-      case Result.Error(msg) => Error(msg, TokenReader.Empty)
+      case Result.Error(msg, _) => Error(msg, TokenReader.Empty)
     }
     case Token.Answer => Success(Ast.Answer, TokenReader.Empty)
     case Token.Error(_, head, tail) => Success(Ast.Error(head, tail), TokenReader.Empty)

@@ -151,7 +151,7 @@ public interface TuxCalculator {
          * Checks for errors that have accumulated while building the calculator.
          * {@literal null} if there were none.
          */
-        List<String> checkError();
+        List<TuxCalculator.Error> checkError();
 
         /**
          * Builds the calculator. Throws an exception if there were errors.

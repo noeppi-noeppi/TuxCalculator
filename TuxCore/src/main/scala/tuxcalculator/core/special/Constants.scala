@@ -2,7 +2,7 @@ package tuxcalculator.core.special
 
 import ch.obermuhlner.math.big.{BigComplex, BigDecimalMath}
 import tuxcalculator.core.data.{CalculatorSpecial, PropertyAccess}
-import tuxcalculator.core.value.{MathFalse, MathNumber, MathTrue, MathValue, MathVoid}
+import tuxcalculator.core.value._
 
 object Constants {
 

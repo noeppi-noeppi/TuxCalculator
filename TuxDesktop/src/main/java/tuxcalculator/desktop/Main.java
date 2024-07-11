@@ -107,9 +107,12 @@ public class Main {
                 }
             }
             
-            List<String> errors = builder.checkError();
+            List<TuxCalculator.Error> errors = builder.checkError();
             if (errors != null) {
-                frontend.showError("There were errors initialising:\n" + errors.stream().map(err -> "  " + err).collect(Collectors.joining("\n")));
+                frontend.showError("There were errors initialising:\n" + errors.stream()
+                        .map(err -> "  " + err.message())
+                        .collect(Collectors.joining("\n"))
+                );
                 System.exit(1);
                 return;
             }

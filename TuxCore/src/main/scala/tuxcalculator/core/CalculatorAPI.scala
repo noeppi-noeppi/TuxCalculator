@@ -18,7 +18,7 @@ object CalculatorAPI extends TuxCalculatorAPI {
   
   override def createPlain(frontend: TuxFrontend): TuxCalculator.Builder = {
     val in = classOf[Calculator].getResourceAsStream("/tuxcalculator/plain.tuxf")
-    if (in == null) new ErroredCalculatorBuilder(Vector("plain format file not found."))
+    if (in == null) new ErroredCalculatorBuilder(Vector(Result.Error("plain format file not found.")))
     else createBy(frontend, in)
   }
   
@@ -26,7 +26,7 @@ object CalculatorAPI extends TuxCalculatorAPI {
     if (Files.isRegularFile(fmt)) {
       createBy(frontend, Files.newInputStream(fmt))
     } else {
-      new ErroredCalculatorBuilder(Vector("Format file not found: " + fmt))
+      new ErroredCalculatorBuilder(Vector(Result.Error("Format file not found: " + fmt) ~@ fmt.toAbsolutePath.normalize().toString))
     }
   }
   
@@ -37,11 +37,11 @@ object CalculatorAPI extends TuxCalculatorAPI {
       val in = new DataInputStream(fmt)
       new CalculatorBuilderWrapper(FormatIO.load(frontend, in))
     } catch {
-      case e: EOFException => new ErroredCalculatorBuilder(Vector("Truncated format file.") ++ Option(e.getMessage).toVector)
-      case e: UTFDataFormatException => new ErroredCalculatorBuilder(Vector("Charset error.") ++ Option(e.getMessage).toVector)
-      case e: IOException => new ErroredCalculatorBuilder(Vector("Generic IO error.") ++ Option(e.getMessage).toVector)
-      case e: InvalidFormatException => new ErroredCalculatorBuilder(Vector("Corrupted format file.", e.getMessage))
-      case e: Exception => new ErroredCalculatorBuilder(Vector("Error while loading format file.") ++ Util.getStacktrace(e))
+      case e: EOFException => new ErroredCalculatorBuilder(Vector(Result.Error("Truncated format file.")) ++ Option(e.getMessage).map(msg => Result.Error(msg)).toVector)
+      case e: UTFDataFormatException => new ErroredCalculatorBuilder(Vector(Result.Error("Charset error.")) ++ Option(e.getMessage).map(msg => Result.Error(msg)).toVector)
+      case e: IOException => new ErroredCalculatorBuilder(Vector(Result.Error("Generic IO error.")) ++ Option(e.getMessage).map(msg => Result.Error(msg)).toVector)
+      case e: InvalidFormatException => new ErroredCalculatorBuilder(Vector(Result.Error("Corrupted format file.")) ++ Option(e.getMessage).map(msg => Result.Error(msg)).toVector)
+      case e: Exception => new ErroredCalculatorBuilder(Vector(Result.Error("Error while loading format file.", Util.getStacktrace(e))))
     } finally {
       fmt.close()
     }
@@ -49,30 +49,34 @@ object CalculatorAPI extends TuxCalculatorAPI {
   
   class CalculatorBuilderWrapper(private val calc: Calculator) extends TuxCalculator.Builder {
     
-    private val errors: ListBuffer[String] = ListBuffer()
+    private val errors: ListBuffer[Result.Error] = ListBuffer()
     
     override def load(path: Path): Unit = {
       if (Files.isRegularFile(path)) {
         errors.addAll(FileLoader.load(calc, path))
       } else {
-        errors.addOne("File not found: " + path.toAbsolutePath.normalize().toString)
+        errors.addOne(Result.Error("File not found: " + path) ~@ path.toAbsolutePath.normalize().toString)
       }
     }
     
     override def load(fileName: String, in: InputStream): Unit = load(fileName, new InputStreamReader(in))
     override def load(fileName: String, in: Reader): Unit = errors.addAll(FileLoader.load(calc, fileName, in))
-    override def checkError(): util.List[String] = if (errors.isEmpty) null else errors.toVector.asJava
+    override def checkError(): util.List[TuxCalculator.Error] = if (errors.isEmpty) null else errors.toVector.map {
+      case Result.Error(msg, trace) => new TuxCalculator.Error(msg, trace.asJava)
+    }.asJava
     override def build(): TuxCalculator = {
       if (errors.isEmpty) new CalculatorWrapper(calc)
       else throw new IllegalStateException("There were errors building the calculator.")
     }
   }
   
-  class ErroredCalculatorBuilder(val errors: Vector[String]) extends TuxCalculator.Builder {
+  class ErroredCalculatorBuilder(val errors: Vector[Result.Error]) extends TuxCalculator.Builder {
     override def load(path: Path): Unit = ()
     override def load(fileName: String, in: InputStream): Unit = ()
     override def load(fileName: String, in: Reader): Unit = ()
-    override def checkError(): util.List[String] = errors.asJava
+    override def checkError(): util.List[TuxCalculator.Error] = errors.map {
+      case Result.Error(msg, trace) => new TuxCalculator.Error(msg, trace.asJava)
+    }.asJava
     override def build(): TuxCalculator = throw new IllegalStateException("There were errors building the calculator.")
   }
   
@@ -85,7 +89,7 @@ object CalculatorAPI extends TuxCalculatorAPI {
     override def parse(line: String): TuxCalculator.Result = calc.parse(line) match {
       case Result.Value(MathVoid) => new TuxCalculator.Void()
       case Result.Value(MathError(msg, trace)) => new TuxCalculator.Error(msg, trace.asJava)
-      case Result.Error(msg) => new TuxCalculator.Error(msg, Nil.asJava)
+      case Result.Error(msg, trace) => new TuxCalculator.Error(msg, trace.asJava)
       case Result.Value(value) => new TuxCalculator.Success(calc.format(value))
     }
   }

@@ -4,8 +4,6 @@ import tuxcalculator.core.Calculator
 import tuxcalculator.core.lexer.{CatCode, Lexer}
 import tuxcalculator.core.util.Util
 
-import java.util.Locale
-
 object CalculatorCommands {
   
   private val BaseCommands: Set[String] = Set("let", "def", "rem", "set", "cat", "tok")

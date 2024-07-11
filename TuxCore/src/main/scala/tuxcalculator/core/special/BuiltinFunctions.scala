@@ -3,9 +3,9 @@ package tuxcalculator.core.special
 import ch.obermuhlner.math.big.{BigComplex, BigComplexMath, BigDecimalMath}
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.data.CalculatorSpecial
+import tuxcalculator.core.math._
 import tuxcalculator.core.math.algebra.Algebras
-import tuxcalculator.core.math.{ArithmeticGeometricMean, ExponentialIntegral, GreatestCommonDivisor, IncompleteGamma, ProductLog}
-import tuxcalculator.core.value.{MathComplexNumeric, MathError, MathList, MathNumber, MathNumeric, MathPolynomial, MathPolynomic, MathRealNumeric, MathValue, ValueHelper}
+import tuxcalculator.core.value._
 
 import java.math.MathContext
 import scala.math.BigDecimal.RoundingMode

@@ -158,8 +158,7 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
       case None => rawLine
     }
     
-    def computeString(string: String): Result[MathValue] = lexer.tokenize(string) ~> computeTokens
-    def computeTokens(tokens: TokenStream): Result[MathValue] = parser.expression(tokens) ~ computeAst
+    def compute(tokens: TokenStream): Result[MathValue] = parser.expression(tokens) ~ computeAst
     def computeAst(expr: Ast.Expression): MathValue = {
       val bound = BindLogic.bind(expr, this, eager = properties(CalculatorProperties.Eager))
       ComputationLogic.compute(bound, this)
@@ -169,12 +168,12 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
       normalizedLine.strip() match {
         case commands.Let(cmdStr) => lexer.tokenizeAssignment(cmdStr) ~> {
           case PartialTokenStream(tokens, remaining) => parser.letCommand(tokens) ~> {
-            case Ast.LetCommand(name: String) => computeString(remaining) ~ (value => resolution.let(name, value))
+            case Ast.LetCommand(name: String) => lexer.continue(remaining) ~> compute ~ (value => resolution.let(name, value))
           }
         }
         case commands.Def(cmdStr) => lexer.tokenizeAssignment(cmdStr) ~> {
           case PartialTokenStream(tokens, remaining) => parser.defCommand(tokens) ~> {
-            case Ast.DefCommand(target, priority, sig) => lexer.tokenize(remaining) ~> parser.expression ~> (astExpr => {
+            case Ast.DefCommand(target, priority, sig) => lexer.continue(remaining) ~> parser.expression ~> (astExpr => {
               if (!target.isInstanceOf[Ast.DefTarget.Operator] && !target.isInstanceOf[Ast.DefTarget.SignOrOperator] && priority.isDefined) {
                 Result.Error("Only binary operators can set a priority")
               } else {
@@ -205,22 +204,22 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
         }
         case commands.Set(cmdStr) => lexer.tokenizeAssignment(cmdStr) ~> {
           case PartialTokenStream(tokens, remaining) => parser.setCommand(tokens) ~> {
-            case Ast.SetCommand(name: String) => computeString(remaining) ~ (value => properties.set(name, value))
+            case Ast.SetCommand(name: String) => lexer.continue(remaining) ~> compute ~ (value => properties.set(name, value))
           }
         }
         case commands.Cat(cmdStr) => lexer.tokenizeAssignment(cmdStr) ~> {
           case PartialTokenStream(tokens, remaining) => parser.catCommand(tokens) ~> {
-            case Ast.CatCommand(codePoint) => CatCode.byName(remaining) match {
+            case Ast.CatCommand(codePoint) => CatCode.byName(remaining.string) match {
               case Some(catCode) => lexer.catCode(codePoint, catCode); Result.Value(MathVoid)
-              case None => Result.Error("Unknown catcode: '" + remaining.strip() + "'")
+              case None => Result.Error("Unknown catcode: '" + remaining.string.strip() + "'")
             }
           }
         }
         case commands.Tok(cmdStr) => lexer.tokenizeAssignment(cmdStr) ~> {
           case PartialTokenStream(tokens, remaining) => parser.tokCommand(tokens) ~> {
-            case Ast.TokCommand(token) => CatCode.byName(remaining) match {
+            case Ast.TokCommand(token) => CatCode.byName(remaining.string) match {
               case Some(catCode) => lexer.tokCode(token, catCode); Result.Value(MathVoid)
-              case None => Result.Error("Unknown catcode: '" + remaining.strip() + "'")
+              case None => Result.Error("Unknown catcode: '" + remaining.string.strip() + "'")
             }
           }
         }
@@ -247,7 +246,7 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
           case Result.Value(TokenStream(Vector())) =>
             // No tokens, return void result without changing answer
             return Result.Value(MathVoid)
-          case tokenResult => tokenResult ~> computeTokens
+          case tokenResult => tokenResult ~> compute
         }
       }
     } catch {

@@ -2,9 +2,9 @@ package tuxcalculator.core.format
 
 import ch.obermuhlner.math.big.BigComplex
 import tuxcalculator.core.data.SpecialFunction
-import tuxcalculator.core.function.{BracketFunction, ChainedOperatorFunction, GlobalFunction, LambdaFunction, MatchFunction, MatchFunctionEntry, MemoizedFunction, OperatorFunction, PartialAppliedFunction}
+import tuxcalculator.core.function._
 import tuxcalculator.core.util.Util
-import tuxcalculator.core.value.{MathError, MathFalse, MathFunction, MathList, MathMatrix, MathNumber, MathPolynomial, MathTrue, MathValue, MathVoid}
+import tuxcalculator.core.value._
 
 import java.io.{DataInput, DataOutput}
 import java.math.{BigInteger, BigDecimal => BigDec}

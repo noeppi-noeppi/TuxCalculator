@@ -1,7 +1,7 @@
 package tuxcalculator.core.data
 
 import tuxcalculator.core.Calculator
-import tuxcalculator.core.special.{BasicOperators, BuiltinFunctions, Constants, FunctionOperators, ListOperators, LogicOperators, MatrixOperators, PolynomialOperators, RelOperators, TestOperators}
+import tuxcalculator.core.special._
 import tuxcalculator.core.value.{MathError, MathFunction, MathValue}
 
 import java.math.MathContext

@@ -12,13 +12,15 @@ case class TokenStream(tokens: Vector[Token]) {
   override def toString: String = "TokenStream(" + tokens.mkString(",") + ")"
 }
 
-case class PartialTokenStream(tokens: TokenStream, remaining: String)
+case class RemainingText(string: String, offset: Int)
+case class PartialTokenStream(tokens: TokenStream, remaining: RemainingText)
 
-class CharacterSource(private val codePoints: Vector[Int]) extends Lookahead[Int] {
-  private var position: Int = 0
+class CharacterSource(private val codePoints: Vector[Int], private[this] val offset: Int = 0) extends Lookahead[Int] {
+  private[this] var position: Int = 0
   
   def advance(amount: Int): Unit = position += amount
-  def remaining: String = Util.makeString(codePoints.drop(position))
+  def remaining: RemainingText = RemainingText(Util.makeString(codePoints.drop(position)), position + offset)
+  def context: String = "At: " + Util.makeString(codePoints.take(position).takeRight(8)).strip() + " <== here: column " + (position + offset)
   override def lookupToken(ahead: Int): Option[Int] = position + ahead match {
     case idx if codePoints.indices.contains(idx) => Some(codePoints(idx))
     case _ => None
@@ -48,17 +50,24 @@ class Lexer {
   
   def lookup(source: Lookahead[Int]): TokResult = this.catCodes.tokCode(source)
   
-  def tokenize(line: String): Result[TokenStream] = try {
+  def tokenize(line: String): Result[TokenStream] = tryTokenize {
     val source: CharacterSource = new CharacterSource(Util.decomposeString(line))
-    tokenizePart(source, Set(), Set()) ~ (_._1)
-  } catch {
-    case e: ImmediateError => e.error
+    tokenizePart(source, Set(), Set()) ~@ source.context ~ (_._1)
+  }
+
+  def continue(remaining: RemainingText): Result[TokenStream] = tryTokenize {
+    val source: CharacterSource = new CharacterSource(Util.decomposeString(remaining.string), remaining.offset)
+    tokenizePart(source, Set(), Set()) ~@ source.context ~ (_._1)
   }
   
-  def tokenizeAssignment(line: String): Result[PartialTokenStream] = try {
+  def tokenizeAssignment(line: String): Result[PartialTokenStream] = tryTokenize {
     val source: CharacterSource = new CharacterSource(Util.decomposeString(line))
     val result = tokenizePart(source, Set(), Set(), tokenizeAssignment = true)
-    result ~ (_._1) ~ (tokens => PartialTokenStream(tokens, source.remaining))
+    result ~@ source.context ~ (_._1) ~ (tokens => PartialTokenStream(tokens, source.remaining))
+  }
+  
+  private def tryTokenize[T](action: => Result[T]): Result[T] = try {
+    action
   } catch {
     case e: ImmediateError => e.error
   }
@@ -383,6 +392,6 @@ class Lexer {
     }
     throw new Error()
   }
-
+  
   private class ImmediateError(val error: Result.Error) extends Exception
 }

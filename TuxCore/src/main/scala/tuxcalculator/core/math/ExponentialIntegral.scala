@@ -1,6 +1,6 @@
 package tuxcalculator.core.math
 
-import ch.obermuhlner.math.big.{BigComplex, BigComplexMath, BigDecimalMath}
+import ch.obermuhlner.math.big.{BigComplex, BigComplexMath}
 
 import java.math.{MathContext, RoundingMode, BigDecimal => BigDec}
 

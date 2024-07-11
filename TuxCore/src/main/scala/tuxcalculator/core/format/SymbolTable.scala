@@ -1,6 +1,6 @@
 package tuxcalculator.core.format
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInput, DataInputStream, DataOutput, DataOutputStream}
+import java.io._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 

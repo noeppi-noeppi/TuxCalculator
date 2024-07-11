@@ -3,7 +3,7 @@ package tuxcalculator.core.resolution
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.expression.{Ast, BoundExpression}
 import tuxcalculator.core.function.{LambdaFunction, MatchFunction, MatchFunctionEntry, PartialAppliedFunction}
-import tuxcalculator.core.value.{MathError, MathList, MathMatrix, MathValue, MathVoid}
+import tuxcalculator.core.value._
 
 object ComputationLogic {
 
