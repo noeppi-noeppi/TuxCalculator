@@ -273,7 +273,7 @@ let temp = \[(c):#eq(c,nil)->'Degree of the 0-polynomial';(c)->#len(c)-1]
 def pdeg(p) = temp(#coeff(p))
 let temp = \[(c):#eq(c,nil)->nil;(c)->#map(c,\elem->elem/c(#len(c)-1))]
 def monic(p) = #pol(temp(#coeff(p)))
-let temp = \cc->#cdr(#zip([cc,#fill(#len(cc),id)],@*))
+let temp = \[(cc):#eq(#len(cc),0)->[];(cc)->#cdr(#zip([cc,#fill(#len(cc),id)],@*))]
 def deriv(p) = #pol(temp(#coeff(p)))
 let temp = \cc,c->c::#zip([cc,#fill(#len(cc),#add_1)],@/)
 def integ(p) = #pol(temp(#coeff(p),0))
@@ -404,6 +404,7 @@ def det(a) = #det(a)
 let temp = \[(i,j,a):#and(#or(i<1,i>#ht(a)),#or(j<1,j>#wd(a)))->a;(i,j,a):#or(i<1,i>#ht(a))->#fill(#ht(a),#wd(a)-1,\r,c->a(r,#if(c<j,c,c+1)));(i,j,a):#or(j<1,j>#wd(a))->#fill(#ht(a)-1,#wd(a),\r,c->a(#if(r<i,r,r+1),c));(i,j,a)->#fill(#ht(a)-1,#wd(a)-1,\r,c->a(#if(r<i,r,r+1),#if(c<j,c,c+1)))]
 def minor(n,a) = temp(0,n,a)
 def minor(i,j,a) = temp(i,j,a)
+def det(i,j,a) = #det(minor(i,j,a))
 def charp(a) = #det(#fill(#ht(a),#wd(a),\r,c->#if(r=c,X,0))-a)
 def bil(g) = \a,b->(T(a)*g*b)(1,1)
 
