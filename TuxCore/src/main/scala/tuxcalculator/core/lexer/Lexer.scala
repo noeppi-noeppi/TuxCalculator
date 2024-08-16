@@ -47,6 +47,7 @@ class Lexer {
   def catCode(codePoint: Int): CatCode = this.catCodes.catCode(codePoint)
   def catCode(codePoint: Int, code: CatCode): Unit = this.catCodes.catCode(codePoint, code)
   def tokCode(token: String, code: CatCode): Unit = this.catCodes.tokCode(Util.decomposeString(token), code)
+  def escapeCodePoints: Set[Int] = this.catCodes.escapeCodePoints
   def allChangedCatCodes: Map[Int, CatCode] = this.catCodes.allChangedCatCodes
   def allChangedTokCodes: Map[String, CatCode] = this.catCodes.allChangedTokCodes.map(entry => (Util.makeString(entry._1), entry._2))
   

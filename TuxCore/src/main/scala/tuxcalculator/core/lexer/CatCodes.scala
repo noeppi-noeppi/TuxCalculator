@@ -61,6 +61,7 @@ object TokResult {
 class CatCodes {
   private[this] val catCodes: mutable.Map[Int, CatCode] = mutable.Map()
   private[this] val tokCodes: mutable.Map[Vector[Int], CatCode] = mutable.Map()
+  private[this] val escapeCharacters: mutable.Set[Int] = mutable.Set()
   
   for (i <- '0' to '9') this.catCodes(i) = CatCode.Digit
   this.catCodes('\'') = CatCode.Error
@@ -97,12 +98,18 @@ class CatCodes {
     }
   }
   
-  def catCode(codePoint: Int, code: CatCode): Unit = this.catCodes(codePoint) = code
+  def catCode(codePoint: Int, code: CatCode): Unit = {
+    if (this.catCodes.get(codePoint).contains(CatCode.Escape)) this.escapeCharacters.remove(codePoint)
+    this.catCodes(codePoint) = code
+    if (code == CatCode.Escape) this.escapeCharacters.add(codePoint)
+  }
   def tokCode(token: Vector[Int], code: CatCode): Unit = code match {
     case CatCode.Invalid => this.tokCodes.remove(token)
     case _ => this.tokCodes(token) = code
   }
   
+  def escapeCodePoints: Set[Int] = escapeCharacters.toSet
+
   def allChangedCatCodes: Map[Int, CatCode] = this.catCodes.toMap.filter(entry => {
     val (codePoint, catCode) = entry
     catCode != defaultCatCode(codePoint)

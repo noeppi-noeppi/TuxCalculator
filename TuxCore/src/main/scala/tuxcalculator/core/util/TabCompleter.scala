@@ -1,11 +1,15 @@
 package tuxcalculator.core.util
 
+import org.apache.commons.text.StringEscapeUtils
+import org.apache.commons.text.translate.{AggregateTranslator, LookupTranslator}
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.data.{CalculatorCommands, CalculatorProperties}
-import tuxcalculator.core.lexer.CatCode
+import tuxcalculator.core.lexer.{CatCode, CharacterMapping, Lookahead, TokResult}
 
 import java.text.Normalizer
 import java.util.Locale
+import scala.collection.Set
+import scala.jdk.CollectionConverters._
 
 object TabCompleter {
   
@@ -17,6 +21,12 @@ object TabCompleter {
 
   def tabComplete(calc: Calculator, line: String): Result = {
     val codePoints = Util.decomposeString(line)
+    
+    lazy val escapingDelimiter: Option[String] = calc.lexer.escapeCodePoints.minOption.map(Character.toString)
+    lazy val escapingTranslator = escapingDelimiter match {
+      case Some(delim) => new AggregateTranslator(new LookupTranslator(Map[CharSequence, CharSequence](delim -> ("\\" + delim)).asJava), StringEscapeUtils.ESCAPE_JAVA)
+      case None => StringEscapeUtils.ESCAPE_JAVA
+    }
     
     def findPrefix(catcodes: Set[CatCode], startsWith: CatCode = null, innerCatcodes: Set[CatCode] = Set()): Option[Prefix] = {
       val matchIdx = codePoints.lastIndexWhere(codePoint => !catcodes.contains(calc.lexer.catCode(codePoint))) match {
@@ -44,6 +54,29 @@ object TabCompleter {
           .replaceAll("\\p{M}", "").toLowerCase(Locale.ROOT)
       val normalizedMatch = normalized(matchString)
       all.filter(str => normalized(str).startsWith(normalizedMatch)).toVector.sortBy(normalized)
+    }
+    
+    def escapeIdentifierIfRequired(identifier: String): String = {
+      if (escapingDelimiter.isEmpty) return identifier
+      val decomposed: Vector[Int] = Util.decomposeString(identifier)
+      def needsEscaping: Boolean = {
+        var pos = 0
+        val lookahead: Lookahead[Int] = ahead => decomposed.drop(pos + ahead).headOption
+        while (true) calc.lexer.lookup(lookahead) match {
+          case CharacterMapping(code, _) if pos == 0 && code == CatCode.Digit => return true
+          case CharacterMapping(code, _) if !Identifier.contains(code) => return true
+          case CharacterMapping(_, content) => pos += content.size
+          case TokResult.Eof => return false;
+          case TokResult.Ambiguity(_) => pos += 1;
+        }
+        false
+      }
+      
+      if (needsEscaping) {
+        escapingDelimiter.get + escapingTranslator.translate(identifier) + escapingDelimiter.get
+      } else {
+        identifier
+      }
     }
     
     // Calculator properties
@@ -74,7 +107,7 @@ object TabCompleter {
     
     findPrefix(Identifier) match {
       case Some(Prefix(prefix, completionString, matchString)) =>
-        val baseMatches: Vector[String] = findMatches(calc.resolution.tabCompleteIdentifier, matchString)
+        val baseMatches: Vector[String] = findMatches(calc.resolution.tabCompleteIdentifier, matchString).map(escapeIdentifierIfRequired)
         val matches: Vector[String] = if (prefix.isEmpty) {
           val commands: Set[String] = CalculatorCommands.commands(calc)
           val commandMatches: Vector[String] = findMatches(commands, matchString)
