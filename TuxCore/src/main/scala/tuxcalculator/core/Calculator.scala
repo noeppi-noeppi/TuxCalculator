@@ -170,7 +170,7 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
     }
     
     val result: Result[MathValue] = try {
-      normalizedLine.strip() match {
+      normalizedLine match {
         case commands.Let(cmdStr) => lexer.tokenizeAssignment(cmdStr) ~> {
           case PartialTokenStream(tokens, remaining) => parser.letCommand(tokens) ~> {
             case Ast.LetCommand(name: String) => lexer.continue(remaining) ~> compute ~ (value => resolution.let(name, value))
@@ -204,7 +204,7 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
             })
           }
         }
-        case commands.Rem(cmdStr) => lexer.tokenize(cmdStr) ~> parser.remCommand ~ {
+        case commands.Rem(cmdStr) => lexer.continue(cmdStr) ~> parser.remCommand ~ {
           case Ast.RemCommand(target) => resolution.remove(target)
         }
         case commands.Set(cmdStr) => lexer.tokenizeAssignment(cmdStr) ~> {
@@ -228,7 +228,7 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
             }
           }
         }
-        case commands.Dump(cmdStr) if ini => lexer.tokenize(cmdStr) ~> parser.dumpCommand ~ {
+        case commands.Dump(cmdStr) if ini => lexer.continue(cmdStr) ~> parser.dumpCommand ~ {
           case Ast.DumpCommand(fileName) =>
             val out = new DataOutputStream(frontend.openFile(fileName + ".tuxf"))
             try {

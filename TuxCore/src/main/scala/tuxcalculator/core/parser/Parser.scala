@@ -2,7 +2,7 @@ package tuxcalculator.core.parser
 
 import org.apache.commons.text.StringEscapeUtils
 import tuxcalculator.core.expression.Ast
-import tuxcalculator.core.lexer.{Token, TokenStream}
+import tuxcalculator.core.lexer.{ContextualToken, Token, TokenStream}
 import tuxcalculator.core.util.{Result, Util}
 import tuxcalculator.core.value.MathValue
 
@@ -19,8 +19,8 @@ class Parser(val ctx: ParsingContext) {
   
   private def wrap[T](res: parsers.ParseResult[T]): Result[T] = res match {
     case parsers.Success(value, _) => Result.Value(value.asInstanceOf[T])
-    case parsers.Failure(msg, _) => Result.Error(msg)
-    case parsers.Error(msg, _) => Result.Error(msg)
+    case parsers.Failure(msg, rest) => Result.Error(msg) ~@ rest.pos.toString
+    case parsers.Error(msg, rest) => Result.Error(msg) ~@ rest.pos.toString
   }
   
   def expression(tokens: TokenStream): Result[Ast.Expression] = wrap(parsers.parseTokens(parsers.expression, tokens))
@@ -38,7 +38,8 @@ class CalculatorParsers(val ctx: ParsingContext) extends Parsers  {
   override type Elem = Token
   
   def parseTokens[T](parser: this.Parser[T], tokens: TokenStream): ParseResult[T] = parser.apply(new TokenReader(tokens.tokens.toList)) match {
-    case Success(_, remaining) if !remaining.atEnd => Error("Input not fully consumed", remaining)
+    // Skipping one token in rest gives a better error message if there are still tokens behind it.
+    case Success(_, remaining) if !remaining.atEnd => Error("Input not fully consumed", if (remaining.rest.atEnd) remaining else remaining.rest)
     case result => result
   }
   
@@ -269,9 +270,9 @@ object PostOperation {
   case class PartialApplication(args: Vector[Ast.PartialArgument]) extends PostOperation
 }
 
-class TokenReader(private val tokens: List[Token]) extends Reader[Token] {
+class TokenReader(private val tokens: List[ContextualToken]) extends Reader[Token] {
   override lazy val first: Token = tokens match {
-    case head :: _ => head
+    case head :: _ => head.token
     case Nil => Token.Eof
   }
   
@@ -280,10 +281,18 @@ class TokenReader(private val tokens: List[Token]) extends Reader[Token] {
     case Nil => this
   }
 
-  override def pos: Position = NoPosition
+  override def pos: Position = TokenPosition(tokens.headOption.map(_.context))
   override def atEnd: Boolean = tokens.isEmpty
 }
 
 object TokenReader {
   val Empty = new TokenReader(Nil)
+}
+
+case class TokenPosition(context: Option[String]) extends Position {
+  override def line: Int = NoPosition.line
+  override def column: Int = NoPosition.column
+  override protected def lineContents: String = NoPosition.lineContents
+  override def toString: String = context.getOrElse("At end of line")
+  override def longString: String = toString
 }

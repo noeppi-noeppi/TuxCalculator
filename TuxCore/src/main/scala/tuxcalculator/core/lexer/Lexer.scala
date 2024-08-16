@@ -8,9 +8,11 @@ import tuxcalculator.core.util.{Result, Util}
 import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters._
 
-case class TokenStream(tokens: Vector[Token]) {
+case class TokenStream(tokens: Vector[ContextualToken]) {
   override def toString: String = "TokenStream(" + tokens.mkString(",") + ")"
 }
+
+case class ContextualToken(token: Token, context: String)
 
 case class RemainingText(string: String, offset: Int)
 case class PartialTokenStream(tokens: TokenStream, remaining: RemainingText)
@@ -50,18 +52,14 @@ class Lexer {
   
   def lookup(source: Lookahead[Int]): TokResult = this.catCodes.tokCode(source)
   
-  def tokenize(line: String): Result[TokenStream] = tryTokenize {
-    val source: CharacterSource = new CharacterSource(Util.decomposeString(line))
-    tokenizePart(source, Set(), Set()) ~@ source.context ~ (_._1)
-  }
-
+  def tokenize(line: String): Result[TokenStream] = continue(RemainingText(line, 0))
   def continue(remaining: RemainingText): Result[TokenStream] = tryTokenize {
     val source: CharacterSource = new CharacterSource(Util.decomposeString(remaining.string), remaining.offset)
     tokenizePart(source, Set(), Set()) ~@ source.context ~ (_._1)
   }
   
-  def tokenizeAssignment(line: String): Result[PartialTokenStream] = tryTokenize {
-    val source: CharacterSource = new CharacterSource(Util.decomposeString(line))
+  def tokenizeAssignment(assignmentText: RemainingText): Result[PartialTokenStream] = tryTokenize {
+    val source: CharacterSource = new CharacterSource(Util.decomposeString(assignmentText.string), assignmentText.offset)
     val result = tokenizePart(source, Set(), Set(), tokenizeAssignment = true)
     result ~@ source.context ~ (_._1) ~ (tokens => PartialTokenStream(tokens, source.remaining))
   }
@@ -74,7 +72,7 @@ class Lexer {
   
   @throws[ImmediateError]
   private def tokenizePart(source: CharacterSource, closingCatCodes: Set[CatCode], breakAt: Set[CatCode], tokenizeAssignment: Boolean = false, canEmitFollow: Boolean = false): Result[(TokenStream, Option[String])] = {
-    val tokens: ListBuffer[Token] = ListBuffer()
+    val tokens: ListBuffer[ContextualToken] = ListBuffer()
     
     object CatCodeGrouper {
       private[this] val identifier: ListBuffer[Int] = ListBuffer()
@@ -99,16 +97,16 @@ class Lexer {
           } else {
             // Special case: signs are always single operators, so finish everything else
             finish()
-            tokens.lastOption match {
+            lastTokenOption match {
               case Some(_: Token.Identifier) | Some(_: Token.Number) | Some(_: Token.Post) | Some(_: Token.Error)
                    | Some(_: Token.Group) | Some(_: Token.Application) | Some(_: Token.PrimaryBracket)
                    | Some(_: Token.SecondaryBracket) | Some(_: Token.TertiaryBracket) | Some(_: Token.Match)
                    | Some(_: Token.Lambda) | Some(Token.Answer) =>
-                tokens.addOne(Token.Operator(Util.makeString(content)))
-              case Some(_: Token.Sign) | Some(_: Token.Operator) | Some(_: Token.Post) if tokens.init.lastOption.contains(Token.Reference) =>
-                tokens.addOne(Token.Operator(Util.makeString(content)))
+                tokens.addOne(Token.Operator(Util.makeString(content)) >> source.context)
+              case Some(_: Token.Sign) | Some(_: Token.Operator) | Some(_: Token.Post) if tokens.init.lastOption.map(_.token).contains(Token.Reference) =>
+                tokens.addOne(Token.Operator(Util.makeString(content)) >> source.context)
               case _ =>
-                tokens.addOne(Token.Sign(Util.makeString(content)))
+                tokens.addOne(Token.Sign(Util.makeString(content)) >> source.context)
             }
           }
           return None
@@ -164,7 +162,7 @@ class Lexer {
       }
       
       def finishIdentifier(): Unit = if (identifier.nonEmpty) {
-        tokens.addOne(Token.Identifier(Util.makeString(identifier)))
+        tokens.addOne(Token.Identifier(Util.makeString(identifier)) >> source.context)
         identifier.clear()
       }
       
@@ -185,7 +183,7 @@ class Lexer {
           if (integralNumber.isEmpty) "0" else Util.makeString(integralNumber),
           if (fractionalNumber.isEmpty) None else Some(Util.makeString(fractionalNumber)),
           if (numberExponent.isEmpty) None else Some(Util.makeString(numberExponent))
-        ))
+        ) >> source.context)
         integralNumber.clear()
         fractionalNumber.clear()
         numberExponent.clear()
@@ -195,19 +193,19 @@ class Lexer {
       }
       
       def finishOperator(): Unit = if (operator.nonEmpty) {
-        tokens.addOne(Token.Operator(Util.makeString(operator)))
+        tokens.addOne(Token.Operator(Util.makeString(operator)) >> source.context)
         operator.clear()
       }
       
       def finishPost(): Unit = if (postfixOperator.nonEmpty) {
-        tokens.addOne(Token.Post(Util.makeString(postfixOperator)))
+        tokens.addOne(Token.Post(Util.makeString(postfixOperator)) >> source.context)
         postfixOperator.clear()
       }
     }
 
     def emit(token: Token): Unit = {
       CatCodeGrouper.finish()
-      tokens.addOne(token)
+      tokens.addOne(token >> source.context)
     }
     def finish(closingToken: Option[String], isAssignToken: Boolean = false): Result[(TokenStream, Option[String])] = {
       CatCodeGrouper.finish()
@@ -219,6 +217,7 @@ class Lexer {
         Result.Value((TokenStream(tokens.toVector), closingToken))
       }
     }
+    def lastTokenOption: Option[Token] = tokens.lastOption.map(_.token)
 
     while (true) this.catCodes.tokCode(source) match {
       case TokResult.Eof if closingCatCodes.isEmpty => return finish(None)
@@ -247,7 +246,7 @@ class Lexer {
           }
           case CatCode.Open =>
             CatCodeGrouper.finish()
-            tokens.lastOption match {
+            lastTokenOption match {
               case Some(_: Token.Identifier) | Some(_: Token.Number) | Some(_: Token.Post) | Some(_: Token.Application)
                    | Some(_: Token.Group) | Some(_: Token.Error) | Some(_: Token.PrimaryBracket) | Some(_: Token.SecondaryBracket)
                    | Some(_: Token.TertiaryBracket) | Some(_: Token.Match) | Some(_: Token.Lambda) | Some(Token.PartialApplication)
@@ -257,7 +256,7 @@ class Lexer {
                   case result => return result
                 }
               // References to operators can be applied
-              case Some(_: Token.Operator) | Some(_: Token.Sign) | Some(_: Token.Post) if tokens.length >= 2 && tokens(tokens.length - 2) == Token.Reference =>
+              case Some(_: Token.Operator) | Some(_: Token.Sign) | Some(_: Token.Post) if tokens.length >= 2 && tokens(tokens.length - 2).token == Token.Reference =>
                 this.tokenizePart(source, Set(CatCode.Close), Set()) match {
                   case Result.Value((tokens: TokenStream, _)) => emit(Token.Application(tokens))
                   case result => return result
@@ -269,19 +268,19 @@ class Lexer {
                 }
             }
           case CatCode.StartPrimary => this.tokenizePart(source, Set(CatCode.End, CatCode.EndMatch), Set()) match {
-            case Result.Value((bracketTokens: TokenStream, _)) if bracketTokens.tokens.nonEmpty && tokens.lastOption.contains(Token.Reference) => return Result.Error("Bracket reference can't contain elements.")
+            case Result.Value((bracketTokens: TokenStream, _)) if bracketTokens.tokens.nonEmpty && lastTokenOption.contains(Token.Reference) => return Result.Error("Bracket reference can't contain elements.")
             case Result.Value((bracketTokens: TokenStream, Some(closingToken: String))) => emit(Token.PrimaryBracket(Util.makeString(content), closingToken, bracketTokens))
             case Result.Value(_) => return Result.Error("Could not tokenize input: Closed expression was gobbled without an end token when parsing primary. This should not happen.")
             case result => return result
           }
           case CatCode.StartSecondary => this.tokenizePart(source, Set(CatCode.End, CatCode.EndMatch), Set()) match {
-            case Result.Value((bracketTokens: TokenStream, _)) if bracketTokens.tokens.nonEmpty && tokens.lastOption.contains(Token.Reference) => return Result.Error("Bracket reference can't contain elements.")
+            case Result.Value((bracketTokens: TokenStream, _)) if bracketTokens.tokens.nonEmpty && lastTokenOption.contains(Token.Reference) => return Result.Error("Bracket reference can't contain elements.")
             case Result.Value((bracketTokens: TokenStream, Some(closingToken: String))) => emit(Token.SecondaryBracket(Util.makeString(content), closingToken, bracketTokens))
             case Result.Value(_) => return Result.Error("Could not tokenize input: Closed expression was gobbled without an end token when parsing secondary. This should not happen.")
             case result => return result
           }
           case CatCode.StartTertiary => this.tokenizePart(source, Set(CatCode.End, CatCode.EndMatch), Set()) match {
-            case Result.Value((bracketTokens: TokenStream, _)) if bracketTokens.tokens.nonEmpty && tokens.lastOption.contains(Token.Reference) => return Result.Error("Bracket reference can't contain elements.")
+            case Result.Value((bracketTokens: TokenStream, _)) if bracketTokens.tokens.nonEmpty && lastTokenOption.contains(Token.Reference) => return Result.Error("Bracket reference can't contain elements.")
             case Result.Value((bracketTokens: TokenStream, Some(closingToken: String))) => emit(Token.TertiaryBracket(Util.makeString(content), closingToken, bracketTokens))
             case Result.Value(_) => return Result.Error("Could not tokenize input: Closed expression was gobbled without an end token when parsing tertiary. This should not happen.")
             case result => return result

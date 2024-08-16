@@ -1,6 +1,8 @@
 package tuxcalculator.core.lexer
 
-sealed trait Token
+sealed trait Token {
+  def >>(context: String): ContextualToken = ContextualToken(this, context)
+}
 case object Token {
   case class Identifier(name: String) extends Token
   case class Number(integral: String, fraction: Option[String], exponent: Option[String]) extends Token
