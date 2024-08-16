@@ -122,6 +122,9 @@ class Lexer {
           case CatCode.Post if postfixOperator.nonEmpty => postfixOperator.addAll(content)
           // Check for cat-codes that appear inside a number
           case CatCode.DecimalSep if !insideNumber || (!insideFractional && !insideExponent) =>
+            finishIdentifier()
+            finishOperator()
+            finishPost()
             insideNumber = true
             insideFractional = true
           case CatCode.DecimalSep => return Some(Result.Error("Dangling decimal separator"))
