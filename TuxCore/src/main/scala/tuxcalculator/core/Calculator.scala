@@ -81,13 +81,18 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
     }
   }
   
-  private def formatComplex(value: BigComplex, forceSpacedOutSign: Boolean = false): String = {
+  private def formatComplex(value: BigComplex, forceSpacedOutSign: Boolean = false, inMultiplicativeContext: Boolean = false): String = {
     value match {
       case _ if value.isReal => formatReal(value.re, forceSpacedOutSign = forceSpacedOutSign)
       case _ if properties(CalculatorProperties.Polar) == CalculatorProperties.PolarType.Radians =>
-        formatReal(value.abs(mathContext), forceSpacedOutSign = forceSpacedOutSign) + " ∠ " + formatReal(value.angle(mathContext), allowScientific = false)
+        formatReal(value.abs(mathContext), forceSpacedOutSign = forceSpacedOutSign) + "∠" + formatReal(value.angle(mathContext), allowScientific = false)
       case _ if properties(CalculatorProperties.Polar) == CalculatorProperties.PolarType.Degrees =>
-        formatReal(value.abs(mathContext), forceSpacedOutSign = forceSpacedOutSign) + " ∠ " + formatReal(value.angle(mathContext).multiply(new BigDec("180"), mathContext).divide(constantPi, mathContext), allowScientific = false, suffix = "°")
+        formatReal(value.abs(mathContext), forceSpacedOutSign = forceSpacedOutSign) + "∠" + formatReal(value.angle(mathContext).multiply(new BigDec("180"), mathContext).divide(constantPi, mathContext), allowScientific = false, suffix = "°")
+      case _ if inMultiplicativeContext =>
+        val sign = if (value.re.signum == -1) { if (forceSpacedOutSign) " - "  else "-" } else { if (forceSpacedOutSign) " + " else "" }
+        val term = "(" + formatReal(value.re.abs) + formatReal(value.im.multiply(BigDec.valueOf(value.re.signum)), suffix = "i", forceSpacedOutSign = true) + ")"
+        sign + term
+      case _ if inMultiplicativeContext => "(" + formatReal(value.re, forceSpacedOutSign = forceSpacedOutSign) + formatReal(value.im, suffix = "i", forceSpacedOutSign = true) + ")"
       case _ => formatReal(value.re, forceSpacedOutSign = forceSpacedOutSign) + formatReal(value.im, suffix = "i", forceSpacedOutSign = true)
     }
   }
@@ -100,13 +105,13 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
       val minus: String = if (first) "-" else " - "
       power match {
         case _ if coefficient.num.round(outputMathContext) == BigComplex.ZERO => None
-        case 0 => Some(formatComplex(coefficient.num, forceSpacedOutSign = !first))
+        case 0 => Some(formatComplex(coefficient.num, forceSpacedOutSign = !first, inMultiplicativeContext = true))
         case 1 if coefficient.num.round(outputMathContext) == BigComplex.ONE => Some(plus + variable)
         case 1 if coefficient.num.round(outputMathContext) == BigComplex.ONE.negate() => Some(minus + variable)
-        case 1 => Some(formatComplex(coefficient.num, forceSpacedOutSign = !first) + variable)
+        case 1 => Some(formatComplex(coefficient.num, forceSpacedOutSign = !first, inMultiplicativeContext = true) + variable)
         case n if coefficient.num.round(outputMathContext) == BigComplex.ONE => Some(plus + variable + Util.toSuperscript(n))
         case n if coefficient.num.round(outputMathContext) == BigComplex.ONE.negate() => Some(minus + variable + Util.toSuperscript(n))
-        case n => Some(formatComplex(coefficient.num, forceSpacedOutSign = !first) + variable + Util.toSuperscript(n))
+        case n => Some(formatComplex(coefficient.num, forceSpacedOutSign = !first, inMultiplicativeContext = true) + variable + Util.toSuperscript(n))
       }
     }
     coefficients.zipWithIndex.reverse.flatMap(entry => partString(entry._1, entry._2)).mkString
