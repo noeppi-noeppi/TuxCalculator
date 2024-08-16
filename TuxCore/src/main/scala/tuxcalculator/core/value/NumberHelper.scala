@@ -11,6 +11,10 @@ object NumberHelper {
     case (MathRealNumeric(n1), MathRealNumeric(n2)) => MathNumber(n1.bigDecimal.add(n2.bigDecimal, calc.mathContext))
     case (MathNumeric(n1), MathNumeric(n2)) => MathNumber(n1.add(n2, calc.mathContext))
     case (MathPolynomic(p1), MathPolynomic(p2)) => PolynomialOps.add(calc, p1, p2)
+    case (mat: MathMatrix, MathNumeric(n)) if n == BigComplex.ZERO => mat
+    case (MathNumeric(n), mat: MathMatrix) if n == BigComplex.ZERO => mat
+    case (mat: MathMatrix, num @ MathPolynomic(_)) if mat.width == mat.height => MatrixOps.transform(mat, entry => if (entry.row == entry.col) add(entry.value, num) else entry.value)
+    case (num @ MathPolynomic(_), mat: MathMatrix) if mat.width == mat.height => MatrixOps.transform(mat, entry => if (entry.row == entry.col) add(num, entry.value) else entry.value)
     case (m1: MathMatrix, m2: MathMatrix) => MatrixOps.join(m1, m2, add)
     case _ => MathError("Can't add " + calc.format(v1) + " and " + calc.format(v2))
   }
@@ -19,6 +23,10 @@ object NumberHelper {
     case (MathRealNumeric(n1), MathRealNumeric(n2)) => MathNumber(n1.bigDecimal.subtract(n2.bigDecimal, calc.mathContext))
     case (MathNumeric(n1), MathNumeric(n2)) => MathNumber(n1.subtract(n2, calc.mathContext))
     case (MathPolynomic(p1), MathPolynomic(p2)) => PolynomialOps.sub(calc, p1, p2)
+    case (mat: MathMatrix, MathNumeric(n)) if n == BigComplex.ZERO => mat
+    case (MathNumeric(n), mat: MathMatrix) if n == BigComplex.ZERO => MatrixOps.transform(mat, entry => sub(MathNumber.Zero, entry.value))
+    case (mat: MathMatrix, num @ MathPolynomic(_)) if mat.width == mat.height => MatrixOps.transform(mat, entry => if (entry.row == entry.col) sub(entry.value, num) else entry.value)
+    case (num @ MathPolynomic(_), mat: MathMatrix) if mat.width == mat.height => MatrixOps.transform(mat, entry => if (entry.row == entry.col) sub(num, entry.value) else sub(MathNumber.Zero, entry.value))
     case (m1: MathMatrix, m2: MathMatrix) => MatrixOps.join(m1, m2, sub)
     case _ => MathError("Can't sub " + calc.format(v1) + " and " + calc.format(v2))
   }
