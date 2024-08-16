@@ -139,7 +139,7 @@ class CalculatorParsers(val ctx: ParsingContext) extends Parsers  {
   def basic_expression: this.Parser[Ast.Expression] = value | variable | reference | special | failure("expression expected")
   
   // Used by post_action_partial_apply_simple and shorthand_expression
-  def partial_apply_simple: this.Parser[Ast.Expression] = accept(Token.PartialApplication) ~> opt(acceptMatch("sign", { case Token.Sign(name) => name })) ~ (value | variable) ^^ {
+  def partial_apply_simple: this.Parser[Ast.Expression] = accept(Token.PartialApplication) ~> opt(acceptMatch("sign", { case Token.Sign(name) => name })) ~ (value | variable | reference | special) ^^ {
     case Some(sgn) ~ value => Ast.SignApplication(sgn, value)
     case None ~ value => value
   }

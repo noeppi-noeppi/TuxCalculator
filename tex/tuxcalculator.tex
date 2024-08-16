@@ -288,7 +288,7 @@
     A partial application can fix the base in place and produce a new function:
     \verb|log_(e)| is a function which takes a single argument and calculates the natural logarithm.
     
-    If a function is partially applied to a single argument that consists of only a number or a variable, the parentheses can be omitted.
+    If a function is partially applied to a single argument that consists of only a number, variable or reference, the parentheses can be omitted.
     Thus, the above example could also be written as \verb|log_e|.
     
     Partial application also supports placeholders that are not partially applied but will be filled in when the function is called.
@@ -910,7 +910,7 @@
         \verb|#cdr|       & A function that gets all except the first element of a list or vector.
                             $ \mathrm{cdr} $ on a single-element vector is an error as empty vectors don't exist. \\
         \verb|#cl|        & $ \mathrm{cl}(n,p) $ ceils $ n $ to precision $ p $. \\
-        \verb|#coeff|     & Takes a polynomial and returns a list of all the coefficient.
+        \verb|#coeff|     & Takes a polynomial and returns a list of all the coefficients.
                             The leading coefficient is the last element in the list. \\
         \verb|#cosh|      & The hyperbolic cosine function. \\
         \verb|#det|       & A function that computes the determinant of a matrix. \\
