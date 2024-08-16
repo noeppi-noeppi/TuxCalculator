@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
@@ -63,6 +64,10 @@ public final class TextFrontEnd extends DesktopFrontend {
         builder.jna(false);
         builder.jansi(false);
         try (Terminal terminal = builder.build()) {
+            if (terminal.getType() != null && terminal.getType().toLowerCase(Locale.ROOT).startsWith("xterm")) {
+                terminal.writer().write("\u001B]0;" + Main.windowTitle() + "\u0007");
+                terminal.writer().flush();
+            }
             CalculatorHighlighter highlighter = new CalculatorHighlighter(calc);
             CalculatorCompleter completer = new CalculatorCompleter(calc);
             LineReader reader = LineReaderBuilder.builder()
