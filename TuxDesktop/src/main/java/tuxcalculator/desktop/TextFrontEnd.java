@@ -64,10 +64,7 @@ public final class TextFrontEnd extends DesktopFrontend {
         builder.jna(false);
         builder.jansi(false);
         try (Terminal terminal = builder.build()) {
-            if (terminal.getType() != null && terminal.getType().toLowerCase(Locale.ROOT).startsWith("xterm")) {
-                terminal.writer().write("\u001B]0;" + Main.windowTitle() + "\u0007");
-                terminal.writer().flush();
-            }
+            boolean isXTerm = terminal.getType() != null && terminal.getType().toLowerCase(Locale.ROOT).startsWith("xterm");
             CalculatorHighlighter highlighter = new CalculatorHighlighter(calc);
             CalculatorCompleter completer = new CalculatorCompleter(calc);
             LineReader reader = LineReaderBuilder.builder()
@@ -105,6 +102,10 @@ public final class TextFrontEnd extends DesktopFrontend {
             terminal.writer().flush();
             //noinspection InfiniteLoopStatement
             while (true) {
+                if (isXTerm) {
+                    terminal.writer().write("\u001B]0;" + Main.windowTitle() + "\u0007");
+                    terminal.writer().flush();
+                }
                 String line = reader.readLine();
                 if (line == null) continue;
                 TuxCalculator.Result result = calc.parse(line);
@@ -123,7 +124,7 @@ public final class TextFrontEnd extends DesktopFrontend {
         }
     }
     
-    public static String ansiString(String text, int color) {
+    private static String ansiString(String text, int color) {
         AttributedStringBuilder sb = new AttributedStringBuilder();
         sb.style(AttributedStyle.DEFAULT.foreground(color));
         sb.append(text);
