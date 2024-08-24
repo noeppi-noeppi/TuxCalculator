@@ -2,7 +2,6 @@ package tuxcalculator.core.lexer
 
 import org.apache.commons.text.StringEscapeUtils
 import org.apache.commons.text.translate.{AggregateTranslator, LookupTranslator}
-import tuxcalculator.core.lexer.Lexer.UNESCAPE
 import tuxcalculator.core.util.{Result, Util}
 
 import scala.collection.mutable.ListBuffer
@@ -30,7 +29,7 @@ class CharacterSource(private val codePoints: Vector[Int], private[this] val off
 }
 
 object Lexer {
-  val UNESCAPE = new AggregateTranslator(
+  private[this] val UNESCAPE = new AggregateTranslator(
     new LookupTranslator(Map[CharSequence, CharSequence]("\\s" -> " ").asJava),
     StringEscapeUtils.UNESCAPE_JAVA
   )
@@ -38,6 +37,12 @@ object Lexer {
   val LambdaTerminators: Set[CatCode] = Set(
     CatCode.Close, CatCode.End, CatCode.EndMatch, CatCode.ElementSep, CatCode.GroupSep, CatCode.VarArg, CatCode.Follow
   )
+  
+  def safeUnescape(string: String): Result[String] = try {
+    Result.Value(UNESCAPE.translate(string))
+  } catch {
+    case e: IllegalArgumentException => Result.Error(e.getMessage)
+  }
 }
 
 class Lexer {
@@ -326,7 +331,7 @@ class Lexer {
   }
   
   private def tokenizeStringUntil(source: CharacterSource, code: CatCode): Either[String, Result[Nothing]] = tokenizeStringWithoutEscaping(source, code) match {
-    case Left(string) => Left(UNESCAPE.translate(string))
+    case Left(string) => Lexer.safeUnescape(string).either
     case Right(result) => Right(result)
   }
   
@@ -337,9 +342,14 @@ class Lexer {
       var interpolateName: String = ""
       val sb: StringBuilder = new StringBuilder()
       while (true) source.lookupToken(0) match {
-        case None =>
-          parts.addOne((interpolateName, UNESCAPE.translate(sb.toString())))
-          return Left(Token.Error(UNESCAPE.translate(string), parts.head._2, parts.tail.toVector))
+        case None => Lexer.safeUnescape(sb.toString()) match {
+          case Result.Value(unescaped) =>
+            parts.addOne((interpolateName, unescaped))
+            return Lexer.safeUnescape(string)
+              .map(fullUnescaped => Token.Error(fullUnescaped, parts.head._2, parts.tail.toVector))
+              .either
+          case err: Result.Error => return Right(err)
+        }
         case Some(currentChar) if sb.nonEmpty && sb.last == '\\' && (sb.toString.reverseIterator.takeWhile(_ == '\\').length % 2) != 0 =>
           sb.append(Character.toString(currentChar))
           source.advance(1)
@@ -347,10 +357,13 @@ class Lexer {
           case CharacterMapping(CatCode.Interpolate, content) =>
             source.advance(content.length)
             this.catCodes.tokCode(source) match {
-              case CharacterMapping(CatCode.Letter | CatCode.Exp, _) =>
-                parts.addOne((interpolateName, UNESCAPE.translate(sb.toString())))
-                sb.clear()
-                interpolateName = consumeIdentifierFromSource(source)
+              case CharacterMapping(CatCode.Letter | CatCode.Exp, _) => Lexer.safeUnescape(sb.toString()) match {
+                case Result.Value(unescaped) =>
+                  parts.addOne((interpolateName, unescaped))
+                  sb.clear()
+                  interpolateName = consumeIdentifierFromSource(source)
+                case err: Result.Error => return Right(err)
+              }
               case _ => sb.append(Util.makeString(content))
             }
           case _ =>
@@ -372,11 +385,7 @@ class Lexer {
       case Some(currentChar) => this.catCodes.tokCode(source) match {
         case CharacterMapping(matchCode, content) if code == matchCode =>
           source.advance(content.length)
-          try {
-            return Left(sb.toString())
-          } catch {
-            case e: IllegalArgumentException => return Right(Result.Error(e.getMessage))
-          }
+          return Left(sb.toString())
         case _ =>
           sb.append(Character.toString(currentChar))
           source.advance(1)

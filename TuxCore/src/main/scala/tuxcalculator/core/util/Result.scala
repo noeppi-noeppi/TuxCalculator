@@ -9,6 +9,8 @@ sealed trait Result[+T] {
   def map[U](func: T => U): Result[U]
   def flatMap[U](func: T => Result[U]): Result[U]
   def trace(line: => String): Result[T]
+  def either: Either[T, Result.Error]
+  def eitherUnwrap: Either[T, String]
 }
 
 object Result {
@@ -25,6 +27,8 @@ object Result {
     override def map[U](func: T => U): Value[U] = Value(func(value))
     override def flatMap[U](func: T => Result[U]): Result[U] = func(value)
     override def trace(line: => String): this.type = this
+    override def either: Left[T, Nothing] = Left(value)
+    override def eitherUnwrap: Left[T, Nothing] = Left(value)
   }
 
   case class Error(msg: String, trace: Vector[String] = Vector()) extends Result[Nothing] {
@@ -35,5 +39,7 @@ object Result {
     override def map[U](func: Nothing => U): this.type = this
     override def flatMap[U](func: Nothing => Result[U]): this.type = this
     override def trace(line: => String): Error = Error(msg, trace.appended(line))
+    override def either: Right[Nothing, Result.Error] = Right(this)
+    override def eitherUnwrap: Right[Nothing, String] = Right(msg)
   }
 }
