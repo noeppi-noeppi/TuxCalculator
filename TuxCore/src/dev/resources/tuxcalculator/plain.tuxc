@@ -342,8 +342,9 @@ let temp = \[(n):n=0->0;(n)->temp(n)]
 def H(n) = temp(n)
 
 let temp = #memoize(\k,q->#fold(#fill(k,id),[0,1],\l,elem->[l(0)+l(1),q*l(1)])(0))
-def faq(q,n) = #fold(#fill(n,\idx->temp(idx+1,q)),1,#mul)
-def faq(n) = n!
+let temp = \[(q,n):#eq(q,1)->#gamma(n+1,0);(q,n)->#fold(#fill(n,\idx->temp(idx+1,q)),1,#mul)]
+def faq(q,n) = temp(q,n)
+def faq(n) = #gamma(n+1,0)
 let temp = \[(q,n,k):n<k->0;(q,n,k)->faq(q,n)/(faq(q,k)*faq(q,n-k))]
 def nCr(n,k) = temp(1,n,k)
 def nCr(q,n,k) = temp(q,n,k)
