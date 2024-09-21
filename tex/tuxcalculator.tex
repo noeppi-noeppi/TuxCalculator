@@ -327,6 +327,8 @@
         \item \textsl{Tertiary Brackets} take zero or more arguments separated by \verb|,| and \verb|;| as used in a matrix literal.
               The arguments must follow a rectangular shape.
     \end{itemize}
+    A bracket function is uniquely defined by a combination of an opening and closing token.
+    That means, multiple brackets with the same opening token can coexist as long as they have the same kind and different closing tokens.
     
     \subsection{Order of operations}\label{subsec:order-of-operations}
     The order of operations is defined as follows:

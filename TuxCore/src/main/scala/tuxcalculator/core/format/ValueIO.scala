@@ -157,7 +157,7 @@ object ValueIO {
       out.writeInt(ctx.strings.add(op.name))
       out.writeInt(ctx.functions.add(op.function))
     case op: BracketFunction => out.writeByte(4)
-      out.writeInt(ctx.strings.add(op.name))
+      out.writeInt(ctx.strings.add(op.open))
       out.writeInt(ctx.strings.add(op.close))
       out.writeInt(ctx.functions.add(op.function))
     case op: ChainedOperatorFunction => out.writeByte(5)

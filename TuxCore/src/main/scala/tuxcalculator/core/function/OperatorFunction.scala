@@ -8,8 +8,8 @@ class OperatorFunction(val name: String, val function: MathFunction) extends Mat
   override def applyTo(calc: Calculator, args: Vector[MathValue]): MathValue = function.applyTo(calc, args)
 }
 
-class BracketFunction(val name: String, val close: String, val function: MathFunction) extends MathFunction {
-  override def string(calc: Calculator): String = name + " ... " + close
+class BracketFunction(val open: String, val close: String, val function: MathFunction) extends MathFunction {
+  override def string(calc: Calculator): String = open + " ... " + close
   override def applyTo(calc: Calculator, args: Vector[MathValue]): MathValue = function.applyTo(calc, args)
 }
 
