@@ -55,7 +55,6 @@ sealed trait TokResult
 case class CharacterMapping(code: CatCode, content: Vector[Int]) extends TokResult
 object TokResult {
   case object Eof extends TokResult
-  case class Ambiguity(tokens: Set[String]) extends TokResult
 }
 
 class CatCodes {
@@ -82,7 +81,7 @@ class CatCodes {
     case this.catCodes(code) => code
     case _ => this.defaultCatCode(codePoint)
   }
-  
+
   def tokCode(source: Lookahead[Int]): TokResult = {
     def tokMatches(tok: Vector[Int]): Boolean = tok.zipWithIndex.forall {
       case (codePoint, idx) => source.lookupToken(idx).contains(codePoint)
@@ -94,10 +93,12 @@ class CatCodes {
         case None => TokResult.Eof
       }
       case 1 => CharacterMapping(this.tokCodes(matchingTokens.head), matchingTokens.head)
-      case _ => TokResult.Ambiguity(matchingTokens.map(Util.makeString))
+      case _ =>
+        val longestMatchingToken = matchingTokens.maxBy(_.length)
+        CharacterMapping(this.tokCodes(longestMatchingToken), longestMatchingToken)
     }
   }
-  
+
   def catCode(codePoint: Int, code: CatCode): Unit = {
     if (this.catCodes.get(codePoint).contains(CatCode.Escape)) this.escapeCharacters.remove(codePoint)
     this.catCodes(codePoint) = code

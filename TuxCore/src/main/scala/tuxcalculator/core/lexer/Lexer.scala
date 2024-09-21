@@ -229,7 +229,6 @@ class Lexer {
       case TokResult.Eof if closingCatCodes.isEmpty => return finish(None)
       case TokResult.Eof if closingCatCodes.sizeIs == 1 => return Result.Error("Closed expression is not terminated. Expected " + closingCatCodes.head)
       case TokResult.Eof => return Result.Error("Closed expression is not terminated. Expected one of " + closingCatCodes.mkString(", "))
-      case TokResult.Ambiguity(matches) => return Result.Error("Ambiguous tok-codes: Multiple matches: " + matches.mkString(", "))
       case CharacterMapping(code, content) => 
         // If there is the possibility to break before a lookahead catcode, we must always break when a comment starts
         // or we might actually read after the comment.

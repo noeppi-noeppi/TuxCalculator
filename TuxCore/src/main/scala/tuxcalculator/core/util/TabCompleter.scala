@@ -67,7 +67,6 @@ object TabCompleter {
           case CharacterMapping(code, _) if !Identifier.contains(code) => return true
           case CharacterMapping(_, content) => pos += content.size
           case TokResult.Eof => return false;
-          case TokResult.Ambiguity(_) => pos += 1;
         }
         false
       }

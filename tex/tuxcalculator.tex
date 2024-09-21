@@ -510,7 +510,8 @@
     \subsection{Catcodes}\label{subsec:catcodes}
     When the calculator is parsing input, it reads the text character by character, assigning each character a \TeX-inspired \textit{catcode}.
     TuxCalculator also knows the concept of a \textit{tokcode} which assigns a catcode to a sequence of characters.
-    Tokcodes are matched before catcodes, however, if at any point multiple tokcodes match, the calculator will immediately emit a parser error.
+    Tokcodes are matched before catcodes.
+    If multiple tokcodes match, the longest one will be taken.
     TuxCalculator knows about the following catcodes:
     \begin{longtable}{p{0.2\textwidth}p{\dimexpr0.8\textwidth-3\tabcolsep\relax}}
         \verb|letter|          & Part of an identifier. \\
