@@ -658,13 +658,17 @@
     \subsection{Brackets}
     Lists all brackets defined by the \textit{plain} format.
     \begin{longtable}{p{0.18\textwidth}p{0.02\textwidth}p{\dimexpr0.8\textwidth-4\tabcolsep\relax}}
-        $ [ \cdots ] $             & \makebox[0pt][r]{secondary} & Creates a list from all its arguments. \\
-        $ \{ \cdots \} $           & \makebox[0pt][r]{secondary} & Creates a list from all its arguments removing duplicates and sorting the elements. \\
-        $ \#[ \cdots ] $           & \makebox[0pt][r]{tertiary}  & Creates a matrix from all its arguments. \\
-        $ \#\{ \cdots \} $         & \makebox[0pt][r]{tertiary}  & Joins multiple matrices given in a rectangular shape into one big matrix.
-                                                                   Their widths and heights must match, so that a rectangular matrix can be produced.
-                                                                   Any element that is not a matrix is treated as a $ 1 \times 1 $ matrix containing that elment. \\
-        $ \langle \cdots \rangle $ & \makebox[0pt][r]{secondary} & Computes the scalar product of its arguments. \\
+        $ \mathopen{[} \cdots \mathclose{]} $             & \makebox[0pt][r]{secondary} & Creates a list from all its arguments. \\
+        $ \mathopen{\{} \cdots \mathclose{\}} $           & \makebox[0pt][r]{secondary} & Creates a list from all its arguments removing duplicates and sorting the elements. \\
+        $ \mathopen{\#[} \cdots \mathclose{]} $           & \makebox[0pt][r]{tertiary}  & Creates a matrix from all its arguments. \\
+        $ \mathopen{\#\{} \cdots \mathclose{\}} $         & \makebox[0pt][r]{tertiary}  & Joins multiple matrices given in a rectangular shape into one big matrix.
+                                                                                          Their widths and heights must match, so that a rectangular matrix can be produced.
+                                                                                          Any element that is not a matrix is treated as a $ 1 \times 1 $ matrix containing that elment. \\
+        $ \mathopen{\langle} \cdots \mathclose{\rangle} $ & \makebox[0pt][r]{secondary} & Computes the scalar product of its arguments. \\
+        $ \mathopen{\lfloor} \cdots \mathclose{\rceil} $  & \makebox[0pt][r]{primary}   & Rounds its argument to a whole number. \\
+        $ \mathopen{\lceil} \cdots \mathclose{\rfloor} $  & \makebox[0pt][r]{primary}   & The same as $ \lfloor \cdots \rceil $. \\
+        $ \mathopen{\lfloor} \cdots \mathclose{\rfloor} $ & \makebox[0pt][r]{primary}   & Rounds its argument to a whole number, always rounding towards $ -\infty $. \\
+        $ \mathopen{\lceil} \cdots \mathclose{\rceil} $   & \makebox[0pt][r]{primary}   & Rounds its argument to a whole number, always rounding towards $ \infty $. \\
     \end{longtable}
     
     \subsection{Sign operators}
@@ -709,6 +713,7 @@
         $ + $                        & \makebox[0pt][r]{$ -300 $} & Adds two numbers or concatenates two lists. \\
         $ - $                        & \makebox[0pt][r]{$ -300 $} & If both arguments are lists, $ a - b $ is the list $ a $ with all elements removed, that are contained in the list $ b $. Otherwise subtracts two numbers. \\
         $ \dblcolon $                & \makebox[0pt][r]{$ -399 $} & $ h \dblcolon t $ prepends $ h $ to the list $ t $. \\
+        $ .. $                       & \makebox[0pt][r]{$ -399 $} & $ a \mathbin{..} b $ creates a list with all integers in the interval $ [a;b] $. Giving bounds in reverse order causes the order of the elements to be reversed.  \\
         $ \in $                      & \makebox[0pt][r]{$ -500 $} & $ a \in l $ checks whether the list $ l $ contains the element $ a $. \\
         $ \notin $                   & \makebox[0pt][r]{$ -500 $} & $ a \notin l $ checks whether the list $ l $ does not contain the element $ a $.\\
         $ \circ $                    & \makebox[0pt][r]{$ -500 $} & $ f \circ g $ chains the functions f and g to $ f(g(x)) $ \\

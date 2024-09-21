@@ -437,6 +437,15 @@ def acsch(x) = asinh(1/x)
 def acoth(x) = atanh(1/x)
 
 ? More signs or operators that need the functions to be in place
+cat '⌊' = start primary
+cat '⌈' = start primary
+cat '⌋' = end
+cat '⌉' = end
+def ⌊⌋(x) = #fl(x,0)
+def ⌈⌉(x) = #cl(x,0)
+def ⌊⌉(x) = #rd(x,0)
+def ⌈⌋(x) = #rd(x,0)
+
 cat '√' = sign
 cat '∂' = sign
 cat '∫' = sign
@@ -460,6 +469,7 @@ cat '∉' = operator
 cat '·' = operator
 cat '×' = operator
 cat '∘' = operator
+tok '..' = operator
 cat '∙' = operator
 def(-900) ∨(a,b) = #or(a,b)
 def(-900) ⊽(a,b) = #xor(#or(a,b),true)
@@ -475,6 +485,7 @@ def(-500) ∈(e,l) = has(l,e)
 def(-500) ∉(e,l) = #if(has(l,e),false,true)
 let temp = \[(a:#isp,b:#isp):#if(#or(#isn(a),#isn(b)),#f,#t)->a(b);(a,b)->\arg...->a(b(arg...))]
 def(-500) ∘(a,b) = temp(a,b)
+def(-399) ..(a,b) = range(a,b)
 def(-200) ·(a,b) = a * b
 let temp = \[(a:#isv,b:#isv)->cross(a,b);(a:#isl,b:#isl)->cprod(a,b);(a,b)->'Can only use × on vectors and lists']
 def(-200) ×(a,b) = temp(a,b)
