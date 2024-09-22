@@ -39,6 +39,20 @@ object TestOperators {
     }
   }
   
+  object IsInteger extends CalculatorSpecial.SimpleFunction("isi", 1) {
+    override protected def result(calc: Calculator, args: Vector[MathValue]): MathValue = args.head match {
+      case MathRealNumeric(num) if num.isWhole => MathTrue
+      case _ => MathFalse
+    }
+  }
+  
+  object IsNaturalNumber extends CalculatorSpecial.SimpleFunction("isc", 1) {
+    override protected def result(calc: Calculator, args: Vector[MathValue]): MathValue = args.head match {
+      case MathRealNumeric(num) if num.isWhole && num.signum >= 0 => MathTrue
+      case _ => MathFalse
+    }
+  }
+  
   object IsPolynomial extends CalculatorSpecial.SimpleFunction("isp", 1) {
     override protected def result(calc: Calculator, args: Vector[MathValue]): MathValue = args.head match {
       case MathPolynomic(_) => MathTrue

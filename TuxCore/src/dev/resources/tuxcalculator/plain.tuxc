@@ -267,7 +267,7 @@ let temp = \[(l):#eq(#len(l),0)->[];(l)->#fill(#fold(l,1,\s,c->s*#len(c)),\i->#f
 def cprod(l...) = temp(l)
 
 ? Functions for polynomials
-let temp = \[(cc,n):#or(#if(#eq(#fl(n,0),n),#f,#t),#lt(n,0))->'Can\'t get $n th coefficient of polynomial';(cc,n):#lt(n,#len(cc))->cc(n);(cc,n)->0]
+let temp = \[(cc,n:#isc):#lt(n,#len(cc))->cc(n);(cc,n:#isc)->0;(cc,n)->'Can\'t get $n th coefficient of polynomial']
 def coeff(p,n) = temp(#coeff(p),n)
 let temp = \[(c):#eq(c,nil)->'Degree of the 0-polynomial';(c)->#len(c)-1]
 def pdeg(p) = temp(#coeff(p))
@@ -319,7 +319,7 @@ def dnum(l) = dnum(10,l)
 
 ? For non-negative real integers, only take real part.
 ? Prevents rounding errors on the imaginary parts
-let temp = \[(x:#isr):#eq(#fl(x,0),x)->#re(#gamma(x+1,-1)/#e);(x)->#gamma(x+1,-1)/#e]
+let temp = \[(x:#isi)->#re(#gamma(x+1,-1)/#e);(x)->#gamma(x+1,-1)/#e]
 def sf(x) = temp(x)
 def Gamma(x) = #gamma(x,0)
 def Gamma(p,x) = #gamma(p,x)
@@ -351,7 +351,7 @@ def nCr(q,n,k) = temp(q,n,k)
 let temp = \[(q,n,k):n<k->0;(q,n,k)->faq(q,n)/faq(q,n-k)]
 def nPr(n,k) = temp(1,n,k)
 def nPr(q,n,k) = temp(q,n,k)
-let temp = #memoize(\[(n):#if(#eq(#fl(n,0),n),n<=0,true)->'fib is only defined for positive integers, got $n';(n):n<=2->1;(n)->(#[1,1;1,0]^(n-2)*#[1,1])(1)])
+let temp = #memoize(\[(n):#if(#isi(n),n<=0,true)->'fib is only defined for positive integers, got $n';(n):n<=2->1;(n)->(#[1,1;1,0]^(n-2)*#[1,1])(1)])
 def fib(n) = temp(n)
 
 def catalan(n) = #rd(nCr(2*n,n)-nCr(2*n,n+1),0)

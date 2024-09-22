@@ -38,6 +38,8 @@ class CalculatorSpecials(private val calc: PropertyAccess) {
     TestOperators.IsBoolean,
     TestOperators.IsNumber,
     TestOperators.IsReal,
+    TestOperators.IsInteger,
+    TestOperators.IsNaturalNumber,
     TestOperators.IsPolynomial,
     ListOperators.Fold,
     ListOperators.Len,
