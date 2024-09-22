@@ -856,6 +856,12 @@
         $ \mathrm{Ci}(x) $                         & Computes the cosine integral $ -\int_x^{\infty} u^{-1}\,\sin u\,du $. \\
         $ \mathrm{prime}(n) $                      & Gets whether $ n $ is a prime number. \\
         $ \mathrm{totient}(n) $                    & Computer the euler totient function $ \phi(n) $. \tabgap
+        $ \mathrm{hyper}(n, a, b) $                & Calculates $ \mathrm{hyper}\,n(a, b) = a \mathop{\uparrow^{(n-2)}} b $, the $ n $-hyper operator. \\
+        $ \mathrm{hyperlog}(n, a, b) $             & Calculates the $ n $-hyper logarithm.
+                                                     The $ n $-hyper logarithm base $ a $ of $ b $ counts how often the $ n - 1 $-hyper logarithm base $ a $ needs to be applied to get a result smaller than $ 1 $.
+                                                     The $ 3 $-hyper logarithm is the regular logarithm.
+                                                     $ \mathrm{hyper} $ and $ \mathrm{hyperlog} $ hold the identity $ \mathrm{hyperlog}\,n(a, \mathrm{hyper}\,n(a, b)) = b $. \\
+        $ \mathrm{itlog}(n, x) $                   & Calculates the iterated logarithm $ log^{*}_n(x) = \mathrm{hyperlog}\,4(n, x) $ \tabgap
         $ \mathrm{vec}(l\dots) $                   & Creates a vector from all arguments. $ \mathrm{vec}() $ without any arguments produces an error. \\
         $ \mathrm{dim}(a) $                        & Gets the dimensions of a matrix $ a $ as $ [ h, w ] $ with the width $ w $ and the height $ h $. \\
         $ \mathrm{T}(a) $                          & Gets the transpose of the matrix $ a $. \\

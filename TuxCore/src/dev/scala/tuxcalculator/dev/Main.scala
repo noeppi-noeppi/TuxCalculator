@@ -26,7 +26,10 @@ object Main {
     val errors = FileLoader.load(calc, source.resolve("tuxcalculator/plain.tuxc"))
     if (errors.nonEmpty) {
       System.err.println("There were errors compiling plain.tuxc")
-      for (error <- errors) System.err.println("  " + error)
+      for (error <- errors) {
+        System.err.println("  " + error.msg)
+        for (trace <- error.trace) System.err.println("    " + trace)
+      }
       System.exit(1)
     }
   }

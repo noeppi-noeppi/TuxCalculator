@@ -387,6 +387,14 @@ def prime(n) = temp(n)
 let temp = \[(n:#isr):n<=0->0;(n)->count(n,\d->#eq(gcd(n,d),1))]
 def totient(n) = temp(n)
 
+let temp = \[(f,n,a,b):#eq(n,0)->#add(b,1);(f,n,a,b):#eq(n,1)->#add(a,b);(f,n,a,b):#eq(n,2)->#mul(a,b);(f,n,a,b):#eq(n,3)->#pow(a,b);(f,n:#isc,a:#isc,b:#isc):#eq(b,0)->1;(f,n:#isc,a:#isc,b:#isc)->f(n-1,a,f(n,a,b-1));(f,n,a,b)->'The hyper-operator can\'t be generalized to non-natural numbers beyond n=3']
+let temp = Y(temp)
+def hyper(n,a,b) = temp(n,a,b)
+let temp = \[(f,n,a,b):#eq(n,0)->#sub(b,1);(f,n,a,b):#eq(n,1)->#sub(b,a);(f,n,a,b):#eq(n,2)->#div(b,a);(f,n,a,b):#eq(n,3)->#ln(b)/#ln(a);(f,n,a,b):#if(#isc(n),#f,#t)->'The $n-hyperlog is undefined.';(f,n,a:#isr,b:#isr):#and(#lt(1,a),#lt(1,b))->1+f(n,a,f(n-1,a,b));(f,n,a:#isr,b:#isr):#lt(1,a)->0;(f,n,a,b)->'Invalid hyperlog argument or base.']
+let temp = Y(temp)
+def hyperlog(n,a,b) = temp(n,a,b)
+def itlog(n,x) = hyperlog(4,n,x)
+
 def dim(a) = [#ht(a),#wd(a)]
 def T(a) = #fill(#wd(a),#ht(a),\r,c->a(c,r))
 def CT(a) = #fill(#wd(a),#ht(a),\r,c->conj(a(c,r)))
