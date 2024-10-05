@@ -79,6 +79,7 @@ public final class TextFrontEnd extends DesktopFrontend {
                     .option(LineReader.Option.AUTO_LIST, false)
                     .option(LineReader.Option.AUTO_MENU_LIST, false)
                     .option(LineReader.Option.RECOGNIZE_EXACT, false)
+                    .option(LineReader.Option.ERASE_LINE_ON_FINISH, true)
                     .build();
             AtomicReference<TuxCalculator.Error> pendingError = new AtomicReference<>();
             reader.getWidgets().put("tuxc-show-trace", () -> {
@@ -100,6 +101,7 @@ public final class TextFrontEnd extends DesktopFrontend {
             reader.getKeyMaps().get(LineReader.MAIN).bind(new Reference("tuxc-show-trace"), KeyMap.ctrl('t'));
             terminal.writer().println(Main.title());
             terminal.writer().flush();
+            String lastInput = "";
             //noinspection InfiniteLoopStatement
             while (true) {
                 if (isXTerm) {
@@ -108,6 +110,15 @@ public final class TextFrontEnd extends DesktopFrontend {
                 }
                 String line = reader.readLine();
                 if (line == null) continue;
+                if (line.isBlank()) {
+                    line = lastInput;
+                } else {
+                    lastInput = line;
+                }
+                if (line.isBlank()) continue;
+                reader.printAbove(highlighter.highlight(reader, line));
+                terminal.writer().flush();
+                
                 TuxCalculator.Result result = calc.parse(line);
                 if (result instanceof TuxCalculator.Error err) {
                     terminal.writer().println(ansiString(result.toString(), AttributedStyle.BRIGHT + AttributedStyle.RED));

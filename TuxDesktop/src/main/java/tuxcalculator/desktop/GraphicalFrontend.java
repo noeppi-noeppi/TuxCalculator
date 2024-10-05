@@ -111,12 +111,12 @@ public abstract class GraphicalFrontend extends DesktopFrontend {
         this.setCurrentText("");
         this.placeCursorAt(0);
 
-        if (term.isEmpty()) term = this.lastInput;
+        if (term.isBlank()) term = this.lastInput;
         else this.lastInput = term;
-        if (term.isEmpty()) return;
+        if (term.isBlank()) return;
 
-        if (this.historyBuffer.isEmpty() || !Objects.equals(term, this.historyBuffer.get(0))) {
-            this.historyBuffer.add(0, term);
+        if (this.historyBuffer.isEmpty() || !Objects.equals(term, this.historyBuffer.getFirst())) {
+            this.historyBuffer.addFirst(term);
         }
         this.arrowIdx = -1;
 
