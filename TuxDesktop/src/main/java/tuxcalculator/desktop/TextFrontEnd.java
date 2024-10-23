@@ -65,6 +65,7 @@ public final class TextFrontEnd extends DesktopFrontend {
         builder.jansi(false);
         try (Terminal terminal = builder.build()) {
             boolean isXTerm = terminal.getType() != null && terminal.getType().toLowerCase(Locale.ROOT).startsWith("xterm");
+            terminal.echo(false);
             CalculatorHighlighter highlighter = new CalculatorHighlighter(calc);
             CalculatorCompleter completer = new CalculatorCompleter(calc);
             LineReader reader = LineReaderBuilder.builder()
