@@ -268,7 +268,7 @@ def cprod(l...) = temp(l)
 
 ? Functions for polynomials
 let temp = \[(cc,n:#isc):#lt(n,#len(cc))->cc(n);(cc,n:#isc)->0;(cc,n)->'Can\'t get $n th coefficient of polynomial']
-def coeff(p,n) = temp(#coeff(p),n)
+def coeff(n,p) = temp(#coeff(p),n)
 let temp = \[(c):#eq(c,nil)->'Degree of the 0-polynomial';(c)->#len(c)-1]
 def pdeg(p) = temp(#coeff(p))
 let temp = \[(c):#eq(c,nil)->nil;(c)->#map(c,\elem->elem/c(#len(c)-1))]
@@ -360,7 +360,7 @@ let temp = #memoize(\n->#rd(#fold(#fill(n,\k->(((k+1)^n)*temp(n-k))/((k+1)!)),0,
 let temp = \[(n):#eq(n,0)->1;(n)->temp(n)]
 def bell(n) = temp(n)
 let temp = #memoize(\n->#fold(#fill(n,\k->X-k),1,#mul))
-def stirling1(n,k) = coeff(temp(n),k)
+def stirling1(n,k) = coeff(k,temp(n))
 let temp = #memoize(\n,k->#rd(#fold(#fill(k+1,\j->(#if((k-j)%2=0,1,-1)*(j^n))/(((k-j)!)*(j!))),0,#add),0))
 let temp = \[(n,k):#and(#eq(n,0),#eq(k,0))->1;(n,k):#eq(n,0)->0;(n,k)->temp(n,k)]
 def stirling2(n,k) = temp(n,k)
