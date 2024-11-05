@@ -363,6 +363,10 @@ class Lexer {
                   sb.clear()
                   interpolatePrefix = Util.makeString(interpolationSignContent)
                   interpolateName = consumeIdentifierFromSource(source)
+                  this.catCodes.tokCode(source) match {
+                    case CharacterMapping(CatCode.Space, spaceContent) => source.advance(spaceContent.length)
+                    case _ =>
+                  }
                 case err: Result.Error => return Right(err)
               }
               case _ => sb.append(Util.makeString(interpolationSignContent))

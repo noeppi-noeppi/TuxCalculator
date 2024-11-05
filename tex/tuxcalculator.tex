@@ -569,6 +569,8 @@
     \begin{itemize}
         \item If the error token appears in a \verb|cat|, \verb|tok| or \verb|dump| command, no interpolation is performed.
         \item Whenever a token with the \verb|interpolate| catcode is found that is not escaped by a backslash and immediately followed by a token with \verb|letter| or \verb|exp| catcode, the longest sequence of tokens with \verb|letter|, \verb|digit| or \verb|exp| catcodes is used as the name for a variable to interpolate.
+        \item If the token after the last token in that sequence has the \verb|space| catcode, it is ignored.
+              To get an actual space after the interpolation sequence, it has to be duplicated or escaped using a backslash.
         \item When the expression is bound, the current value of the variable will be queried.
               If that value is not an error value, it is inserted into the error string.
               Otherwise no interpolation is performed.

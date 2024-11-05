@@ -202,7 +202,7 @@ def sort(l) = #sort(l,@<)
 def sort(l,f) = #sort(l,f)
 let temp = \l,p->#sort(l,(\a,b->p(a)<p(b)))
 def arrange(l,p) = temp(l,#memoize(p))
-let temp = \[(v,x):#eq(x,-1)->'$v not found in list';(v,x)->x]
+let temp = \[(v,x):#eq(x,-1)->'$v\ not found in list';(v,x)->x]
 def index(l,v) = temp(v,#idx(l,0,#eq_v))
 
 def sqrt(x) = x^0.5
@@ -219,7 +219,7 @@ def gcd(l1,l...) = #fold(l,l1,#gcd)
 def lcm(a,b) = (a*b)/#gcd(a,b)
 def lcm(l1,l...) = #fold(l,l1,@lcm)
 def bezout(a,b) = #bezout(a,b)
-let temp = \[(a,n,c):#eq((a*c)%%n,1)->c%%n;(a,n,c)->'Ring element $a not invertible mod $n']
+let temp = \[(a,n,c):#eq((a*c)%%n,1)->c%%n;(a,n,c)->'Ring element $a\ not invertible mod $n']
 def rinv(n,a) = temp(a,n,#car(#bezout(a,n)))
 
 def round(x,p) = #rd(x,p)
