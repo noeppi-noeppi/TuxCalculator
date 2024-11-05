@@ -8,7 +8,7 @@ import java.nio.file.Path;
  */
 public interface TuxCalculatorAPI {
 
-    String VERSION = "1.1.6";
+    String VERSION = "1.1.7";
 
     /**
      * Create a new ini-mode calculator.
