@@ -1,9 +1,13 @@
 package tuxcalculator.core.expression
 
 import org.apache.commons.text.StringEscapeUtils
+import org.apache.commons.text.translate.{AggregateTranslator, LookupTranslator}
 import tuxcalculator.core.Calculator
+import tuxcalculator.core.expression.Ast.Error.ESCAPE
 import tuxcalculator.core.function.Descriptor
 import tuxcalculator.core.value.MathValue
+
+import scala.jdk.CollectionConverters._
 
 object Ast {
   
@@ -96,12 +100,17 @@ object Ast {
   }
   
   case class Error(head: String, tail: Vector[Error.TailPart]) extends Expression {
-    override def string(calc: Calculator): String = "'" + head + tail.map(entry => entry.toString).mkString + "'"
+    override def string(calc: Calculator): String = "'" + ESCAPE.translate(head) + tail.map(entry => entry.toString).mkString + "'"
   }
   
   object Error {
+    private val ESCAPE = new AggregateTranslator(
+      new LookupTranslator(Map[CharSequence, CharSequence]("'" -> "\\'").asJava),
+      StringEscapeUtils.ESCAPE_JAVA
+    )
+    
     case class TailPart(prefix: String, variableName: String, followingText: String) {
-      override def toString: String = prefix + variableName + " " + followingText
+      override def toString: String = prefix + variableName + " " + ESCAPE.translate(followingText)
     }
   }
 
