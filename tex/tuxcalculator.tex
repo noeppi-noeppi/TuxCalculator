@@ -564,7 +564,7 @@
     \subsection{Error interpolation}\label{subsec:errinterp}
     The \verb|interpolate| catcode allows interpolating values from the calculator into error messages.
     By default, there is no character assigned to this catcode but if you for example assigned the \verb|interpolate| to \verb|$|, you could write \verb|'$a'| to get an error which contains the value of the variable $ a $ as a string.
-    Only simple variables can be interpolated, no complex expressions or refereneces.
+    Only simple variables can be interpolated, no complex expressions or references.
     The specific rules for interpolation are outlined below:
     \begin{itemize}
         \item If the error token appears in a \verb|cat|, \verb|tok| or \verb|dump| command, no interpolation is performed.

@@ -12,7 +12,7 @@ case object Token {
   case class Sign(name: String) extends Token
   case class Post(name: String) extends Token
   case object Reference extends Token
-  case class Error(nonInterpolatedString: String, interpolatedHead: String, interpolatedTail: Vector[(String, String)]) extends Token
+  case class Error(nonInterpolatedString: String, interpolatedHead: String, interpolatedTail: Vector[Error.TailPart]) extends Token
   case class Application(tokens: TokenStream) extends Token
   case class Group(tokens: TokenStream) extends Token
   case class PrimaryBracket(open: String, close: String, tokens: TokenStream) extends Token
@@ -27,4 +27,8 @@ case object Token {
   case object PartialApplication extends Token
   case object Answer extends Token
   case object Eof extends Token
+  
+  object Error {
+    case class TailPart(prefix: String, variableName: String, followingText: String)
+  }
 }

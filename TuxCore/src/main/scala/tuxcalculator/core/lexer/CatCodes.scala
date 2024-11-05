@@ -1,7 +1,5 @@
 package tuxcalculator.core.lexer
 
-import tuxcalculator.core.util.Util
-
 import java.util.Locale
 import scala.collection.mutable
 

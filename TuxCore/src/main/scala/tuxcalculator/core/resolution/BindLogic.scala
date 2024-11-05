@@ -54,23 +54,23 @@ object BindLogic {
       case Ast.Variable(name) if !freeVars.contains(name) => Ast.Value(checkError(name, variable(name)))
       case Ast.Error(head, Vector()) => Ast.Value(MathError(head)) // Short path
       case Ast.Error(head, tail) =>
-        val newParts: ListBuffer[(String, String)] = ListBuffer(("", head))
-        for ((varName, message) <- tail) {
-          if (freeVars.contains(varName)) {
-            newParts.addOne((varName, message))
+        val newParts: ListBuffer[Ast.Error.TailPart] = ListBuffer(Ast.Error.TailPart("", "", head))
+        for (Ast.Error.TailPart(prefix, variableName, followingText) <- tail) {
+          if (freeVars.contains(variableName)) {
+            newParts.addOne(Ast.Error.TailPart(prefix, variableName, followingText))
           } else {
-            val varStr = checkError(varName, variable(varName)) match {
-              case _: MathError => "$" + varName
+            val varStr = checkError(variableName, variable(variableName)) match {
+              case _: MathError => prefix + variableName
               case value => calc.format(value)
             }
-            val modifiedLastPart = (newParts.last._1, newParts.last._2 + varStr + message)
+            val modifiedLastPart = Ast.Error.TailPart(newParts.last.prefix, newParts.last.variableName, newParts.last.followingText + varStr + followingText)
             newParts.dropInPlace(1).addOne(modifiedLastPart)
           }
         }
         if (newParts.sizeIs == 1) {
-          Ast.Value(MathError(newParts.head._2))
+          Ast.Value(MathError(newParts.head.followingText))
         } else {
-          Ast.Error(newParts.head._2, newParts.tail.toVector)
+          Ast.Error(newParts.head.followingText, newParts.tail.toVector)
         }
       case Ast.Reference(target) => Ast.Value(checkError(target.name, calc.resolution.reference(target)))
       case Ast.Special(name) => Ast.Value(checkError("#" + name, calc.specials(name)))

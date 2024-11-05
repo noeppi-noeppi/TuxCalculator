@@ -114,7 +114,7 @@ class CalculatorParsers(val ctx: ParsingContext) extends Parsers  {
       case Result.Error(msg, _) => Error(msg, TokenReader.Empty)
     }
     case Token.Answer => Success(Ast.Answer, TokenReader.Empty)
-    case Token.Error(_, head, tail) => Success(Ast.Error(head, tail), TokenReader.Empty)
+    case Token.Error(_, head, tail) => Success(Ast.Error(head, tail.map(part => Ast.Error.TailPart(part.prefix, part.variableName, part.followingText))), TokenReader.Empty)
     case Token.Group(tokens) => parseTokens(expression, tokens).map(expr => Ast.Group(expr))
     case Token.PrimaryBracket(open, close, tokens) => parseTokens(expression, tokens).map(expr => Ast.PrimaryBracket(open, close, expr))
     case Token.SecondaryBracket(open, close, tokens) => parseTokens(argument_list, tokens).map(expr => Ast.SecondaryBracket(open, close, expr.toVector))

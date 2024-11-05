@@ -337,15 +337,16 @@ class Lexer {
   private def tokenizeInterpolatedStringUntil(source: CharacterSource, code: CatCode): Either[Token.Error, Result[Nothing]] = tokenizeStringWithoutEscaping(source, code) match {
     case Left(string) =>
       val source: CharacterSource = new CharacterSource(Util.decomposeString(string))
-      val parts: ListBuffer[(String, String)] = ListBuffer()
+      val parts: ListBuffer[Token.Error.TailPart] = ListBuffer()
+      var interpolatePrefix: String = ""
       var interpolateName: String = ""
       val sb: StringBuilder = new StringBuilder()
       while (true) source.lookupToken(0) match {
         case None => Lexer.safeUnescape(sb.toString()) match {
           case Result.Value(unescaped) =>
-            parts.addOne((interpolateName, unescaped))
+            parts.addOne(Token.Error.TailPart(interpolatePrefix, interpolateName, unescaped))
             return Lexer.safeUnescape(string)
-              .map(fullUnescaped => Token.Error(fullUnescaped, parts.head._2, parts.tail.toVector))
+              .map(fullUnescaped => Token.Error(fullUnescaped, parts.head.followingText, parts.tail.toVector))
               .either
           case err: Result.Error => return Right(err)
         }
@@ -353,17 +354,18 @@ class Lexer {
           sb.append(Character.toString(currentChar))
           source.advance(1)
         case Some(currentChar) => this.catCodes.tokCode(source) match {
-          case CharacterMapping(CatCode.Interpolate, content) =>
-            source.advance(content.length)
+          case CharacterMapping(CatCode.Interpolate, interpolationSignContent) =>
+            source.advance(interpolationSignContent.length)
             this.catCodes.tokCode(source) match {
               case CharacterMapping(CatCode.Letter | CatCode.Exp, _) => Lexer.safeUnescape(sb.toString()) match {
                 case Result.Value(unescaped) =>
-                  parts.addOne((interpolateName, unescaped))
+                  parts.addOne(Token.Error.TailPart(interpolatePrefix, interpolateName, unescaped))
                   sb.clear()
+                  interpolatePrefix = Util.makeString(interpolationSignContent)
                   interpolateName = consumeIdentifierFromSource(source)
                 case err: Result.Error => return Right(err)
               }
-              case _ => sb.append(Util.makeString(content))
+              case _ => sb.append(Util.makeString(interpolationSignContent))
             }
           case _ =>
             sb.append(Character.toString(currentChar))

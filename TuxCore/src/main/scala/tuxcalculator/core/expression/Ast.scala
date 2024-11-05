@@ -95,8 +95,14 @@ object Ast {
     override def string(calc: Calculator): String = calc.format(value)
   }
   
-  case class Error(head: String, tail: Vector[(String, String)]) extends Expression {
-    override def string(calc: Calculator): String = "'" + head + tail.map(entry => "$" + entry._1 + " " + entry._2).mkString + "'"
+  case class Error(head: String, tail: Vector[Error.TailPart]) extends Expression {
+    override def string(calc: Calculator): String = "'" + head + tail.map(entry => entry.toString).mkString + "'"
+  }
+  
+  object Error {
+    case class TailPart(prefix: String, variableName: String, followingText: String) {
+      override def toString: String = prefix + variableName + " " + followingText
+    }
   }
 
   case class Reference(target: DefTarget) extends Expression {

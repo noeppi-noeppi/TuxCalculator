@@ -15,10 +15,11 @@ object AstIO {
     case 4 =>
       val head: String = ctx.strings.get(in.readInt())
       val tailLen = in.readInt()
-      val tail: Vector[(String, String)] = (for (_ <- 0 until tailLen) yield {
-        val varName = ctx.strings.get(in.readInt())
-        val message = ctx.strings.get(in.readInt())
-        (varName, message)
+      val tail: Vector[Ast.Error.TailPart] = (for (_ <- 0 until tailLen) yield {
+        val prefix = ctx.strings.get(in.readInt())
+        val variableName = ctx.strings.get(in.readInt())
+        val followingText = ctx.strings.get(in.readInt())
+        Ast.Error.TailPart(prefix, variableName, followingText)
       }).toVector
       Ast.Error(head, tail)
     case 5 => Ast.Reference(Ast.DefTarget.Function(ctx.strings.get(in.readInt())))
@@ -120,9 +121,10 @@ object AstIO {
     case Ast.Error(head, tail) => out.writeByte(4)
       out.writeInt(ctx.strings.add(head))
       out.writeInt(tail.length)
-      for ((varName, message) <- tail) {
-        out.writeInt(ctx.strings.add(varName))
-        out.writeInt(ctx.strings.add(message))
+      for (Ast.Error.TailPart(prefix, variableName, followingText) <- tail) {
+        out.writeInt(ctx.strings.add(prefix))
+        out.writeInt(ctx.strings.add(variableName))
+        out.writeInt(ctx.strings.add(followingText))
       }
     case Ast.Reference(Ast.DefTarget.Function(name)) => out.writeByte(5)
       out.writeInt(ctx.strings.add(name))
