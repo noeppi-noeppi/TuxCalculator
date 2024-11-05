@@ -73,7 +73,7 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
     if (forceSpacedOutSign) {
       val sign = if (value.signum == -1) " - " else " + "
       sign + formatReal(value.abs, suffix = suffix, allowScientific = allowScientific, forceSpacedOutSign = false)
-    } else new BigDecimal(value.round(outputMathContext).bigDecimal, mathContext) match {
+    } else new BigDecimal(Util.safeRound(value, outputMathContext).bigDecimal, mathContext) match {
       case v if v.abs < 1000000 && v.abs >= 0.0001 => Util.safeStripTrailingZeros(v).toPlainString + suffix
       case v if v.isWhole && v.abs < 100000000 => Util.safeStripTrailingZeros(v).toPlainString + suffix
       case v if allowScientific => Util.formatScientific(Util.safeStripTrailingZeros(v)) + (if (suffix.nonEmpty) " " + suffix else "")
@@ -104,13 +104,13 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
       val plus: String = if (first) "" else " + "
       val minus: String = if (first) "-" else " - "
       power match {
-        case _ if coefficient.num.round(outputMathContext) == BigComplex.ZERO => None
+        case _ if Util.safeRound(coefficient.num, outputMathContext) == BigComplex.ZERO => None
         case 0 => Some(formatComplex(coefficient.num, forceSpacedOutSign = !first, inMultiplicativeContext = true))
-        case 1 if coefficient.num.round(outputMathContext) == BigComplex.ONE => Some(plus + variable)
-        case 1 if coefficient.num.round(outputMathContext) == BigComplex.ONE.negate() => Some(minus + variable)
+        case 1 if Util.safeRound(coefficient.num, outputMathContext) == BigComplex.ONE => Some(plus + variable)
+        case 1 if Util.safeRound(coefficient.num, outputMathContext) == BigComplex.ONE.negate() => Some(minus + variable)
         case 1 => Some(formatComplex(coefficient.num, forceSpacedOutSign = !first, inMultiplicativeContext = true) + variable)
-        case n if coefficient.num.round(outputMathContext) == BigComplex.ONE => Some(plus + variable + Util.toSuperscript(n))
-        case n if coefficient.num.round(outputMathContext) == BigComplex.ONE.negate() => Some(minus + variable + Util.toSuperscript(n))
+        case n if Util.safeRound(coefficient.num, outputMathContext) == BigComplex.ONE => Some(plus + variable + Util.toSuperscript(n))
+        case n if Util.safeRound(coefficient.num, outputMathContext) == BigComplex.ONE.negate() => Some(minus + variable + Util.toSuperscript(n))
         case n => Some(formatComplex(coefficient.num, forceSpacedOutSign = !first, inMultiplicativeContext = true) + variable + Util.toSuperscript(n))
       }
     }

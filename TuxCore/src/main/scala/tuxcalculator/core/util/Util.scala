@@ -1,8 +1,10 @@
 package tuxcalculator.core.util
 
+import ch.obermuhlner.math.big.BigComplex
+
 import java.io.{PrintWriter, StringWriter}
 import java.lang.{StringBuilder => JStringBuilder}
-import java.math.{BigDecimal => BigDec}
+import java.math.{MathContext, BigDecimal => BigDec}
 
 object Util {
   
@@ -18,6 +20,22 @@ object Util {
   } catch {
     case _: ArithmeticException => num.setScale(Int.MinValue)
   }
+  
+  // Safely round a number to a math context. If rounding to the given math context would underflow
+  // uses a math context with the same rounding mode but a raised precision that is enough to handle
+  // rounding.
+  def safeRound(num: BigComplex, mc: MathContext): BigComplex = BigComplex.valueOf(safeRound(num.re, mc), safeRound(num.im, mc))
+  def safeRound(num: BigDecimal, mc: MathContext): BigDecimal = { val (newNum, newMc) = doSafeRound(num.bigDecimal, mc); new BigDecimal(newNum, newMc) }
+  def safeRound(num: BigDec, mc: MathContext): BigDec = doSafeRound(num, mc)._1
+  def doSafeRound(num: BigDec, mc: MathContext): (BigDec, MathContext) = {
+    val scaleDrop: Long = num.precision().toLong - mc.getPrecision.toLong
+    if ((num.scale().toLong - scaleDrop).isValidInt) return (num.round(mc), mc)
+    println("S=" + num.scale() + " P=" + num.precision() + " R=" + mc.getPrecision + " D=" + scaleDrop + " O=" + (num.scale().toLong - scaleDrop) + " M=" + (Int.MinValue - num.scale().toLong + scaleDrop))
+    val raisedPrecision: Int = (Int.MinValue - num.scale().toLong + num.precision().toLong).toInt
+    val raisedMc: MathContext = new MathContext(raisedPrecision, mc.getRoundingMode)
+    (num.round(raisedMc), raisedMc)
+  }
+  
   
   // Always use scientific notation with a single digit before the decimal separator.
   // Required to make number formatting consistent
