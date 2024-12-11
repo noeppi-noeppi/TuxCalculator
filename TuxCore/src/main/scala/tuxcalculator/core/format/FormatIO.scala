@@ -55,6 +55,7 @@ object FormatIO {
       case 2 => CalculatorProperties.PolarType.Degrees
       case _ => throw new InvalidFormatException("Invalid polar formatting in format.")
     })
+    calc.properties.set(CalculatorProperties.Autoref, in.readBoolean())
     
     val answer = calc.resolution.read(in)
     calc.finish(answer)
@@ -97,6 +98,7 @@ object FormatIO {
       case CalculatorProperties.PolarType.Radians => out.writeByte(1)
       case CalculatorProperties.PolarType.Degrees => out.writeByte(2)
     }
+    out.writeBoolean(calc.properties(CalculatorProperties.Autoref))
     
     calc.resolution.write(out)
   }

@@ -29,7 +29,6 @@ tok 'ans' = answer
 set precision = 24
 set output = 16
 set normalization = 'nfc'
-set highlight = #t
 
 ? Eagerly bind all the definitions in this file, so later redefinitions won't break our functions
 ? Will be set back later
@@ -508,6 +507,11 @@ def nchain(n, f) = temp(#fill(n,\idx->f))
 
 ? Remove our temporary value
 rem temp
+
+? Set some calculator properties, that should not be while loading this file
+? to values suitable for the generated format.
+set highlight = #t
+set autoref = #t
 
 ? Reset modifications made only for this file:
 ? Remove the special catcode, so there is no access to specials by default.

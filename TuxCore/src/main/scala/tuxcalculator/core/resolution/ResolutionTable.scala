@@ -1,6 +1,7 @@
 package tuxcalculator.core.resolution
 
 import tuxcalculator.core.Calculator
+import tuxcalculator.core.data.CalculatorProperties
 import tuxcalculator.core.expression.{Ast, ExpressionHelper}
 import tuxcalculator.core.format.{AstIO, FormatContext}
 import tuxcalculator.core.function.{BracketFunction, ChainedOperatorFunction, GlobalFunction, OperatorFunction}
@@ -33,7 +34,11 @@ class ResolutionTable(private val calc: Calculator) {
   private[this] var frontendErrorOnUnboundValue: Boolean = false
   
   def priority(name: String): Int = priorities.getOrElse(name, 0)
-  def variable(name: String): MathValue = variables.getOrElse(name, unbound("Unbound value: '" + name + "'"))
+  def variable(name: String): MathValue = variables.get(name) match {
+    case Some(variable) => variable
+    case None if calc.properties(CalculatorProperties.Autoref) => maybeGlobalFunction(name: String).getOrElse(unbound("Unbound value: '" + name + "'"))
+    case None => unbound("Unbound value: '" + name + "'")
+  }
   def globalFunction(name: String): MathValue = functions.getOrElse(name, unbound("Unbound global function: '" + name + "'"))
   def maybeGlobalFunction(name: String): Option[MathValue] = functions.get(name)
   def operator(name: String): MathValue = operators.getOrElse(name, unbound("Unbound operator: '" + name + "'"))

@@ -43,7 +43,7 @@ object CalculatorProperties {
   
   // New calculator properties must be added to this set, to the apply method and be stored and loaded in FormatIO
   def allProperties: Set[String] = Set[String](
-    "precision", "output", "truncate", "eager", "normalization", "highlight", "polar"
+    "precision", "output", "truncate", "eager", "normalization", "highlight", "polar", "autoref"
   )
   
   def apply(name: String): Either[CalculatorProperty[_], String] = name match {
@@ -54,6 +54,7 @@ object CalculatorProperties {
     case "normalization" => Left(Normalization)
     case "highlight" => Left(Highlight)
     case "polar" => Left(Polar)
+    case "autoref" => Left(Autoref)
     case _ => Right("Unknown calculator property: '" + name + "'")
   }
   
@@ -124,5 +125,10 @@ object CalculatorProperties {
     val None: PolarType = Value("none")
     val Radians: PolarType = Value("radians")
     val Degrees: PolarType = Value("degrees")
+  }
+  
+  case object Autoref extends CalculatorProperty[Boolean] {
+    override def default: Boolean = false
+    override def from(calc: Calculator, value: MathValue): Either[Boolean, MathValue] = ValueHelper.make(calc) { ValueHelper.boolean(value) }
   }
 }

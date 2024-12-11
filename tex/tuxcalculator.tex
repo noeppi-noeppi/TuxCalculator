@@ -142,7 +142,7 @@
     Note that a global function and a variable can coexist with the same name.
     Suppose you have a variable and a global function named \verb|f|.
     Just the string \verb|f| gives the content of the variable.
-    \verb|f()| however, would call the global function.
+    \verb|f()| however invokes the global function.
     To call the variable, use \verb|(f)()|.
     
     \subsubsection{Character escaping}
@@ -242,13 +242,16 @@
     However, \verb|ln -2| does not work as it contains a \verb|-| operator and is therefore interpreted as $ 2 $ subtracted from the variable \verb|ln|.
 
     \subsubsection{References to functions}
-    Using the reference notation, it's possible to convert global functions as well as operators and brackets into function values.
+    To obtain a function value of a global function, it is usually enough to use the name of the function as if it was a variable.
+    If a variable of the same name is already defined or the function is an operator or bracket, reference notation is required.
+    Function references always start with \verb|@| followed by the function name:
     \begin{verbatim}
         @sqrt     \x -> sqrt(x)
         @-        \x -> -x         \a,b -> a - b    \a,b,c -> a - b - c
         @[]       \a... -> [a...]
     \end{verbatim}
     The first value is the square root function, which is equivalent to the lambda on the right.
+    If no variable with the name \verb|sqrt| exists, it can also be written as \verb|sqrt|.
     The second value is the minus function.
     If applied to one single argument, it behaves like the unary minus operator.
     If applied to two or more arguments, it treats them as if they were written in an operator chain without any parenthesis.
@@ -339,7 +342,7 @@
         \item Applications and partial applications to a value
         \item Sign operators
         \item Postfix operators
-        \item Binary operators ordered by their \textsl{priority} value from highest to lowest.
+        \item Binary operators ordered by their \textsl{priority} value from highest to lowest
     \end{enumerate}
     \endgroup
     
@@ -504,6 +507,10 @@
     It can also take values \verb|'rad'| and \verb|'deg'| for formatting complex numbers in polar form with the angle given in radians or degrees respectively.
     If assigned to a non-error value, a \textsl{true} value is treated as \verb|'rad'|, a \textsl{false} value is treated as \verb|''|.
     
+    \subsection{\texttt{autoref}}\label{subsec:autoref}
+    \verb|autoref| controls whether references to undefined variables are automatically converted into function references.
+    It defaults to \verb|true|.
+    
     \section{Advanced}\label{sec:advanced}
     This section describes advanced features of TuxCalculator that are not necessary but still useful for using TuxCalculator and provide greater insight in how it works.
     
@@ -603,6 +610,7 @@
             \verb|normalization| & \verb|''|    \\
             \verb|highlight|     & \verb|false| \\
             \verb|polar|         & \verb|''|    \\
+            \verb|autoref|       & \verb|false| \\
         \end{tabular}
     \end{center}
     
