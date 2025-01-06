@@ -87,6 +87,25 @@ object InputHighlighter {
         Some(Util.makeString(cmd))
       case _ => None
     }
+    def advanceUntilNextAssign(lookahead: Lookahead[Int])(typeFunc: PartialFunction[String, HighlightType]): Unit = {
+      skipSpace()
+      var off = 0
+      var offNonSpace = 0
+      var done = false
+      while (!done) {
+        calc.lexer.lookup(lookahead.offset(off)) match {
+          case CharacterMapping(CatCode.Assign, _) => done = true
+          case CharacterMapping(CatCode.Space, content) => off += content.length
+          case CharacterMapping(_, content) => off += content.length; offNonSpace = off
+          case _ => done = true
+        }
+      }
+      Util.makeString(codePoints.slice(idx, idx + offNonSpace)) match {
+        case typeFunc(highlightType) => advance(offNonSpace, highlightType)
+        case _ => advance(offNonSpace, HighlightType.PLAIN)
+      }
+      skipSpace()
+    }
     
     // Lookahead that updates with each advance
     val lookahead: Lookahead[Int] = (ahead: Int) => codePoints.drop(idx).drop(ahead).headOption
@@ -100,22 +119,15 @@ object InputHighlighter {
     val commandName = initialCommandName match {
       case Some("set") => maybeAdvanceCommand(Set("fmt")) match {
         case Some("fmt") =>
-          var off = 0
-          var done = false
-          while (!done) {
-            skipSpace()
-            calc.lexer.lookup(lookahead.offset(off)) match {
-              case CharacterMapping(CatCode.Assign, _) => done = true
-              case CharacterMapping(_, content) => off += content.length
-              case _ => done = true
-            }
-          }
-          FmtCode.byName(Util.makeString(codePoints.slice(idx, idx + off))) match {
-            case Some(_) => advance(off, HighlightType.CONSTRUCT)
-            case None => advance(off, HighlightType.PLAIN)
+          advanceUntilNextAssign(lookahead) {
+            case fmtCodeString if FmtCode.byName(fmtCodeString).isDefined => HighlightType.CONSTRUCT
           }
           Some("set fmt")
-        case _ => initialCommandName
+        case _ =>
+          advanceUntilNextAssign(lookahead) {
+            case property if CalculatorProperties.allProperties.contains(property) => HighlightType.CONSTRUCT
+          }
+          initialCommandName
       }
       case _ => initialCommandName
     }
