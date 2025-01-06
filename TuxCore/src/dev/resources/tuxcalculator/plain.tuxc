@@ -63,7 +63,7 @@ set normalization = 'nfc'
 set eager = #t
 
 " Allow error interpolation in this file
-cat '$' = interpolate
+cat '§' = interpolate
 
 " booleans and void
 let void = #v
@@ -146,6 +146,7 @@ let temp = \[(a:#ism)->':: on a matrix.';(a)->#cdr(a)]
 def ::(a) = temp(a)
 
 " Operators
+cat '$' = operator
 cat '&' = operator
 cat '|' = operator
 cat '∩' = operator
@@ -163,6 +164,7 @@ cat '^' = operator
 cat '∠' = operator
 cat '⟨' = start secondary
 cat '⟩' = end
+def(-999) $(f,a) = f(a)
 let temp = \a,b->distinct([a...,b...])
 def(-900) ∪(a,b) = temp(a,b)
 let temp = \[(a:#isl,b:#isl)->temp(a,b);(a:#ism,b:#ism)->#mflat(#[a;b]);(a,b)->#or(a,b)]
@@ -220,7 +222,7 @@ def(100) ∠(r,a) = polar(r,a)
 cat '!' = post
 cat '°' = post
 def !(x) = #gamma(x+1,0)
-let temp = \[(x):#eq(x,-1)->[];(x):#eq(x,0)->[];(x:#isr):#lt(0,x)&#eq(#mod(x,2),0)->#fill(#cl(x/2,0),\n->2*n+2);(x:#isr):x>0->#fill(#cl(x/2,0),\n->2*n+1);(x)->'Invalid value for the double factorial: $x']
+let temp = \[(x):#eq(x,-1)->[];(x):#eq(x,0)->[];(x:#isr):#lt(0,x)&#eq(#mod(x,2),0)->#fill(#cl(x/2,0),\n->2*n+2);(x:#isr):x>0->#fill(#cl(x/2,0),\n->2*n+1);(x)->'Invalid value for the double factorial: §x']
 def !!(x) = #fold(temp(x),1,@*)
 def °(x) = x * #pi / 180
 
@@ -229,7 +231,7 @@ def sort(l) = #sort(l,@<)
 def sort(l,f) = #sort(l,f)
 let temp = \l,p->#sort(l,(\a,b->p(a)<p(b)))
 def arrange(l,p) = temp(l,#memoize(p))
-let temp = \[(v,x):#eq(x,-1)->'$v\ not found in list';(v,x)->x]
+let temp = \[(v,x):#eq(x,-1)->'§v\ not found in list';(v,x)->x]
 def index(l,v) = temp(v,#idx(l,0,#eq_v))
 
 def sqrt(x) = x^0.5
@@ -246,7 +248,7 @@ def gcd(l1,l...) = #fold(l,l1,#gcd)
 def lcm(a,b) = (a*b)/#gcd(a,b)
 def lcm(l1,l...) = #fold(l,l1,@lcm)
 def bezout(a,b) = #bezout(a,b)
-let temp = \[(a,n,c):#eq((a*c)%%n,1)->c%%n;(a,n,c)->'Ring element $a\ not invertible mod $n']
+let temp = \[(a,n,c):#eq((a*c)%%n,1)->c%%n;(a,n,c)->'Ring element §a\ not invertible mod §n']
 def rinv(n,a) = temp(a,n,#car(#bezout(a,n)))
 
 def round(x,p) = #rd(x,p)
@@ -294,7 +296,7 @@ let temp = \[(l):#eq(#len(l),0)->[];(l)->#fill(#fold(l,1,\s,c->s*#len(c)),\i->#f
 def cprod(l...) = temp(l)
 
 " Functions for polynomials
-let temp = \[(cc,n:#isc):#lt(n,#len(cc))->cc(n);(cc,n:#isc)->0;(cc,n)->'Can\'t get $n th coefficient of polynomial']
+let temp = \[(cc,n:#isc):#lt(n,#len(cc))->cc(n);(cc,n:#isc)->0;(cc,n)->'Can\'t get §n th coefficient of polynomial']
 def coeff(n,p) = temp(#coeff(p),n)
 let temp = \[(c):#eq(c,nil)->'Degree of the 0-polynomial';(c)->#len(c)-1]
 def pdeg(p) = temp(#coeff(p))
@@ -378,7 +380,7 @@ def nCr(q,n,k) = temp(q,n,k)
 let temp = \[(q,n,k):n<k->0;(q,n,k)->faq(q,n)/faq(q,n-k)]
 def nPr(n,k) = temp(1,n,k)
 def nPr(q,n,k) = temp(q,n,k)
-let temp = #memoize(\[(n):#if(#isi(n),n<=0,true)->'fib is only defined for positive integers, got $n';(n):n<=2->1;(n)->(#[1,1;1,0]^(n-2)*#[1,1])(1)])
+let temp = #memoize(\[(n):#if(#isi(n),n<=0,true)->'fib is only defined for positive integers, got §n';(n):n<=2->1;(n)->(#[1,1;1,0]^(n-2)*#[1,1])(1)])
 def fib(n) = temp(n)
 
 def catalan(n) = #rd(nCr(2*n,n)-nCr(2*n,n+1),0)
@@ -417,7 +419,7 @@ def totient(n) = temp(n)
 let temp = \[(f,n,a,b):#eq(n,0)->#add(b,1);(f,n,a,b):#eq(n,1)->#add(a,b);(f,n,a,b):#eq(n,2)->#mul(a,b);(f,n,a,b):#eq(n,3)->#pow(a,b);(f,n:#isc,a:#isc,b:#isc):#eq(b,0)->1;(f,n:#isc,a:#isc,b:#isc)->f(n-1,a,f(n,a,b-1));(f,n,a,b)->'The hyper-operator can\'t be generalized to non-natural numbers beyond n=3']
 let temp = Y(temp)
 def hyper(n,a,b) = temp(n,a,b)
-let temp = \[(f,n,a,b):#eq(n,0)->#sub(b,1);(f,n,a,b):#eq(n,1)->#sub(b,a);(f,n,a,b):#eq(n,2)->#div(b,a);(f,n,a,b):#eq(n,3)->#ln(b)/#ln(a);(f,n,a,b):#if(#isc(n),#f,#t)->'The $n-hyperlog is undefined.';(f,n,a:#isr,b:#isr):#and(#lt(1,a),#lt(1,b))->1+f(n,a,f(n-1,a,b));(f,n,a:#isr,b:#isr):#lt(1,a)->0;(f,n,a,b)->'Invalid hyperlog argument or base.']
+let temp = \[(f,n,a,b):#eq(n,0)->#sub(b,1);(f,n,a,b):#eq(n,1)->#sub(b,a);(f,n,a,b):#eq(n,2)->#div(b,a);(f,n,a,b):#eq(n,3)->#ln(b)/#ln(a);(f,n,a,b):#if(#isc(n),#f,#t)->'The §n-hyperlog is undefined.';(f,n,a:#isr,b:#isr):#and(#lt(1,a),#lt(1,b))->1+f(n,a,f(n-1,a,b));(f,n,a:#isr,b:#isr):#lt(1,a)->0;(f,n,a,b)->'Invalid hyperlog argument or base.']
 let temp = Y(temp)
 def hyperlog(n,a,b) = temp(n,a,b)
 def itlog(n,x) = hyperlog(4,n,x)
@@ -548,7 +550,7 @@ set autoref = #t
 set eager = #f
 cat '"' = invalid
 cat '#' = invalid
-cat '$' = invalid
+cat '§' = invalid
 void
 
 dump 'plain'
