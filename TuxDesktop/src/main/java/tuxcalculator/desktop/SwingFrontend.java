@@ -6,6 +6,7 @@ import tuxcalculator.api.TuxCalculator;
 import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
@@ -90,7 +91,12 @@ public class SwingFrontend extends GraphicalFrontend {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    SwingFrontend.this.perform(Action.SUBMIT);
+                    if ((e.getModifiersEx() & InputEvent.ALT_DOWN_MASK) == 0) {
+                        SwingFrontend.this.perform(Action.SUBMIT);
+                    } else {
+                        // Alt+Enter doesn't insert a line break in a JTextArea by default, so we do that manually.
+                        SwingFrontend.this.input.replaceSelection("\n");
+                    }
                     e.consume();
                 } else if (e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_KP_UP) {
                     SwingFrontend.this.perform(Action.INCR_HIST);
@@ -178,13 +184,14 @@ public class SwingFrontend extends GraphicalFrontend {
     }
     
     private String makeFontTag(String text, @Nullable String color) {
+        String escapedText = StringEscapeUtils.escapeHtml3(text).replace("\r", "").replace("\n", "<br>");
         if (this.font == null && color == null) {
-            return StringEscapeUtils.escapeHtml3(text);
+            return escapedText;
         } else {
             String fontPart = this.font == null ? "" : " face=\"" + StringEscapeUtils.escapeJson(this.font.getFamily()) + "\"";
             String sizePart = this.font == null ? "" : " style=\"font-size:" + StringEscapeUtils.escapeJson(this.font.getSize2D() + "pt") + ";\"";
             String colorPart = color == null ? "" : " color=\"" + StringEscapeUtils.escapeJson(color) + "\"";
-            return "<font" + fontPart + sizePart + colorPart + ">" + StringEscapeUtils.escapeHtml3(text) + "</font>";
+            return "<font" + fontPart + sizePart + colorPart + ">" + escapedText + "</font>";
         }
     }
 
@@ -193,7 +200,7 @@ public class SwingFrontend extends GraphicalFrontend {
         Font family = selectFontFamily();
         if (family == null) return null;
         Font defaultFont = new JLabel().getFont();
-        return family.deriveFont(defaultFont.getSize2D() + 1.5f);
+        return family.deriveFont(defaultFont.getSize2D() + 1.4f);
     }
 
     @Nullable

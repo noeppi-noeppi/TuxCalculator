@@ -81,6 +81,7 @@ public final class TextFrontEnd extends DesktopFrontend {
                     .option(LineReader.Option.AUTO_MENU_LIST, false)
                     .option(LineReader.Option.RECOGNIZE_EXACT, false)
                     .option(LineReader.Option.ERASE_LINE_ON_FINISH, true)
+                    .option(LineReader.Option.BRACKETED_PASTE, true)
                     .build();
             AtomicReference<TuxCalculator.Error> pendingError = new AtomicReference<>();
             reader.getWidgets().put("tuxc-show-trace", () -> {

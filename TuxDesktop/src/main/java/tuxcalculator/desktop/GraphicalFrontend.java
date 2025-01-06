@@ -121,7 +121,7 @@ public abstract class GraphicalFrontend extends DesktopFrontend {
         this.arrowIdx = -1;
 
         TuxCalculator.Result result = this.calc.parse(term);
-        this.appendLine(term, result);
+        this.appendLine(term.strip(), result);
         this.grabInputFocus();
     }
 

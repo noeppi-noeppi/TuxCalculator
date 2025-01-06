@@ -1,6 +1,7 @@
 package tuxcalculator.desktop;
 
 import org.gnome.gdk.Keyval;
+import org.gnome.gdk.ModifierType;
 import org.gnome.gdk.Rectangle;
 import org.gnome.gtk.*;
 import org.gnome.pango.Weight;
@@ -84,7 +85,7 @@ public class GtkFrontend extends GraphicalFrontend {
             this.outTagError.setForeground("#CC0000");
 
             this.in.connect((Widget.KeyPressEvent) (widget, eventKey) -> {
-                if (eventKey.getKeyval() == Keyval.Return || eventKey.getKeyval().toString().toLowerCase(Locale.ROOT).contains("kp_enter")) {
+                if ((eventKey.getKeyval() == Keyval.Return || eventKey.getKeyval().toString().toLowerCase(Locale.ROOT).contains("kp_enter")) && !eventKey.getState().contains(ModifierType.ALT_MASK)) {
                     this.perform(Action.SUBMIT);
                     return true;
                 } else if (eventKey.getKeyval() == Keyval.Up || eventKey.getKeyval().toString().toLowerCase(Locale.ROOT).contains("kp_up")) {
