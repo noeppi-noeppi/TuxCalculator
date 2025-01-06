@@ -10,7 +10,7 @@ class OperatorFunction(val name: String, val function: MathFunction) extends Mat
 }
 
 class BracketFunction(val open: String, val close: String, val function: MathFunction) extends MathFunction {
-  override def string(calc: Calculator): String = open + " " + calc.format(FmtCode.VarArg) + " " + close
+  override def string(calc: Calculator): String = open + calc.format(FmtCode.VarArg) + close
   override def applyTo(calc: Calculator, args: Vector[MathValue]): MathValue = function.applyTo(calc, args)
 }
 

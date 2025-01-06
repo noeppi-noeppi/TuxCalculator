@@ -4,6 +4,7 @@ import tuxcalculator.core.Calculator
 import tuxcalculator.core.lexer.FmtCode
 import tuxcalculator.core.value.{MathError, MathFunction, MathValue}
 
+import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 
 class PartialAppliedFunction private(val value: MathValue, val partialArgs: Vector[Option[MathValue]]) extends MathFunction {
@@ -12,11 +13,17 @@ class PartialAppliedFunction private(val value: MathValue, val partialArgs: Vect
       case Some(value) => calc.format(value)
       case None => "_"
     }
-    value match {
-      case _: LambdaFunction => calc.format(FmtCode.Open) + calc.format(value) + calc.format(FmtCode.Close) + calc.format(FmtCode.Partial) + calc.format(FmtCode.Open) + partialArgs.map(argString).mkString(", ") + calc.format(FmtCode.Close)
+    
+    @tailrec
+    def formatOn(func: MathValue): String = func match {
+      case memoized: MemoizedFunction => formatOn(memoized.function)
+      case bracket: BracketFunction => bracket.open + partialArgs.map(argString).map(_ + calc.format(FmtCode.ElementSep)).mkString + calc.format(FmtCode.VarArg) + bracket.close
+      case _: LambdaFunction => calc.format(FmtCode.Open) + calc.format(value) + calc.format(FmtCode.Close) + calc.format(FmtCode.Partial) + calc.format(FmtCode.Open) + partialArgs.map(argString).mkString(calc.format(FmtCode.ElementSep)) + calc.format(FmtCode.Close)
       case _ if partialArgs.contains(None) => calc.format(value) + calc.format(FmtCode.Open) + partialArgs.map(argString).mkString(calc.format(FmtCode.ElementSep)) + calc.format(FmtCode.Close)
       case _ => calc.format(value) + calc.format(FmtCode.Partial) + calc.format(FmtCode.Open) + partialArgs.map(argString).mkString(calc.format(FmtCode.ElementSep)) + calc.format(FmtCode.Close)
     }
+    
+    formatOn(value)
   }
   override def applyTo(calc: Calculator, args: Vector[MathValue]): MathValue = {
     val allArgs = ListBuffer[MathValue]()

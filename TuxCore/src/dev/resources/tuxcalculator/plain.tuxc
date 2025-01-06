@@ -51,7 +51,7 @@ set fmt variable = 'X'
 set fmt imaginary = 'i'
 set fmt angle = '∠'
 set fmt degree = '°'
-set fmt truncate = '[...]'
+set fmt truncate = '⋯'
 
 " Calculator properties
 set precision = 24
