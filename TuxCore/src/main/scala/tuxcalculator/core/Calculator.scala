@@ -5,7 +5,7 @@ import tuxcalculator.api.TuxFrontend
 import tuxcalculator.core.data.{CalculatorCommands, CalculatorProperties, CalculatorSpecials, PropertyAccess}
 import tuxcalculator.core.expression.Ast
 import tuxcalculator.core.format.FormatIO
-import tuxcalculator.core.lexer.{CatCode, Lexer, PartialTokenStream, TokenStream}
+import tuxcalculator.core.lexer.{CatCode, FmtCode, Lexer, PartialTokenStream, SplitText, TokenStream}
 import tuxcalculator.core.parser.{Parser, ParsingContext}
 import tuxcalculator.core.resolution.{BindLogic, ComputationLogic, ResolutionTable}
 import tuxcalculator.core.util.{Result, Util}
@@ -31,7 +31,7 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
   })
   val specials: CalculatorSpecials = new CalculatorSpecials(this)
   val resolution: ResolutionTable = new ResolutionTable(this)
-  private val commands: CalculatorCommands = new CalculatorCommands(lexer)
+  val commands: CalculatorCommands = new CalculatorCommands(lexer)
 
   private[this] var _mathContext: MathContext = _
   private[this] var _outputMathContext: MathContext = _
@@ -74,10 +74,10 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
       val sign = if (value.signum == -1) " - " else " + "
       sign + formatReal(value.abs, suffix = suffix, allowScientific = allowScientific, forceSpacedOutSign = false)
     } else new BigDecimal(Util.safeRound(value, outputMathContext).bigDecimal, mathContext) match {
-      case v if v.abs < 1000000 && v.abs >= 0.0001 => Util.safeStripTrailingZeros(v).toPlainString + suffix
-      case v if v.isWhole && v.abs < 100000000 => Util.safeStripTrailingZeros(v).toPlainString + suffix
-      case v if allowScientific => Util.formatScientific(Util.safeStripTrailingZeros(v)) + (if (suffix.nonEmpty) " " + suffix else "")
-      case v => Util.safeStripTrailingZeros(v).toPlainString + suffix
+      case v if v.abs < 1000000 && v.abs >= 0.0001 => Util.formatPlain(this, Util.safeStripTrailingZeros(v)) + suffix
+      case v if v.isWhole && v.abs < 100000000 => Util.formatPlain(this, Util.safeStripTrailingZeros(v)) + suffix
+      case v if allowScientific => Util.formatScientific(this, Util.safeStripTrailingZeros(v)) + (if (suffix.nonEmpty) " " + suffix else "")
+      case v => Util.formatPlain(this, Util.safeStripTrailingZeros(v)) + suffix
     }
   }
   
@@ -85,21 +85,21 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
     value match {
       case _ if value.isReal => formatReal(value.re, forceSpacedOutSign = forceSpacedOutSign)
       case _ if properties(CalculatorProperties.Polar) == CalculatorProperties.PolarType.Radians =>
-        formatReal(value.abs(mathContext), forceSpacedOutSign = forceSpacedOutSign) + "∠" + formatReal(value.angle(mathContext), allowScientific = false)
+        formatReal(value.abs(mathContext), forceSpacedOutSign = forceSpacedOutSign) + format(FmtCode.Angle) + formatReal(value.angle(mathContext), allowScientific = false)
       case _ if properties(CalculatorProperties.Polar) == CalculatorProperties.PolarType.Degrees =>
-        formatReal(value.abs(mathContext), forceSpacedOutSign = forceSpacedOutSign) + "∠" + formatReal(value.angle(mathContext).multiply(new BigDec("180"), mathContext).divide(constantPi, mathContext), allowScientific = false, suffix = "°")
+        formatReal(value.abs(mathContext), forceSpacedOutSign = forceSpacedOutSign) + format(FmtCode.Angle) + formatReal(value.angle(mathContext).multiply(new BigDec("180"), mathContext).divide(constantPi, mathContext), allowScientific = false, suffix = format(FmtCode.Degree))
       case _ if inMultiplicativeContext =>
         val sign = if (value.re.signum == -1) { if (forceSpacedOutSign) " - "  else "-" } else { if (forceSpacedOutSign) " + " else "" }
-        val term = "(" + formatReal(value.re.abs) + formatReal(value.im.multiply(BigDec.valueOf(value.re.signum)), suffix = "i", forceSpacedOutSign = true) + ")"
+        val term = format(FmtCode.Open) + formatReal(value.re.abs) + formatReal(value.im.multiply(BigDec.valueOf(value.re.signum)), suffix = format(FmtCode.Imaginary), forceSpacedOutSign = true) + format(FmtCode.Close)
         sign + term
-      case _ if inMultiplicativeContext => "(" + formatReal(value.re, forceSpacedOutSign = forceSpacedOutSign) + formatReal(value.im, suffix = "i", forceSpacedOutSign = true) + ")"
-      case _ => formatReal(value.re, forceSpacedOutSign = forceSpacedOutSign) + formatReal(value.im, suffix = "i", forceSpacedOutSign = true)
+      case _ if inMultiplicativeContext => format(FmtCode.Open) + formatReal(value.re, forceSpacedOutSign = forceSpacedOutSign) + formatReal(value.im, suffix = format(FmtCode.Imaginary), forceSpacedOutSign = true) + format(FmtCode.Close)
+      case _ => formatReal(value.re, forceSpacedOutSign = forceSpacedOutSign) + formatReal(value.im, suffix = format(FmtCode.Imaginary), forceSpacedOutSign = true)
     }
   }
   
   private def formatPol(coefficients: Vector[MathNumber]): String = {
     def partString(coefficient: MathNumber, power: Int): Option[String] = {
-      val variable: String = if (coefficient.num.isReal) "X" else " X"
+      val variable: String = if (coefficient.num.isReal) format(FmtCode.Variable) else " " + format(FmtCode.Variable)
       val first = coefficients.size == power + 1
       val plus: String = if (first) "" else " + "
       val minus: String = if (first) "-" else " - "
@@ -118,23 +118,26 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
   }
 
   private def formatNoTrunc(value: MathValue): String = value match {
-    case MathVoid => "()"
+    case MathVoid => format(FmtCode.Open) + format(FmtCode.Close)
     case MathError(msg, _) => "Error: " + msg
-    case MathTrue => "true"
-    case MathFalse => "false"
-    case MathList(values) => "[" + values.map(this.formatNoTrunc).mkString(", ") + "]"
-    case MathMatrix(values) => "#[" + values.map(col => col.map(this.formatNoTrunc).mkString(",")).mkString(" ; ") + "]"
+    case MathTrue => format(FmtCode.True)
+    case MathFalse => format(FmtCode.False)
+    case MathList(values) => format(FmtCode.StartList) + values.map(this.formatNoTrunc).mkString(format(FmtCode.ElementSep)) + format(FmtCode.EndList)
+    case MathMatrix(values) => format(FmtCode.StartMatrix) + values.map(col => col.map(this.formatNoTrunc).mkString(format(FmtCode.ElementSep))).mkString(format(FmtCode.GroupSep)) + format(FmtCode.EndMatrix)
     case MathNumber(num) => formatComplex(num)
     case MathPolynomial(coefficients) => formatPol(coefficients)
     case func: MathFunction => func.string(this)
   }
+  
+  def format(code: FmtCode): String = lexer.format(code)
+  def escapeErrorLiteral(msg: String): String = lexer.escapeErrorLiteral(msg)
   
   def format(value: MathValue): String = {
     val str: String = formatNoTrunc(value)
     properties(CalculatorProperties.Truncate) match {
       case 0 => str
       case max if str.length <= max => str
-      case max => str.substring(0, max) + " [...]"
+      case max => str.substring(0, max) + " " + format(FmtCode.Truncate)
     }
   }
   
@@ -207,9 +210,20 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
         case commands.Rem(cmdStr) => lexer.continue(cmdStr) ~> parser.remCommand ~ {
           case Ast.RemCommand(target) => resolution.remove(target)
         }
-        case commands.Set(cmdStr) => lexer.tokenizeAssignment(cmdStr) ~> {
-          case PartialTokenStream(tokens, remaining) => parser.setCommand(tokens) ~> {
-            case Ast.SetCommand(name: String) => lexer.continue(remaining) ~> compute ~ (value => properties.set(name, value))
+        case commands.Set(cmdStr) => cmdStr match {
+          case commands.Fmt(fmtCmdStr) => lexer.splitAssignment(fmtCmdStr) ~> {
+            case SplitText(before, after) => FmtCode.byName(before.string) match {
+              case Some(fmtCode) => lexer.continue(after) ~> parser.errorToken match {
+                case Result.Value(formatString) => lexer.fmtCode(fmtCode, formatString); Result.Value(MathVoid)
+                case err @ Result.Error(_, _) => err
+              }
+              case None => Result.Error("Unknown format code: '" + before.string.strip() + "'")
+            }
+          }
+          case _ => lexer.tokenizeAssignment(cmdStr) ~> {
+            case PartialTokenStream(tokens, remaining) => parser.setCommand(tokens) ~> {
+              case Ast.SetCommand(name: String) => lexer.continue(remaining) ~> compute ~ (value => properties.set(name, value))
+            }
           }
         }
         case commands.Cat(cmdStr) => lexer.tokenizeAssignment(cmdStr) ~> {

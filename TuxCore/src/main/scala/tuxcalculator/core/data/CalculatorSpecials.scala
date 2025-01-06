@@ -1,6 +1,7 @@
 package tuxcalculator.core.data
 
 import tuxcalculator.core.Calculator
+import tuxcalculator.core.lexer.FmtCode
 import tuxcalculator.core.special._
 import tuxcalculator.core.value.{MathError, MathFunction, MathValue}
 
@@ -120,7 +121,7 @@ object CalculatorSpecial {
     override def value: MathValue = new SpecialFunction(name) {
       override def applyTo(calc: Calculator, args: Vector[MathValue]): MathValue = args.size match {
         case s if s == argNum => result(calc, args)
-        case s => MathError("#" + this.name + " is only defined for " + argNum + " arguments, got " + s + ".")
+        case s => MathError(calc.format(FmtCode.Special) + this.name + " is only defined for " + argNum + " arguments, got " + s + ".")
       }
     }
     protected def result(calc: Calculator, args: Vector[MathValue]): MathValue
@@ -128,5 +129,5 @@ object CalculatorSpecial {
 }
 
 sealed abstract class SpecialFunction(val name: String) extends MathFunction {
-  override def string(calc: Calculator): String = "#" + name
+  override def string(calc: Calculator): String = calc.format(FmtCode.Special) + name
 }

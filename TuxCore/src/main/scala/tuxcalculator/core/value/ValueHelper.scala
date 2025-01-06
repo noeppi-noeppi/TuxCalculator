@@ -10,7 +10,7 @@ object ValueHelper {
   
   private val _calc: ThreadLocal[Calculator] = new ThreadLocal()
   def calc: Calculator = _calc.get() match {
-    case null => throw new IllegalStateException("Wrong use of ValueHelper#run. This is a bug.")
+    case null => throw new IllegalStateException("Wrong use of ValueHelper.run. This is a bug.")
     case c => c
   }
 

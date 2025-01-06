@@ -3,7 +3,7 @@ package tuxcalculator.core.format
 import tuxcalculator.api.{TuxCalculatorAPI, TuxFrontend}
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.data.CalculatorProperties
-import tuxcalculator.core.lexer.CatCode
+import tuxcalculator.core.lexer.{CatCode, FmtCode}
 
 import java.io.{DataInput, DataOutput, EOFException}
 import java.text.Normalizer
@@ -35,6 +35,11 @@ object FormatIO {
     val tokLen = in.readInt()
     for (_ <- 0 until tokLen) {
       calc.lexer.tokCode(in.readUTF(), CatCode(in.readByte()))
+    }
+    
+    val fmtLen = in.readInt()
+    for (_ <- 0 until fmtLen) {
+      calc.lexer.fmtCode(FmtCode(in.readByte()), in.readUTF())
     }
     
     calc.properties.set(CalculatorProperties.Precision, in.readInt())
@@ -81,6 +86,14 @@ object FormatIO {
       if (catCode.id >= 128) throw new IllegalStateException("Can't write catcode " + catCode + ". This is a bug.")
       out.writeUTF(token)
       out.writeByte(catCode.id)
+    }
+    
+    val fmtCodes = calc.lexer.allChangedFmtCodes
+    out.writeInt(fmtCodes.size)
+    for ((fmtCode, format) <- fmtCodes.toSeq.sortBy(_._1)) {
+      if (fmtCode.id >= 128) throw new IllegalStateException("Can't write fmtcode " + fmtCode + ". This is a bug.")
+      out.writeByte(fmtCode.id)
+      out.writeUTF(format)
     }
     
     out.writeInt(calc.properties(CalculatorProperties.Precision))

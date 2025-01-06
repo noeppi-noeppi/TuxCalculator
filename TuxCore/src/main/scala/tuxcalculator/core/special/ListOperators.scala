@@ -2,6 +2,7 @@ package tuxcalculator.core.special
 
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.data.CalculatorSpecial
+import tuxcalculator.core.lexer.FmtCode
 import tuxcalculator.core.value._
 
 object ListOperators {
@@ -155,7 +156,7 @@ object ListOperators {
         
         val func: MathValue = ValueHelper.get(args(2))
         MathMatrix((1 to maxWd.toInt).map(col => (1 to maxHt.toInt).map(row => func.applyTo(calc, Vector(MathNumber(row), MathNumber(col)))).toVector).toVector)
-      case s => MathError("#" + name + " is only defined for 2 or 3 arguments, got " + s + ".")
+      case s => MathError(calc.format(FmtCode.Special) + name + " is only defined for 2 or 3 arguments, got " + s + ".")
     }}
   }
 }

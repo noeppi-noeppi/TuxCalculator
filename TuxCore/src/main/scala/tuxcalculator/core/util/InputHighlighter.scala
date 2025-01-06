@@ -3,7 +3,7 @@ package tuxcalculator.core.util
 import tuxcalculator.api.TuxCalculator.{HighlightPart, HighlightType}
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.data.{CalculatorCommands, CalculatorProperties}
-import tuxcalculator.core.lexer.{CatCode, CharacterMapping, Lookahead, TokResult}
+import tuxcalculator.core.lexer.{CatCode, CharacterMapping, FmtCode, Lookahead, TokResult}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -81,19 +81,45 @@ object InputHighlighter {
       }) {}
       advance(amount, highlight)
     }
-    
-    skipSpace()
-    val commandName: Option[String] = CalculatorCommands.commands(calc).map(Util.decomposeString).find((cmd: Vector[Int]) => codePoints.drop(idx).startsWith(cmd)) match {
+    def maybeAdvanceCommand(commands: Set[String]): Option[String] = commands.map(Util.decomposeString).find((cmd: Vector[Int]) => codePoints.drop(idx).startsWith(cmd)) match {
       case Some(cmd) if codePoints.drop(idx + cmd.length).headOption.forall(next => !Identifier.contains(calc.lexer.catCode(next))) =>
         advance(cmd.length, HighlightType.COMMAND)
         Some(Util.makeString(cmd))
       case _ => None
     }
     
-    var commandAssign: Boolean = commandName.exists(CalculatorCommands.isAssignmentCommand)
-
     // Lookahead that updates with each advance
     val lookahead: Lookahead[Int] = (ahead: Int) => codePoints.drop(idx).drop(ahead).headOption
+    
+    skipSpace()
+    val initialCommandName: Option[String] = maybeAdvanceCommand(CalculatorCommands.commands(calc))
+    skipSpace()
+    
+    var commandAssign: Boolean = initialCommandName.exists(CalculatorCommands.isAssignmentCommand)
+
+    val commandName = initialCommandName match {
+      case Some("set") => maybeAdvanceCommand(Set("fmt")) match {
+        case Some("fmt") =>
+          var off = 0
+          var done = false
+          while (!done) {
+            skipSpace()
+            calc.lexer.lookup(lookahead.offset(off)) match {
+              case CharacterMapping(CatCode.Assign, _) => done = true
+              case CharacterMapping(_, content) => off += content.length
+              case _ => done = true
+            }
+          }
+          FmtCode.byName(Util.makeString(codePoints.slice(idx, idx + off))) match {
+            case Some(_) => advance(off, HighlightType.CONSTRUCT)
+            case None => advance(off, HighlightType.PLAIN)
+          }
+          Some("set fmt")
+        case _ => initialCommandName
+      }
+      case _ => initialCommandName
+    }
+
     val bracketStack: mutable.Stack[CatCode] = mutable.Stack()
     //noinspection LoopVariableNotUpdated
     while (idx < codePoints.length) {

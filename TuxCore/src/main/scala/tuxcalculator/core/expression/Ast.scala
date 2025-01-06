@@ -1,13 +1,10 @@
 package tuxcalculator.core.expression
 
 import org.apache.commons.text.StringEscapeUtils
-import org.apache.commons.text.translate.{AggregateTranslator, LookupTranslator}
 import tuxcalculator.core.Calculator
-import tuxcalculator.core.expression.Ast.Error.ESCAPE
 import tuxcalculator.core.function.Descriptor
+import tuxcalculator.core.lexer.FmtCode
 import tuxcalculator.core.value.MathValue
-
-import scala.jdk.CollectionConverters._
 
 object Ast {
   
@@ -20,7 +17,7 @@ object Ast {
   }
   
   case class DefCommand(target: DefTarget, priority: Option[Expression], sig: Signature) extends Command {
-    def string(calc: Calculator): String = "def" + (if (priority.isDefined) "[" + priority.get.string(calc) + "]" else "") + " " + target.toString + "(" + sig + ")"
+    def string(calc: Calculator): String = "def" + (if (priority.isDefined) calc.format(FmtCode.Open) + priority.get.string(calc) + calc.format(FmtCode.Close) else "") + " " + target.toString + calc.format(FmtCode.Open) + sig + calc.format(FmtCode.Close)
   }
   
   sealed trait DefTarget {
@@ -59,6 +56,10 @@ object Ast {
     def string(calc: Calculator): String = "tok '" + StringEscapeUtils.escapeJava(token) + "'"
   }
   
+  case class SetFmtCommand(name: String) extends Command {
+    def string(calc: Calculator): String = "set fmt " + name
+  }
+  
   case class DumpCommand(fileName: String) extends Command {
     def string(calc: Calculator): String = "dump '" + StringEscapeUtils.escapeJava(fileName) + "'"
   }
@@ -68,7 +69,7 @@ object Ast {
   }
   
   case object Placeholder extends PartialArgument {
-    override def string(calc: Calculator): String = "_"
+    override def string(calc: Calculator): String = calc.format(FmtCode.Partial)
   }
   
   sealed trait Argument extends PartialArgument {
@@ -76,7 +77,7 @@ object Ast {
   }
   
   case class SplattedArgument(expr: Expression) extends Argument {
-    override def string(calc: Calculator): String = expr.string(calc) + "..."
+    override def string(calc: Calculator): String = expr.string(calc) + calc.format(FmtCode.VarArg)
   }
   
   sealed trait Expression extends Argument {
@@ -84,11 +85,11 @@ object Ast {
   }
 
   case class Group(value: Expression) extends Expression {
-    override def string(calc: Calculator): String = "(" + value.string(calc) + ")"
+    override def string(calc: Calculator): String = calc.format(FmtCode.Open) + value.string(calc) + calc.format(FmtCode.Close)
   }
 
   case object Answer extends Expression {
-    override def string(calc: Calculator): String = "answer"
+    override def string(calc: Calculator): String = calc.format(FmtCode.Answer)
   }
 
   case class Variable(name: String) extends Expression {
@@ -100,26 +101,21 @@ object Ast {
   }
   
   case class Error(head: String, tail: Vector[Error.TailPart]) extends Expression {
-    override def string(calc: Calculator): String = "'" + ESCAPE.translate(head) + tail.map(entry => entry.toString).mkString + "'"
+    override def string(calc: Calculator): String = calc.format(FmtCode.Error) + calc.escapeErrorLiteral(head) + tail.map(entry => entry.string(calc)).mkString + calc.format(FmtCode.Error)
   }
   
   object Error {
-    private val ESCAPE = new AggregateTranslator(
-      new LookupTranslator(Map[CharSequence, CharSequence]("'" -> "\\'").asJava),
-      StringEscapeUtils.ESCAPE_JAVA
-    )
-    
     case class TailPart(prefix: String, variableName: String, followingText: String) {
-      override def toString: String = prefix + variableName + " " + ESCAPE.translate(followingText)
+      def string(calc: Calculator): String = prefix + variableName + " " + calc.escapeErrorLiteral(followingText)
     }
   }
 
   case class Reference(target: DefTarget) extends Expression {
-    override def string(calc: Calculator): String = "@" + target.toString
+    override def string(calc: Calculator): String = calc.format(FmtCode.Reference) + target.toString
   }
 
   case class Special(name: String) extends Expression {
-    override def string(calc: Calculator): String = "#" + name
+    override def string(calc: Calculator): String = calc.format(FmtCode.Special) + name
   }
 
   case class PrimaryBracket(open: String, close: String, value: Expression) extends Expression {
@@ -135,31 +131,31 @@ object Ast {
   }
 
   case class Lambda(sig: Signature, code: Expression, definitionCode: Expression) extends Expression {
-    override def string(calc: Calculator): String = "\\" + sig + " -> " + definitionCode.string(calc)
+    override def string(calc: Calculator): String = calc.format(FmtCode.Lambda) + sig + calc.format(FmtCode.Follow) + definitionCode.string(calc)
   }
   object Lambda {
     def apply(sig: Signature, code: Expression): Lambda = Lambda(sig, code, code)
   }
   
   case class Match(entries: Vector[MatchEntry]) extends Expression {
-    override def string(calc: Calculator): String = "\\[" + entries.map(_.string(calc)).mkString(" ; ") + "]"
+    override def string(calc: Calculator): String = calc.format(FmtCode.StartMatch) + entries.map(_.string(calc)).mkString(calc.format(FmtCode.GroupSep)) + calc.format(FmtCode.EndMatch)
   }
   
   case class MatchEntry(sig: Signature, elementGuards: Vector[Option[DefExpression]], mainGuard: Option[DefExpression], code: Expression, definitionCode: Expression) {
     if (sig.names.length != elementGuards.length) throw new IllegalArgumentException("Guard count does not match signature. This is a bug.")
     def string(calc: Calculator): String = {
-      val namesWithVararg = if (sig.vararg && sig.names.nonEmpty) sig.names.init ++ Vector(sig.names.last + "...") else sig.names
-      val argsString = (namesWithVararg zip elementGuards).map(e => e._1 + e._2.map(expr => ": " + expr.definitionCode.string(calc)).getOrElse("")).mkString(", ")
-      "(" + argsString + ")" + mainGuard.map(expr => ": " + expr.definitionCode.string(calc)).getOrElse("") + " -> " + definitionCode.string(calc)
+      val namesWithVararg = if (sig.vararg && sig.names.nonEmpty) sig.names.init ++ Vector(sig.names.last + calc.format(FmtCode.VarArg)) else sig.names
+      val argsString = (namesWithVararg zip elementGuards).map(e => e._1 + e._2.map(expr => calc.format(FmtCode.Guard) + expr.definitionCode.string(calc)).getOrElse("")).mkString(calc.format(FmtCode.ElementSep))
+      calc.format(FmtCode.Open) + argsString + calc.format(FmtCode.Close) + mainGuard.map(expr => calc.format(FmtCode.Guard) + expr.definitionCode.string(calc)).getOrElse("") + calc.format(FmtCode.Follow) + definitionCode.string(calc)
     }
   }
 
   case class Invocation(name: String, args: Vector[PartialArgument]) extends Expression {
-    override def string(calc: Calculator): String = name + "(" + args.map(_.string(calc)).mkString(", ") + ")"
+    override def string(calc: Calculator): String = name + calc.format(FmtCode.Open) + args.map(_.string(calc)).mkString(calc.format(FmtCode.ElementSep)) + calc.format(FmtCode.Close)
   }
   
   case class PartialInvocation(name: String, args: Vector[PartialArgument]) extends Expression {
-    override def string(calc: Calculator): String = name + "_(" + args.map(_.string(calc)).mkString(", ") + ")"
+    override def string(calc: Calculator): String = name + calc.format(FmtCode.Partial) + calc.format(FmtCode.Open) + args.map(_.string(calc)).mkString(calc.format(FmtCode.ElementSep)) + calc.format(FmtCode.Close)
   }
   
   case class ShorthandInvocation(name: String, partialArgs: Vector[Ast.Expression], arg: Expression) extends Expression {
@@ -167,17 +163,17 @@ object Ast {
       if (partialArgs.isEmpty) {
         name + " " + arg.string(calc)
       } else {
-        name + "_(" + partialArgs.map(_.string(calc)).mkString(", ") + ")(" + arg.string(calc) + ")"
+        name + calc.format(FmtCode.Partial) + calc.format(FmtCode.Open) + partialArgs.map(_.string(calc)).mkString(calc.format(FmtCode.ElementSep)) + calc.format(FmtCode.Close) + calc.format(FmtCode.Open) + arg.string(calc) + calc.format(FmtCode.Close)
       }
     }
   }
   
   case class Application(value: Expression, args: Vector[PartialArgument]) extends Expression {
-    override def string(calc: Calculator): String = value.string(calc) + "(" + args.map(_.string(calc)).mkString(", ") + ")"
+    override def string(calc: Calculator): String = value.string(calc) + calc.format(FmtCode.Open) + args.map(_.string(calc)).mkString(calc.format(FmtCode.ElementSep)) + calc.format(FmtCode.Close)
   }
   
   case class PartialApplication(value: Expression, args: Vector[PartialArgument]) extends Expression {
-    override def string(calc: Calculator): String = value.string(calc) + "_(" + args.map(_.string(calc)).mkString(", ") + ")"
+    override def string(calc: Calculator): String = value.string(calc) + calc.format(FmtCode.Partial) + calc.format(FmtCode.Open) + args.map(_.string(calc)).mkString(calc.format(FmtCode.ElementSep)) + calc.format(FmtCode.Close)
   }
 
   case class SignApplication(operator: String, value: Expression) extends Expression {

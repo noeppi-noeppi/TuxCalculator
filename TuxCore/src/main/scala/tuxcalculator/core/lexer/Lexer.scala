@@ -14,12 +14,14 @@ case class TokenStream(tokens: Vector[ContextualToken]) {
 case class ContextualToken(token: Token, context: String)
 
 case class RemainingText(string: String, offset: Int)
+case class SplitText(before: RemainingText, after: RemainingText)
 case class PartialTokenStream(tokens: TokenStream, remaining: RemainingText)
 
 class CharacterSource(private val codePoints: Vector[Int], private[this] val offset: Int = 0) extends Lookahead[Int] {
   private[this] var position: Int = 0
   
   def advance(amount: Int): Unit = position += amount
+  def consumed: RemainingText = RemainingText(Util.makeString(codePoints.take(position)), offset)
   def remaining: RemainingText = RemainingText(Util.makeString(codePoints.drop(position)), position + offset)
   def context: String = "At: " + Util.makeString(codePoints.take(position).takeRight(8)).strip() + " <== here: column " + (position + offset)
   override def lookupToken(ahead: Int): Option[Int] = position + ahead match {
@@ -48,26 +50,44 @@ object Lexer {
 class Lexer {
 
   private[this] val catCodes: CatCodes = new CatCodes
+  private[this] val fmtCodes: FmtCodes = new FmtCodes
 
   def catCode(codePoint: Int): CatCode = this.catCodes.catCode(codePoint)
   def catCode(codePoint: Int, code: CatCode): Unit = this.catCodes.catCode(codePoint, code)
   def tokCode(token: String, code: CatCode): Unit = this.catCodes.tokCode(Util.decomposeString(token), code)
+  def fmtCode(code: FmtCode, format: String): Unit = this.fmtCodes.fmtCode(code, format)
   def escapeCodePoints: Set[Int] = this.catCodes.escapeCodePoints
   def allChangedCatCodes: Map[Int, CatCode] = this.catCodes.allChangedCatCodes
   def allChangedTokCodes: Map[String, CatCode] = this.catCodes.allChangedTokCodes.map(entry => (Util.makeString(entry._1), entry._2))
+  def allChangedFmtCodes: Map[FmtCode, String] = this.fmtCodes.allChangedFmtCodes
   
   def lookup(source: Lookahead[Int]): TokResult = this.catCodes.tokCode(source)
+  def format(code: FmtCode): String = this.fmtCodes.fmtCode(code)
+  def escapeErrorLiteral(msg: String): String = this.fmtCodes.escError(msg)
   
   def tokenize(line: String): Result[TokenStream] = continue(RemainingText(line, 0))
   def continue(remaining: RemainingText): Result[TokenStream] = tryTokenize {
     val source: CharacterSource = new CharacterSource(Util.decomposeString(remaining.string), remaining.offset)
-    tokenizePart(source, Set(), Set()) ~@ source.context ~ (_._1)
+    tokenizePart(source, Set(), Set()) ~@ source.context ~ (_.tokens)
   }
   
   def tokenizeAssignment(assignmentText: RemainingText): Result[PartialTokenStream] = tryTokenize {
     val source: CharacterSource = new CharacterSource(Util.decomposeString(assignmentText.string), assignmentText.offset)
     val result = tokenizePart(source, Set(), Set(), tokenizeAssignment = true)
-    result ~@ source.context ~ (_._1) ~ (tokens => PartialTokenStream(tokens, source.remaining))
+    result ~@ source.context ~ (_.tokens) ~ (tokens => PartialTokenStream(tokens, source.remaining))
+  }
+  
+  def splitAssignment(assignmentText: RemainingText): Result[SplitText] = tryTokenize {
+    val decomposed = Util.decomposeString(assignmentText.string)
+    val source: CharacterSource = new CharacterSource(decomposed, assignmentText.offset)
+    val result = tokenizePart(source, Set(), Set(), tokenizeAssignment = true)
+    result ~@ source.context ~ (result => {
+      val before: RemainingText = source.consumed match {
+        case RemainingText(text, offset) => RemainingText(text.dropRight(result.assignToken.getOrElse("").length), offset)
+      }
+      val after: RemainingText = source.remaining
+      SplitText(before, after)
+    })
   }
   
   private def tryTokenize[T](action: => Result[T]): Result[T] = try {
@@ -76,8 +96,10 @@ class Lexer {
     case e: ImmediateError => e.error
   }
   
+  private case class PartTokenizeResult(tokens: TokenStream, closingToken: Option[String], assignToken: Option[String])
+  
   @throws[ImmediateError]
-  private def tokenizePart(source: CharacterSource, closingCatCodes: Set[CatCode], breakAt: Set[CatCode], tokenizeAssignment: Boolean = false, canEmitFollow: Boolean = false): Result[(TokenStream, Option[String])] = {
+  private def tokenizePart(source: CharacterSource, closingCatCodes: Set[CatCode], breakAt: Set[CatCode], tokenizeAssignment: Boolean = false, canEmitFollow: Boolean = false): Result[PartTokenizeResult] = {
     val tokens: ListBuffer[ContextualToken] = ListBuffer()
     
     object CatCodeGrouper {
@@ -213,14 +235,14 @@ class Lexer {
       CatCodeGrouper.finish()
       tokens.addOne(token >> source.context)
     }
-    def finish(closingToken: Option[String], isAssignToken: Boolean = false): Result[(TokenStream, Option[String])] = {
+    def finish(closingToken: Option[String] = None, assignToken: Option[String] = None): Result[PartTokenizeResult] = {
       CatCodeGrouper.finish()
-      if (tokenizeAssignment && !isAssignToken) {
+      if (tokenizeAssignment && assignToken.isEmpty) {
         Result.Error("Input ended prematurely, expected an assignment token.")
-      } else if (!tokenizeAssignment && isAssignToken) {
+      } else if (!tokenizeAssignment && assignToken.isDefined) {
         Result.Error("Invalid catcode configuration.")
       } else {
-        Result.Value((TokenStream(tokens.toVector), closingToken))
+        Result.Value(PartTokenizeResult(TokenStream(tokens.toVector), closingToken, assignToken))
       }
     }
     def lastTokenOption: Option[Token] = tokens.lastOption.map(_.token)
@@ -235,8 +257,8 @@ class Lexer {
         if (breakAt.contains(code) || (breakAt.nonEmpty && code == CatCode.Comment)) return finish(None)
         source.advance(content.length)
         code match {
-          case _ if closingCatCodes.contains(code) => return finish(Some(Util.makeString(content)))
-          case CatCode.Assign if tokenizeAssignment && !CatCodeGrouper.isGroupingOperator => return finish(None, isAssignToken = true)
+          case _ if closingCatCodes.contains(code) => return finish(closingToken = Some(Util.makeString(content)))
+          case CatCode.Assign if tokenizeAssignment && !CatCodeGrouper.isGroupingOperator => return finish(None, assignToken = Some(Util.makeString(content)))
           case CatCode.Letter | CatCode.Digit | CatCode.DecimalSep | CatCode.Exp | CatCode.Operator | CatCode.Assign | CatCode.Sign | CatCode.Post => CatCodeGrouper.consume(code, content) match {
             case Some(result) => return result
             case None =>
@@ -257,48 +279,48 @@ class Lexer {
                    | Some(_: Token.TertiaryBracket) | Some(_: Token.Match) | Some(_: Token.Lambda) | Some(Token.PartialApplication)
                    | Some(Token.Answer) =>
                 this.tokenizePart(source, Set(CatCode.Close), Set()) match {
-                  case Result.Value((tokens: TokenStream, _)) => emit(Token.Application(tokens))
+                  case Result.Value(PartTokenizeResult(tokens: TokenStream, _, _)) => emit(Token.Application(tokens))
                   case result => return result
                 }
               // References to operators can be applied
               case Some(_: Token.Operator) | Some(_: Token.Sign) | Some(_: Token.Post) if tokens.length >= 2 && tokens(tokens.length - 2).token == Token.Reference =>
                 this.tokenizePart(source, Set(CatCode.Close), Set()) match {
-                  case Result.Value((tokens: TokenStream, _)) => emit(Token.Application(tokens))
+                  case Result.Value(PartTokenizeResult(tokens: TokenStream, _, _)) => emit(Token.Application(tokens))
                   case result => return result
                 }
               case _ =>
                 this.tokenizePart(source, Set(CatCode.Close), Set()) match {
-                  case Result.Value((tokens: TokenStream, _)) => emit(Token.Group(tokens))
+                  case Result.Value(PartTokenizeResult(tokens: TokenStream, _, _)) => emit(Token.Group(tokens))
                   case result => return result
                 }
             }
           case CatCode.StartPrimary => this.tokenizePart(source, Set(CatCode.End, CatCode.EndMatch), Set()) match {
-            case Result.Value((bracketTokens: TokenStream, _)) if bracketTokens.tokens.nonEmpty && lastTokenOption.contains(Token.Reference) => return Result.Error("Bracket reference can't contain elements.")
-            case Result.Value((bracketTokens: TokenStream, Some(closingToken: String))) => emit(Token.PrimaryBracket(Util.makeString(content), closingToken, bracketTokens))
+            case Result.Value(PartTokenizeResult(bracketTokens: TokenStream, _, _)) if bracketTokens.tokens.nonEmpty && lastTokenOption.contains(Token.Reference) => return Result.Error("Bracket reference can't contain elements.")
+            case Result.Value(PartTokenizeResult(bracketTokens: TokenStream, Some(closingToken: String), _)) => emit(Token.PrimaryBracket(Util.makeString(content), closingToken, bracketTokens))
             case Result.Value(_) => return Result.Error("Could not tokenize input: Closed expression was gobbled without an end token when parsing primary. This should not happen.")
             case result => return result
           }
           case CatCode.StartSecondary => this.tokenizePart(source, Set(CatCode.End, CatCode.EndMatch), Set()) match {
-            case Result.Value((bracketTokens: TokenStream, _)) if bracketTokens.tokens.nonEmpty && lastTokenOption.contains(Token.Reference) => return Result.Error("Bracket reference can't contain elements.")
-            case Result.Value((bracketTokens: TokenStream, Some(closingToken: String))) => emit(Token.SecondaryBracket(Util.makeString(content), closingToken, bracketTokens))
+            case Result.Value(PartTokenizeResult(bracketTokens: TokenStream, _, _)) if bracketTokens.tokens.nonEmpty && lastTokenOption.contains(Token.Reference) => return Result.Error("Bracket reference can't contain elements.")
+            case Result.Value(PartTokenizeResult(bracketTokens: TokenStream, Some(closingToken: String), _)) => emit(Token.SecondaryBracket(Util.makeString(content), closingToken, bracketTokens))
             case Result.Value(_) => return Result.Error("Could not tokenize input: Closed expression was gobbled without an end token when parsing secondary. This should not happen.")
             case result => return result
           }
           case CatCode.StartTertiary => this.tokenizePart(source, Set(CatCode.End, CatCode.EndMatch), Set()) match {
-            case Result.Value((bracketTokens: TokenStream, _)) if bracketTokens.tokens.nonEmpty && lastTokenOption.contains(Token.Reference) => return Result.Error("Bracket reference can't contain elements.")
-            case Result.Value((bracketTokens: TokenStream, Some(closingToken: String))) => emit(Token.TertiaryBracket(Util.makeString(content), closingToken, bracketTokens))
+            case Result.Value(PartTokenizeResult(bracketTokens: TokenStream, _, _)) if bracketTokens.tokens.nonEmpty && lastTokenOption.contains(Token.Reference) => return Result.Error("Bracket reference can't contain elements.")
+            case Result.Value(PartTokenizeResult(bracketTokens: TokenStream, Some(closingToken: String), _)) => emit(Token.TertiaryBracket(Util.makeString(content), closingToken, bracketTokens))
             case Result.Value(_) => return Result.Error("Could not tokenize input: Closed expression was gobbled without an end token when parsing tertiary. This should not happen.")
             case result => return result
           }
           case CatCode.StartMatch => this.tokenizePart(source, Set(CatCode.EndMatch), Set(), canEmitFollow = true) match {
-            case Result.Value((matchTokens: TokenStream, _)) => emit(Token.Match(matchTokens))
+            case Result.Value(PartTokenizeResult(matchTokens: TokenStream, _, _)) => emit(Token.Match(matchTokens))
             case result => return result
           }
           case CatCode.Close | CatCode.End | CatCode.EndMatch if closingCatCodes.isEmpty => return Result.Error("Dangling token: " + code)
           case CatCode.Close | CatCode.End | CatCode.EndMatch => return Result.Error("Wrong closing token, expected one of " + closingCatCodes.mkString(", ") + ", got " + code)
           case CatCode.Lambda => this.tokenizePart(source, Set(CatCode.Follow), Set()) match {
-            case Result.Value((argumentTokens: TokenStream, _)) => this.tokenizePart(source, Set(), Lexer.LambdaTerminators) match {
-              case Result.Value((definitionTokens: TokenStream, _)) => emit(Token.Lambda(argumentTokens, definitionTokens))
+            case Result.Value(PartTokenizeResult(argumentTokens: TokenStream, _, _)) => this.tokenizePart(source, Set(), Lexer.LambdaTerminators) match {
+              case Result.Value(PartTokenizeResult(definitionTokens: TokenStream, _, _)) => emit(Token.Lambda(argumentTokens, definitionTokens))
               case result => return result
             }
             case result => return result

@@ -3,11 +3,12 @@ package tuxcalculator.core.function
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.expression.Ast
 import tuxcalculator.core.expression.Ast.Signature
+import tuxcalculator.core.lexer.FmtCode
 import tuxcalculator.core.resolution.{BindLogic, ComputationLogic}
 import tuxcalculator.core.value.{MathError, MathFunction, MathList, MathValue}
 
 class LambdaFunction(val sig: Ast.Signature, val code: Ast.Expression, val definitionCode: Ast.Expression) extends MathFunction {
-  override def string(calc: Calculator): String = "\\" + sig + " -> " + definitionCode.string(calc)
+  override def string(calc: Calculator): String = calc.format(FmtCode.Lambda) + sig + calc.format(FmtCode.Follow) + definitionCode.string(calc)
   override def applyTo(calc: Calculator, args: Vector[MathValue]): MathValue = {
     val argValues: Map[String, MathValue] = LambdaFunction.makeArgValueMap(sig, args) match {
       case Some(map) => map

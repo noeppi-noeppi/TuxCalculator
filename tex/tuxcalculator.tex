@@ -15,7 +15,7 @@
 \usepackage[dvipdfm,hidelinks]{hyperref}
 
 \renewcommand{\arraystretch}{1.3}
-\newcommand{\argument}[1]{{${\big<}\mathrm{#1}{\big>}$}}
+\newcommand{\argument}[1]{{${\big<}\text{\textrm{#1}}{\big>}$}}
 \newcommand{\tabgap}{\vspace{3mm}\\}
 \newenvironment{code}{\begin{quote}\ttfamily}{\end{quote}}
 \setcounter{tocdepth}{2}
@@ -424,6 +424,7 @@
         set \argument{name} = \argument{expression}
     \end{code}
     See section~\ref{sec:calculator-properties} for details.
+    The \texttt{set} command is also used to set \textit{formatting properties} described in section~\ref{subsec:format-codes}.
     
     \subsection{\texttt{cat} \& \texttt{tok}}\label{subsec:cmd-cat-tok}
     Commands to manipulate catcodes.
@@ -568,6 +569,51 @@
     While each character always has a catcode (if nothing was set, its \verb|invalid|), only specific sequences of characters have a tokcode.
     A tokcode can be unset by assigning it the \verb|invalid| catcode.
 
+    \subsection{Format codes}\label{subsec:format-codes}
+    Whereas catcodes determine how TuxCalculator interprets input, format codes determine, how TuxCalculator \textit{displays} things.
+    A formatting code describes, how to display a certain thing.
+    Every formating code maps to a possibly empty string of characters.
+    
+    For example, when an expression evaluates to the imaginary unit, TuxCalculator will look up the string stored with the formatting code \verb|imaginary| and use that to display the result.
+    TuxCalculator knows about the following format codes:
+    \begin{longtable}{p{0.2\textwidth}p{\dimexpr0.8\textwidth-3\tabcolsep\relax}}
+        \verb|decimal sep|     & Decimal separator in a number. \\
+        \verb|element sep|     & Element separator in lists, vectors and applications. \\
+        \verb|group sep|       & Group separator in matrices. \\
+        \verb|true|            & The \verb|true| value. \\
+        \verb|false|           & The \verb|false| value. \\
+        \verb|exp|             & The separator between a number and its exponent in scientific notation. \\
+        \verb|assign|          & The string used to display assignments in commands. \\
+        \verb|reference|       & The prefix used to display a reference to a global function. \\
+        \verb|error|           & Displayed around error literals. \\
+        \verb|open|            & Start of a group. \\
+        \verb|close|           & End of a group. \\
+        \verb|start list|      & Start of a list value. \\
+        \verb|end list|        & End of a list value. \\
+        \verb|start matrix|    & Start of a matrix or vector value. \\
+        \verb|end matrix|      & End of a matrix or vector value. \\
+        \verb|start match|     & Start of a match function. \\
+        \verb|end match|       & End of a match function. \\
+        \verb|lambda|          & Start of a lambda. \\
+        \verb|follow|          & Separator for lambda parameters and body. \\
+        \verb|guard |          & Start of a guard. \\
+        \verb|escape|          & Causes every character until the next escape to be parsed as letter catcode. \\
+        \verb|special|         & The prefix used to display a calculator special. \\
+        \verb|vararg|          & Vararg token for splatting and definition of vararg functions. \\
+        \verb|partial|         & Partial application. \\
+        \verb|answer|          & Last result. \\
+        \verb|variable|        & The variable used when displaying polynomials. \\
+        \verb|imaginary|       & The imaginary unit. \\
+        \verb|angle|           & Separator between absolute value and angle when showing complex numbers in polar form. \\
+        \verb|degree|          & Appended to the polar angle when showing complex numbers in degree-polar form. \\
+        \verb|truncate|        & Marks truncation due to the \texttt{truncate} property. See section~\ref{subsec:truncate}. \\
+    \end{longtable}
+    Changing format codes in accomplished by the \verb|set fmt| command with the following syntax:
+    \begin{code}
+        set fmt \argument{format code} = '\argument{format string}' \\
+    \end{code}
+    The value assigned to a formatting code may be the empty string in which case nothing is displayed.
+
     \subsection{Error interpolation}\label{subsec:errinterp}
     The \verb|interpolate| catcode allows interpolating values from the calculator into error messages.
     By default, there is no character assigned to this catcode but if you for example assigned the \verb|interpolate| to \verb|$|, you could write \verb|'$a'| to get an error which contains the value of the variable $ a $ as a string.
@@ -599,6 +645,8 @@
             \verb|special| & The hash symbol \verb|#|.           \\
         \end{tabular}
     \end{center}
+    The format codes \verb|error|, \verb|assign| and \verb|special| are set accordingly.
+    All other format codes are set to the empty string.
     
     The calculator properties are initialised to the following values:
     \begin{center}
@@ -638,6 +686,12 @@
         cat ','  = decimal sep
         cat ';'  = element sep
         tok ';;' = group sep
+    \end{verbatim}
+    To get output that is consistent with the input, one should also change the format codes like this:
+    \begin{verbatim}
+        set fmt decimal sep = ','
+        set fmt element sep = '; '
+        set fmt group sep   = ' ;; '
     \end{verbatim}
     
     \subsection{Defining new operators}\label{subsec:new-operators}

@@ -1,6 +1,7 @@
 package tuxcalculator.core.function
 
 import tuxcalculator.core.Calculator
+import tuxcalculator.core.lexer.FmtCode
 import tuxcalculator.core.value.{MathError, MathFunction, MathValue}
 
 import scala.collection.mutable.ListBuffer
@@ -12,9 +13,9 @@ class PartialAppliedFunction private(val value: MathValue, val partialArgs: Vect
       case None => "_"
     }
     value match {
-      case _: LambdaFunction => "(" + calc.format(value) + ")_(" + partialArgs.map(argString).mkString(", ") + ")"
-      case _ if partialArgs.contains(None) => calc.format(value) + "(" + partialArgs.map(argString).mkString(", ") + ")"
-      case _ => calc.format(value) + "_(" + partialArgs.map(argString).mkString(", ") + ")"
+      case _: LambdaFunction => calc.format(FmtCode.Open) + calc.format(value) + calc.format(FmtCode.Close) + calc.format(FmtCode.Partial) + calc.format(FmtCode.Open) + partialArgs.map(argString).mkString(", ") + calc.format(FmtCode.Close)
+      case _ if partialArgs.contains(None) => calc.format(value) + calc.format(FmtCode.Open) + partialArgs.map(argString).mkString(calc.format(FmtCode.ElementSep)) + calc.format(FmtCode.Close)
+      case _ => calc.format(value) + calc.format(FmtCode.Partial) + calc.format(FmtCode.Open) + partialArgs.map(argString).mkString(calc.format(FmtCode.ElementSep)) + calc.format(FmtCode.Close)
     }
   }
   override def applyTo(calc: Calculator, args: Vector[MathValue]): MathValue = {

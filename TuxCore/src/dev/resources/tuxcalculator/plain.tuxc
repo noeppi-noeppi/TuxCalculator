@@ -25,6 +25,34 @@ tok '...' = vararg
 cat '_'   = partial
 tok 'ans' = answer
 
+? Format codes
+set fmt decimal sep = '.'
+set fmt element sep = ', '
+set fmt group sep = ' ; '
+set fmt true = 'true'
+set fmt false = 'false'
+set fmt exp = 'e'
+set fmt reference = '@'
+set fmt open = '('
+set fmt close = ')'
+set fmt start list = '['
+set fmt end list = ']'
+set fmt start matrix = '#['
+set fmt end matrix = ']'
+set fmt start match = '\\['
+set fmt end match = ']'
+set fmt lambda = '\\'
+set fmt follow = ' -> '
+set fmt guard = ': '
+set fmt vararg = '...'
+set fmt partial = '_'
+set fmt answer = 'ans'
+set fmt variable = 'X'
+set fmt imaginary = 'i'
+set fmt angle = '∠'
+set fmt degree = '°'
+set fmt truncate = '[...]'
+
 ? Calculator properties
 set precision = 24
 set output = 16

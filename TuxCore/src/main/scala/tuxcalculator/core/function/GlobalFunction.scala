@@ -2,12 +2,13 @@ package tuxcalculator.core.function
 
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.expression.Ast.Signature
+import tuxcalculator.core.lexer.FmtCode
 import tuxcalculator.core.value.{MathError, MathFunction, MathValue}
 
 import scala.annotation.tailrec
 
 class GlobalFunction(val name: String, val map: Map[Descriptor, MathFunction] = Map()) extends MathFunction {
-  override def string(calc: Calculator): String = "@" + name
+  override def string(calc: Calculator): String = calc.format(FmtCode.Reference) + name
   
   def definitionCount: Int = map.size
   

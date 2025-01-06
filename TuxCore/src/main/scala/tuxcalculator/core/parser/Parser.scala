@@ -32,6 +32,8 @@ class Parser(val ctx: ParsingContext) {
   def catCommand(tokens: TokenStream): Result[Ast.CatCommand] = wrap(parsers.parseTokens(parsers.cmd_cat, tokens))
   def tokCommand(tokens: TokenStream): Result[Ast.TokCommand] = wrap(parsers.parseTokens(parsers.cmd_tok, tokens))
   def dumpCommand(tokens: TokenStream): Result[Ast.DumpCommand] = wrap(parsers.parseTokens(parsers.cmd_dump, tokens))
+  
+  def errorToken(tokens: TokenStream): Result[String] = wrap(parsers.parseTokens(parsers.tk_error, tokens))
 }
 
 class CalculatorParsers(val ctx: ParsingContext) extends Parsers  {
@@ -261,6 +263,10 @@ class CalculatorParsers(val ctx: ParsingContext) extends Parsers  {
       case _ => Success(msg, TokenReader.Empty)
     }
   }) ^^ (token => Ast.DumpCommand(token))
+  
+  def tk_error: this.Parser[String] = flatAcceptMatch("string", {
+    case Token.Error(msg, _, _) => Success(msg, TokenReader.Empty)
+  })
 }
 
 sealed trait PostOperation

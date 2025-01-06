@@ -65,7 +65,7 @@ class CatCodes {
   this.catCodes('#') = CatCode.Special
   this.catCodes('=') = CatCode.Assign
   
-  def defaultCatCode(codePoint: Int): CatCode = codePoint match {
+  private def defaultCatCode(codePoint: Int): CatCode = codePoint match {
     case _ if codePoint >= '0' && codePoint <= '9' => CatCode.Digit
     case '\'' => CatCode.Error
     case '#' => CatCode.Special

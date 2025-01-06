@@ -2,6 +2,7 @@ package tuxcalculator.core.resolution
 
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.expression.{Ast, BoundExpression}
+import tuxcalculator.core.lexer.FmtCode
 import tuxcalculator.core.value.{MathError, MathNumber, MathValue}
 
 import scala.collection.mutable
@@ -73,7 +74,7 @@ object BindLogic {
           Ast.Error(newParts.head.followingText, newParts.tail.toVector)
         }
       case Ast.Reference(target) => Ast.Value(checkError(target.name, calc.resolution.reference(target)))
-      case Ast.Special(name) => Ast.Value(checkError("#" + name, calc.specials(name)))
+      case Ast.Special(name) => Ast.Value(checkError(calc.format(FmtCode.Special) + name, calc.specials(name)))
       case Ast.Lambda(sig, code, defCode) if eager =>
         val boundCode = bind(code, calc, eager, freeVars | sig.names.toSet, specialValues)
         errors.addAll(boundCode.unboundErrors)

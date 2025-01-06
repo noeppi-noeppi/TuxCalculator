@@ -1,6 +1,8 @@
 package tuxcalculator.core.util
 
 import ch.obermuhlner.math.big.BigComplex
+import tuxcalculator.core.Calculator
+import tuxcalculator.core.lexer.FmtCode
 
 import java.io.{PrintWriter, StringWriter}
 import java.lang.{StringBuilder => JStringBuilder}
@@ -35,22 +37,23 @@ object Util {
     val raisedMc: MathContext = new MathContext(raisedPrecision, mc.getRoundingMode)
     (num.round(raisedMc), raisedMc)
   }
-  
-  
+
+  def formatPlain(calc: Calculator, num: BigDec): String = num.toPlainString.replace(".", calc.format(FmtCode.DecimalSep))
+
   // Always use scientific notation with a single digit before the decimal separator.
   // Required to make number formatting consistent
-  def formatScientific(num: BigDec): String = {
-    if (num.compareTo(BigDec.ZERO) == 0) return "0e0"
+  def formatScientific(calc: Calculator, num: BigDec): String = {
+    if (num.compareTo(BigDec.ZERO) == 0) return "0" + calc.format(FmtCode.Exp) + "0"
     val digits: Array[Char] = num.unscaledValue().abs().toString.toCharArray
     val sb: JStringBuilder = new JStringBuilder(15 + digits.length)
     val exp: Long = -num.scale().toLong + digits.length - 1
     if (num.signum() < 0) sb.append("-")
     sb.append(digits, 0, 1)
     if (digits.length > 1) {
-      sb.append('.')
+      sb.append(calc.format(FmtCode.DecimalSep))
       sb.append(digits, 1, digits.length - 1)
     }
-    sb.append("e")
+    sb.append(calc.format(FmtCode.Exp))
     sb.append(exp)
     sb.toString
   }
