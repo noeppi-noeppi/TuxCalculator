@@ -1,7 +1,7 @@
-cat '?' = comment
-? Make ? a comment character while executing this file, so it can be commented.
+cat '"' = comment
+" Make " a comment character while executing this file, so it can be commented.
 
-? Basic catcodes
+" Basic catcodes
 cat '.'   = decimal sep
 cat ','   = element sep
 cat ';'   = group sep
@@ -23,9 +23,9 @@ cat '`'   = escape
 cat '…'   = vararg
 tok '...' = vararg
 cat '_'   = partial
-tok 'ans' = answer
+cat '?'   = answer
 
-? Format codes
+" Format codes
 set fmt decimal sep = '.'
 set fmt element sep = ', '
 set fmt group sep = ' ; '
@@ -46,26 +46,26 @@ set fmt follow = ' -> '
 set fmt guard = ': '
 set fmt vararg = '...'
 set fmt partial = '_'
-set fmt answer = 'ans'
+set fmt answer = '?'
 set fmt variable = 'X'
 set fmt imaginary = 'i'
 set fmt angle = '∠'
 set fmt degree = '°'
 set fmt truncate = '[...]'
 
-? Calculator properties
+" Calculator properties
 set precision = 24
 set output = 16
 set normalization = 'nfc'
 
-? Eagerly bind all the definitions in this file, so later redefinitions won't break our functions
-? Will be set back later
+" Eagerly bind all the definitions in this file, so later redefinitions won't break our functions
+" Will be set back later
 set eager = #t
 
-? Allow error interpolation in this file
+" Allow error interpolation in this file
 cat '$' = interpolate
 
-? booleans and void
+" booleans and void
 let void = #v
 let true = #t
 let false = #f
@@ -75,11 +75,11 @@ cat '⊥' = letter
 let ⊤ = #t
 let ⊥ = #f
 
-? A temporary value to create functions that are defined using def later.
-? Useful when using higher order functions.
+" A temporary value to create functions that are defined using def later.
+" Useful when using higher order functions.
 let temp = #v
 
-? lists vectors and matrix joining. (Matrix joining uses the same temp function as matrix literals)
+" lists vectors and matrix joining. (Matrix joining uses the same temp function as matrix literals)
 tok '#{' = start tertiary
 cat '}' = end
 def [](l...) = l
@@ -87,7 +87,7 @@ let temp = \[(h,w,m):#or(#eq(h,0),#eq(w,0))->'Empty matrix';(h,w,m)->#fill(h,w,\
 def #[](h,w,m...) = temp(h,w,m)
 def #{}(h,w,m...) = #mflat(temp(h,w,#map(m,\[(a:#ism)->a;(a)->#fill(1,1,\r,c->a)])))
 
-? Fundamental constants
+" Fundamental constants
 let pi = #pi
 let π = #pi
 let e = #e
@@ -96,7 +96,7 @@ let id = \x->x
 let nil = #fill(0,id)
 let X = #pol([0,1])
 
-? Basic functions for complex numbers
+" Basic functions for complex numbers
 def re(x) = #re(x)
 def im(x) = #im(x)
 def ℜ(x) = #re(x)
@@ -106,7 +106,7 @@ let temp = \[(x:#ism)->#map(x,temp);(x)->temp(x)]
 def conj(x) = temp(x)
 def polar(r,a) = #polar(r,a)
 
-? Basic functions for dealing with functions
+" Basic functions for dealing with functions
 let temp=\f->(\x->x(x))(\x->f(\y...->x(x)(y...)))
 def Y(f)=temp(\s->\a...->f(s,a...))
 let temp = \[(s,n,f):#eq(n,1)->f;(s,n,f):#lt(1,n)->\a->s(#sub(n,1),f_a);(s,n,f)->'Non-positive curry']
@@ -115,20 +115,20 @@ def curry(n,f) = temp(n,f)
 let temp = \[(n,f):#eq(n,1)->f;(n,f):#lt(1,n)->\[(l...):#eq(#len(l),n)->#fold(l,f,\sf,a->sf(a))];(n,f)->'Non-positive uncurry']
 def uncurry(n,f) = temp(n,f)
 
-? Basic functions for dealing with lists
+" Basic functions for dealing with lists
 let temp=#sub(0,1)
 def has(l,v) = #if(#eq(#idx(l,0,#eq_v),temp),false,true)
 def distinct(l) = #fold(l,[],(\n,e->#if(has(n,e),n,[n...,e])))
 
-? Basic functions for dealing with vectors
+" Basic functions for dealing with vectors
 def vec() = 'Empty vector'
-def vec(l...) = #fill(#len(l),1,\r,c->l(#sub(r,1))) ? Required to construct vectors with argument splatting.
+def vec(l...) = #fill(#len(l),1,\r,c->l(#sub(r,1))) " Required to construct vectors with argument splatting.
 
-? Distinct sorted lists
+" Distinct sorted lists
 cat '{' = start secondary
 def {}(l...) = #sort(distinct(l),#lt)
 
-? Signs
+" Signs
 cat '+' = sign
 cat '-' = sign
 cat '~' = sign
@@ -145,7 +145,7 @@ def ¯(a) = conj(a)
 let temp = \[(a:#ism)->':: on a matrix.';(a)->#cdr(a)]
 def ::(a) = temp(a)
 
-? Operators
+" Operators
 cat '&' = operator
 cat '|' = operator
 cat '∩' = operator
@@ -179,9 +179,9 @@ def(-800) &(a,b) = temp(a,b)
 let temp = \l,sl->#eq(#idx(l,0,\le->#eq(#idx(sl,0,\sle->#eq(le,sle)),-1)),-1)
 let temp = \[(a:#isl,b:#isl)->#and(temp(a,b),temp(b,a));(a,b)->#eq(a,b)]
 def(-700) <=>(a,b) = temp(a,b)
-? Defining the = operator is a bit tricky as it has the assign catcode and thus, if encountered alone marks the start
-? of the definition expression. We temporarily change catcodes to circumvent this.
-? The same is true for other operators starting with =
+" Defining the = operator is a bit tricky as it has the assign catcode and thus, if encountered alone marks the start
+" of the definition expression. We temporarily change catcodes to circumvent this.
+" The same is true for other operators starting with =
 tok 'ASSIGN' = assign
 cat '=' ASSIGN operator
 def(-700) =>(a,b) ASSIGN #or(#xor(a,true),b)
@@ -202,7 +202,7 @@ def(-300) -(a,b) = temp(a,b)
 let temp = \l,n->#fill(#mul(#len(l),n),\i->l(#mod(i,#len(l))))
 let temp = \[(a:#isl,b:#isr)->temp(a,b);(a:#isr,b:#isl)->temp(b,a);(a,b)->#mul(a,b)]
 def(-200) *(a,b) = temp(a,b)
-? Make two match functions because #and has no lazy evaluation and we can't call len on non-vectors. Also this allows us to pre-compute the length for comparing it later.
+" Make two match functions because #and has no lazy evaluation and we can't call len on non-vectors. Also this allows us to pre-compute the length for comparing it later.
 let temp = \[(lengths,l):#fold(#map(lengths,#eq_(#car(lengths))),true,#and)->#fold([#zip(l,\elems...->#fold(elems,1,#mul))...],0,#add);(lengths,l)->'Can only compute scalar product of same sized vectors.']
 let temp = \[(l):#eq(#len(l),0)->0;(l):#fold(#map(l,#isv),true,#and)->temp(#map(l,#len),l);(l)->'Can only compute scalar product of same sized vectors.']
 def ⟨⟩(l...) = temp(l)
@@ -216,7 +216,7 @@ def(-200) %%(a,b) = (a % b + #abs(b)) % b
 def(-99) ^(a,b) = #pow(a,b)
 def(100) ∠(r,a) = polar(r,a)
 
-? Postfix operators
+" Postfix operators
 cat '!' = post
 cat '°' = post
 def !(x) = #gamma(x+1,0)
@@ -224,7 +224,7 @@ let temp = \[(x):#eq(x,-1)->[];(x):#eq(x,0)->[];(x:#isr):#lt(0,x)&#eq(#mod(x,2),
 def !!(x) = #fold(temp(x),1,@*)
 def °(x) = x * #pi / 180
 
-? Functions
+" Functions
 def sort(l) = #sort(l,@<)
 def sort(l,f) = #sort(l,f)
 let temp = \l,p->#sort(l,(\a,b->p(a)<p(b)))
@@ -293,7 +293,7 @@ def rev(l) = #rev(l)
 let temp = \[(l):#eq(#len(l),0)->[];(l)->#fill(#fold(l,1,\s,c->s*#len(c)),\i->#fill(#len(l),\j->l(j)(#mod(#fl(#div(i,#fold(take(l,j),1,\s,c->s*#len(c))),0),#len(l(j))))))]
 def cprod(l...) = temp(l)
 
-? Functions for polynomials
+" Functions for polynomials
 let temp = \[(cc,n:#isc):#lt(n,#len(cc))->cc(n);(cc,n:#isc)->0;(cc,n)->'Can\'t get $n th coefficient of polynomial']
 def coeff(n,p) = temp(#coeff(p),n)
 let temp = \[(c):#eq(c,nil)->'Degree of the 0-polynomial';(c)->#len(c)-1]
@@ -306,7 +306,7 @@ let temp = \cc,c->c::#zip([cc,#fill(#len(cc),#add_1)],@/)
 def integ(p) = #pol(temp(#coeff(p),0))
 def integ(p,c) = #pol(temp(#coeff(p),c))
 
-? Temporary function to convert a matrix into list of all its elements
+" Temporary function to convert a matrix into list of all its elements
 let tempMatrixElems = \[(x:#isv)->[x...];(x:#ism)->#fill(#wd(x)*#ht(x),\n->x(1+(n%#ht(x)),1+(#fl(n/#ht(x),0))))]
 let temp = \[(l:#isl,f)->#fold(#map(l,f),true,#and);(l:#ism,f)->#fold(#map(tempMatrixElems(l),f),true,#and);(l,f)->true]
 def forall(l,f) = temp(l,f)
@@ -344,8 +344,8 @@ def dsum(n) = dsum(10,n)
 def dnum(b,l) = #fold(l,0,\num,digit->#add(#mul(num,b),digit))
 def dnum(l) = dnum(10,l)
 
-? For non-negative real integers, only take real part.
-? Prevents rounding errors on the imaginary parts
+" For non-negative real integers, only take real part.
+" Prevents rounding errors on the imaginary parts
 let temp = \[(x:#isi)->#re(#gamma(x+1,-1)/#e);(x)->#gamma(x+1,-1)/#e]
 def sf(x) = temp(x)
 def Gamma(x) = #gamma(x,0)
@@ -354,8 +354,8 @@ def gamma(p,x) = #gamma(p,0)-#gamma(p,x)
 def Beta(a) = 1
 def Beta(a,b) = #div(#gamma(a,0)*#gamma(b,0),#gamma(a+b,0))
 let temp = \l->#div(#fold(#map(l,\x->#gamma(x,0)),1,@*),#gamma(#fold(l,0,@+),0))
-? Define multivariate Beta with one positional argument,
-? so it can't be called with 0 arguments.
+" Define multivariate Beta with one positional argument,
+" so it can't be called with 0 arguments.
 def Beta(a,l...) = temp([a,l...])
 def Γ(x) = #gamma(x,0)
 def Γ(p,x) = #gamma(p,x)
@@ -472,7 +472,7 @@ def asech(x) = acosh(1/x)
 def acsch(x) = asinh(1/x)
 def acoth(x) = atanh(1/x)
 
-? More signs or operators that need the functions to be in place
+" More signs or operators that need the functions to be in place
 cat '⌊' = start primary
 cat '⌈' = start primary
 cat '⌋' = end
@@ -528,25 +528,25 @@ def(-200) ×(a,b) = temp(a,b)
 def(-200) ∙(a,b) = a ** b
 def(-200) //(a,b) = #tdiv(a,b)
 
-? More functions that rely on the advanced operators
+" More functions that rely on the advanced operators
 let temp = \[(f):#eq(#len(f),0)->id;(f)->f/@∘]
 def chain(f...) = temp(f)
 def nchain(n, f) = temp(#fill(n,\idx->f))
 
-? Remove our temporary value
+" Remove our temporary value
 rem temp
 
-? Set some calculator properties, that should not be while loading this file
-? to values suitable for the generated format.
+" Set some calculator properties, that should not be while loading this file
+" to values suitable for the generated format.
 set highlight = #t
 set autoref = #t
 
-? Reset modifications made only for this file:
-? Remove the special catcode, so there is no access to specials by default.
-? Remove the interpolate catcode to disable error interpolation.
-? As a last statement, evaluate void to explicitly set ans back to void.
+" Reset modifications made only for this file:
+" Remove the special catcode, so there is no access to specials by default.
+" Remove the interpolate catcode to disable error interpolation.
+" As a last statement, evaluate void to explicitly set ans back to void.
 set eager = #f
-cat '?' = invalid
+cat '"' = invalid
 cat '#' = invalid
 cat '$' = invalid
 void

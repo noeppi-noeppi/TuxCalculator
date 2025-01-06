@@ -153,9 +153,9 @@
     The text between the backticks supports the same escape sequences as defined in the Java Language Specification except for line continuation.
     
     \subsubsection{Answer}
-    The special variable \verb|ans| stores the result of the last evaluated expression that was not an error.
+    The special variable \verb|?| stores the result of the last evaluated expression that was not an error.
     Initially, it is \verb|void|.
-    \verb|ans| can also be used in functions to reference the last answer at the point, the function is called.
+    \verb|?| can also be used in functions to reference the last answer at the point, the function is called.
     
     \subsection{Error handling}\label{subsec:error-handling}
     To support error handling, there is a type of value called \textsl{error}.
@@ -696,11 +696,11 @@
     
     \subsection{Defining new operators}\label{subsec:new-operators}
     In order to define new operators instead of just redefining existing ones, you need to change catcodes.
-    For example, the question mark has catcode \verb|invalid| by default.
+    For example, the hash sign has catcode \verb|invalid| by default.
     It can easily be turned into an operator:
     \begin{verbatim}
-        cat '?' = operator
-        def ?(a, b) = a %% b
+        cat '#' = operator
+        def #(a, b) = a %% b
     \end{verbatim}
 
     \section{Reference of standard definitions}\label{sec:reference-def}
