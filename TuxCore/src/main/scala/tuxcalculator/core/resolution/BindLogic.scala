@@ -65,7 +65,7 @@ object BindLogic {
               case value => calc.format(value)
             }
             val modifiedLastPart = Ast.Error.TailPart(newParts.last.prefix, newParts.last.variableName, newParts.last.followingText + varStr + followingText)
-            newParts.dropInPlace(1).addOne(modifiedLastPart)
+            newParts.dropRightInPlace(1).addOne(modifiedLastPart)
           }
         }
         if (newParts.sizeIs == 1) {
