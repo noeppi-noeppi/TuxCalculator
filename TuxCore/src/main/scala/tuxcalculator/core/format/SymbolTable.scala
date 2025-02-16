@@ -2,11 +2,10 @@ package tuxcalculator.core.format
 
 import java.io._
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 
 class SymbolTable[T] private(private[this] val isMutable: Boolean, val name: String, private[this] val encoder: SymbolEncoder[T]) {
 
-  private[this] val items: ListBuffer[T] = ListBuffer()
+  private[this] val items: mutable.ArrayBuffer[T] = mutable.ArrayBuffer()
   private[this] val map: mutable.Map[T, Int] = mutable.Map()
   
   private[this] var dataIn: DataInputStream = _
@@ -21,6 +20,7 @@ class SymbolTable[T] private(private[this] val isMutable: Boolean, val name: Str
       case Some(input) =>
         val byteLen = input.readInt()
         maxLen = input.readInt()
+        items.sizeHint(maxLen)
         val allData = new Array[Byte](byteLen)
         input.readFully(allData)
         dataOut.write(allData)

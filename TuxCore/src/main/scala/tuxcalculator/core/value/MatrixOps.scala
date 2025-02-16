@@ -1,7 +1,7 @@
 package tuxcalculator.core.value
 
 import scala.annotation.tailrec
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable
 
 object MatrixOps {
   case class MatrixEntry(value: MathValue, row: Int, col: Int)
@@ -145,7 +145,7 @@ object MatrixOps {
   private def dim(matrix: MathMatrix): String = "" + matrix.height + "x" + matrix.width
   
   private class MatrixBuilder(width: Int, height: Int) {
-    private val values: ListBuffer[ListBuffer[MathValue]] = ListBuffer.fill(width)(ListBuffer.fill(height)(MathVoid))
+    private val values: mutable.ArraySeq[mutable.ArraySeq[MathValue]] = mutable.ArraySeq.fill(width)(mutable.ArraySeq.fill(height)(MathVoid))
     def update(row: Int, col: Int, value: MathValue): Unit = values(col)(row) = value
     def buildMatrix: Option[MathMatrix] = if (values.exists(_.contains(MathVoid))) None else Some(MathMatrix(values.toVector.map(_.toVector)))
     def build: MathValue = buildMatrix.getOrElse(MathVoid)

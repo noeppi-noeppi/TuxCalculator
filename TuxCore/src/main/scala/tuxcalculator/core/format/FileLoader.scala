@@ -6,7 +6,7 @@ import tuxcalculator.core.value.MathError
 
 import java.io.{BufferedReader, Reader}
 import java.nio.file.{Files, Path}
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable
 
 object FileLoader {
   
@@ -24,7 +24,7 @@ object FileLoader {
   }
   
   def load(calc: Calculator, fileName: String, lines: Vector[String]): Seq[Result.Error] = {
-    val errors = ListBuffer[Result.Error]()
+    val errors = mutable.ArrayBuffer[Result.Error]()
     for ((line, lineNum) <- lines.zipWithIndex) calc.parse(line) match {
       case Result.Error(err, trace) => errors.addOne(Result.Error("In " + fileName + ":" + (lineNum + 1) + ": " + err.strip(), trace))
       case Result.Value(MathError(err, trace)) => errors.addOne(Result.Error("In " + fileName + ":" + (lineNum + 1) + ": " + err.strip(), trace))

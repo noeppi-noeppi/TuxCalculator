@@ -5,7 +5,7 @@ import tuxcalculator.core.lexer.FmtCode
 import tuxcalculator.core.value.{MathError, MathFunction, MathValue}
 
 import scala.annotation.tailrec
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable
 
 class PartialAppliedFunction private(val value: MathValue, val partialArgs: Vector[Option[MathValue]]) extends MathFunction {
   override def string(calc: Calculator): String = {
@@ -26,7 +26,8 @@ class PartialAppliedFunction private(val value: MathValue, val partialArgs: Vect
     formatOn(value)
   }
   override def applyTo(calc: Calculator, args: Vector[MathValue]): MathValue = {
-    val allArgs = ListBuffer[MathValue]()
+    val allArgs = mutable.ArrayBuffer[MathValue]()
+    allArgs.sizeHint(args.size + partialArgs.size)
     var argIdx = 0
     for (arg <- partialArgs) arg match {
       case Some(value) => allArgs.addOne(value)

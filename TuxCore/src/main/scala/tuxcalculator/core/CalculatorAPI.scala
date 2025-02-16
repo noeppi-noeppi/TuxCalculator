@@ -9,7 +9,8 @@ import tuxcalculator.core.value.{MathError, MathVoid}
 import java.io._
 import java.nio.file.{Files, Path}
 import java.util
-import scala.collection.mutable.ListBuffer
+import scala.collection.immutable.ArraySeq
+import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
 object CalculatorAPI extends TuxCalculatorAPI {
@@ -47,9 +48,9 @@ object CalculatorAPI extends TuxCalculatorAPI {
     }
   }
   
-  class CalculatorBuilderWrapper(private val calc: Calculator) extends TuxCalculator.Builder {
+  private class CalculatorBuilderWrapper(private val calc: Calculator) extends TuxCalculator.Builder {
     
-    private val errors: ListBuffer[Result.Error] = ListBuffer()
+    private val errors: mutable.IndexedBuffer[Result.Error] = mutable.ArrayBuffer()
     
     override def load(path: Path): Unit = {
       if (Files.isRegularFile(path)) {
@@ -61,26 +62,26 @@ object CalculatorAPI extends TuxCalculatorAPI {
     
     override def load(fileName: String, in: InputStream): Unit = load(fileName, new InputStreamReader(in))
     override def load(fileName: String, in: Reader): Unit = errors.addAll(FileLoader.load(calc, fileName, in))
-    override def checkError(): util.List[TuxCalculator.Error] = if (errors.isEmpty) null else errors.toVector.map {
+    override def checkError(): util.List[TuxCalculator.Error] = if (errors.isEmpty) null else errors.map {
       case Result.Error(msg, trace) => new TuxCalculator.Error(msg, trace.asJava)
-    }.asJava
+    }.to(ArraySeq).asJava
     override def build(): TuxCalculator = {
       if (errors.isEmpty) new CalculatorWrapper(calc)
       else throw new IllegalStateException("There were errors building the calculator.")
     }
   }
   
-  class ErroredCalculatorBuilder(val errors: Vector[Result.Error]) extends TuxCalculator.Builder {
+  private class ErroredCalculatorBuilder(val errors: Seq[Result.Error]) extends TuxCalculator.Builder {
     override def load(path: Path): Unit = ()
     override def load(fileName: String, in: InputStream): Unit = ()
     override def load(fileName: String, in: Reader): Unit = ()
     override def checkError(): util.List[TuxCalculator.Error] = errors.map {
       case Result.Error(msg, trace) => new TuxCalculator.Error(msg, trace.asJava)
-    }.asJava
+    }.to(ArraySeq).asJava
     override def build(): TuxCalculator = throw new IllegalStateException("There were errors building the calculator.")
   }
   
-  class CalculatorWrapper(val calc: Calculator) extends TuxCalculator {
+  private class CalculatorWrapper(val calc: Calculator) extends TuxCalculator {
     override def ini(): Boolean = calc.ini
     override def highlight(line: String): util.List[HighlightPart] = InputHighlighter.highlight(calc, line).asJava
     override def tabComplete(line: String): TuxCalculator.TabCompletion = TabCompleter.tabComplete(calc, line) match {
