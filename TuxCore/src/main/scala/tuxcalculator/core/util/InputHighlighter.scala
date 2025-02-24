@@ -81,15 +81,16 @@ object InputHighlighter {
       }) {}
       advance(amount, highlight)
     }
-    def advanceSingleIdentifier(lookahead: Lookahead[Int], highlight: HighlightType): Unit = calc.lexer.lookup(lookahead) match {
-      case CharacterMapping(CatCode.Escape, content) =>
+    def advanceSingleIdentifier(lookahead: Lookahead[Int], highlight: HighlightType, stopAt: CatCode*): Unit = calc.lexer.lookup(lookahead) match {
+      case CharacterMapping(CatCode.Escape, content) if !stopAt.contains(CatCode.Escape) =>
         advance(content.length, highlight) // Also updates the lookahead
-        advanceEscaped(lookahead, highlight, CatCode.Escape) {
+        advanceEscaped(lookahead, highlight, breakAt = Seq(CatCode.Escape) ++ stopAt: _*) {
+          case CharacterMapping(code, _) if stopAt.contains(code) => false
           case CharacterMapping(CatCode.Escape, content) =>
             advance(content.length, highlight)
             false
         }
-      case _ => advanceWhile(lookahead, highlight, cat => cat.exists(Identifier.contains))
+      case _ => advanceWhile(lookahead, highlight, cat => !cat.exists(stopAt.contains) && cat.exists(Identifier.contains))
     }
     def maybeAdvanceCommand(commands: Set[String]): Option[String] = commands.map(Util.decomposeString).find((cmd: Vector[Int]) => codePoints.drop(idx).startsWith(cmd)) match {
       case Some(cmd) if codePoints.drop(idx + cmd.length).headOption.forall(next => !Identifier.contains(calc.lexer.catCode(next))) =>
@@ -151,14 +152,14 @@ object InputHighlighter {
           case CatCode.Comment => advance(codePoints.length, HighlightType.COMMENT)
           case CatCode.Error =>
             advance(content.length, HighlightType.ERROR) // Also updates the lookahead
-            advanceEscaped(lookahead, HighlightType.ERROR, CatCode.Error, CatCode.Interpolate) {
+            advanceEscaped(lookahead, HighlightType.ERROR, breakAt = CatCode.Error, CatCode.Interpolate) {
               case CharacterMapping(CatCode.Error, content) =>
                 advance(content.length, HighlightType.ERROR)
                 false
               case CharacterMapping(CatCode.Interpolate, content) => calc.lexer.lookup(lookahead.offset(content.length)) match {
-                case CharacterMapping(CatCode.Letter | CatCode.Exp, _) =>
+                case CharacterMapping(CatCode.Letter | CatCode.Exp | CatCode.Escape, _) =>
                   advance(content.length, HighlightType.CONSTRUCT)
-                  advanceWhile(lookahead, HighlightType.CONSTRUCT, cat => cat.exists(Identifier.contains))
+                  advanceSingleIdentifier(lookahead, HighlightType.CONSTRUCT, stopAt = CatCode.Error)
                   true
                 case _ =>
                   advance(content.length, HighlightType.ERROR)

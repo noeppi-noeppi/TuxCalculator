@@ -36,11 +36,11 @@ object Lexer {
     StringEscapeUtils.UNESCAPE_JAVA
   )
   
-  val LambdaTerminators: Set[CatCode] = Set(
+  private val LambdaTerminators: Set[CatCode] = Set(
     CatCode.Close, CatCode.End, CatCode.EndMatch, CatCode.ElementSep, CatCode.GroupSep, CatCode.VarArg, CatCode.Follow
   )
   
-  def safeUnescape(string: String): Result[String] = try {
+  private def safeUnescape(string: String): Result[String] = try {
     Result.Value(UNESCAPE.translate(string))
   } catch {
     case e: IllegalArgumentException => Result.Error(e.getMessage)
@@ -379,15 +379,22 @@ class Lexer {
           case CharacterMapping(CatCode.Interpolate, interpolationSignContent) =>
             source.advance(interpolationSignContent.length)
             this.catCodes.tokCode(source) match {
-              case CharacterMapping(CatCode.Letter | CatCode.Exp, _) => Lexer.safeUnescape(sb.toString()) match {
+              case CharacterMapping(code@(CatCode.Letter | CatCode.Exp | CatCode.Escape), _) => Lexer.safeUnescape(sb.toString()) match {
                 case Result.Value(unescaped) =>
                   parts.addOne(Token.Error.TailPart(interpolatePrefix, interpolateName, unescaped))
                   sb.clear()
                   interpolatePrefix = Util.makeString(interpolationSignContent)
-                  interpolateName = consumeIdentifierFromSource(source)
-                  this.catCodes.tokCode(source) match {
-                    case CharacterMapping(CatCode.Space, spaceContent) => source.advance(spaceContent.length)
-                    case _ =>
+                  interpolateName = consumeIdentifierFromSource(source) match {
+                    case Left(identifier) => identifier
+                    case Right(result) => return Right(result)
+                  }
+                  // Only skip space if the identifier isn't escaped
+                  if (code != CatCode.Escape) {
+                    this.catCodes.tokCode(source) match {
+                      case CharacterMapping(CatCode.Space, spaceContent) =>
+                        source.advance(spaceContent.length)
+                      case _ =>
+                    }
                   }
                 case err: Result.Error => return Right(err)
               }
@@ -421,15 +428,19 @@ class Lexer {
     throw new Error()
   }
   
-  private def consumeIdentifierFromSource(source: CharacterSource): String = {
-    val sb: StringBuilder = new StringBuilder()
-    while (true) this.catCodes.tokCode(source) match {
-      case CharacterMapping(code, content) if code == CatCode.Letter || code == CatCode.Digit || code == CatCode.Exp =>
-        source.advance(content.length)
-        sb.append(Util.makeString(content))
-      case _ => return sb.toString
-    }
-    throw new Error()
+  private def consumeIdentifierFromSource(source: CharacterSource): Either[String, Result[Nothing]] = this.catCodes.tokCode(source) match {
+    case CharacterMapping(CatCode.Escape, openingEscape) =>
+      source.advance(openingEscape.length)
+      tokenizeStringUntil(source, CatCode.Escape)
+    case _ => 
+      val sb: StringBuilder = new StringBuilder()
+      while (true) this.catCodes.tokCode(source) match {
+        case CharacterMapping(code, content) if code == CatCode.Letter || code == CatCode.Digit || code == CatCode.Exp =>
+          source.advance(content.length)
+          sb.append(Util.makeString(content))
+        case _ => return Left(sb.toString)
+      }
+      throw new Error()
   }
   
   private class ImmediateError(val error: Result.Error) extends Exception
