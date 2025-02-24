@@ -139,13 +139,15 @@ object TabCompleter {
 
     findPrefix(Identifier, startsWith = CatCode.Special) match {
       case Some(Prefix(prefix, completionString, matchString)) =>
-        return Result(prefix, completionString, findMatches(matchString, calc.specials.keys), isIdentifier = false)
+        return Result(prefix, completionString, findMatches(matchString, calc.specials.keys).map(escapeIdentifierIfRequired), isIdentifier = false)
       case None =>
     }
 
     findPrefix(Reference, startsWith = CatCode.Reference) match {
       case Some(Prefix(prefix, completionString, matchString)) =>
-        return Result(prefix, completionString, findMatches(matchString, calc.resolution.tabCompleteReference), isIdentifier = false)
+        val operatorMatches = findMatches(matchString, calc.resolution.tabCompleteReferenceOperator)
+        val functionMatches = findMatches(matchString, calc.resolution.tabCompleteReferenceFunction).map(escapeIdentifierIfRequired)
+        return Result(prefix, completionString, operatorMatches ++ functionMatches, isIdentifier = false)
       case None =>
     }
 

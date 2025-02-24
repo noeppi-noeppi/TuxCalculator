@@ -72,7 +72,8 @@ class ResolutionTable(private val calc: Calculator) {
   }
 
   def tabCompleteIdentifier: Set[String] = (functions.keySet | variables.keySet).toSet
-  def tabCompleteReference: Set[String] = (functions.keySet | signs.keySet | operators.keySet | postfixes.keySet | primaries.keySet.map(_.name) | secondaries.keySet.map(_.name) | tertiaries.keySet.map(_.name)).toSet
+  def tabCompleteReferenceFunction: Set[String] = functions.keySet.toSet
+  def tabCompleteReferenceOperator: Set[String] = (signs.keySet | operators.keySet | postfixes.keySet | primaries.keySet.map(_.name) | secondaries.keySet.map(_.name) | tertiaries.keySet.map(_.name)).toSet
 
   def produceFrontendErrorOnUnboundValue(): Unit = frontendErrorOnUnboundValue = true
   private def unbound(message: String): MathValue = {

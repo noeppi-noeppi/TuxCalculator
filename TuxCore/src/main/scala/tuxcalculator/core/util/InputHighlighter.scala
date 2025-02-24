@@ -81,6 +81,16 @@ object InputHighlighter {
       }) {}
       advance(amount, highlight)
     }
+    def advanceSingleIdentifier(lookahead: Lookahead[Int], highlight: HighlightType): Unit = calc.lexer.lookup(lookahead) match {
+      case CharacterMapping(CatCode.Escape, content) =>
+        advance(content.length, highlight) // Also updates the lookahead
+        advanceEscaped(lookahead, highlight, CatCode.Escape) {
+          case CharacterMapping(CatCode.Escape, content) =>
+            advance(content.length, highlight)
+            false
+        }
+      case _ => advanceWhile(lookahead, highlight, cat => cat.exists(Identifier.contains))
+    }
     def maybeAdvanceCommand(commands: Set[String]): Option[String] = commands.map(Util.decomposeString).find((cmd: Vector[Int]) => codePoints.drop(idx).startsWith(cmd)) match {
       case Some(cmd) if codePoints.drop(idx + cmd.length).headOption.forall(next => !Identifier.contains(calc.lexer.catCode(next))) =>
         advance(cmd.length, HighlightType.COMMAND)
@@ -139,13 +149,6 @@ object InputHighlighter {
       calc.lexer.lookup(lookahead) match {
         case CharacterMapping(code, content) => code match {
           case CatCode.Comment => advance(codePoints.length, HighlightType.COMMENT)
-          case CatCode.Escape =>
-            advance(content.length, HighlightType.IDENTIFIER) // Also updates the lookahead
-            advanceEscaped(lookahead, HighlightType.IDENTIFIER, CatCode.Escape) {
-              case CharacterMapping(CatCode.Escape, content) =>
-                advance(content.length, HighlightType.IDENTIFIER)
-                false
-            }
           case CatCode.Error =>
             advance(content.length, HighlightType.ERROR) // Also updates the lookahead
             advanceEscaped(lookahead, HighlightType.ERROR, CatCode.Error, CatCode.Interpolate) {
@@ -183,14 +186,14 @@ object InputHighlighter {
                   case CharacterMapping(CatCode.End | CatCode.EndMatch, endContent) => advance(endContent.length, HighlightType.REFERENCE)
                   case _ =>
                 }
-              case _ => advanceWhile(lookahead, HighlightType.REFERENCE, cat => cat.exists(Identifier.contains))
+              case _ => advanceSingleIdentifier(lookahead, HighlightType.REFERENCE)
             }
           case CatCode.Special =>
             advance(content.length, HighlightType.SPECIAL) // Also updates the lookahead
             skipSpace()
-            advanceWhile(lookahead, HighlightType.SPECIAL, cat => cat.exists(Identifier.contains))
+            advanceSingleIdentifier(lookahead, HighlightType.SPECIAL)
           case cat if NumberStart.contains(cat) => advanceWhile(lookahead, HighlightType.NUMBER, cat => cat.exists(Number.contains))
-          case cat if Identifier.contains(cat) => advanceWhile(lookahead, HighlightType.IDENTIFIER, cat => cat.exists(Identifier.contains))
+          case cat if cat == CatCode.Escape || Identifier.contains(cat) => advanceSingleIdentifier(lookahead, HighlightType.IDENTIFIER)
           case CatCode.StartPrimary | CatCode.StartSecondary | CatCode.StartTertiary =>
             bracketStack.push(code)
             advance(content.length, HighlightType.PLAIN)
