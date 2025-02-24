@@ -19,7 +19,7 @@ public abstract class DesktopFrontend implements TuxFrontend {
         
     }
     
-    public abstract void run(TuxCalculator calc, Consumer<Callable<Void>> executor) throws IOException;
+    public abstract void run(TuxCalculator calc, CalculatorHistory history, Consumer<Callable<Void>> executor) throws IOException;
     
     @Override
     public OutputStream openFile(String fileName) throws IOException {

@@ -5,25 +5,20 @@ import tuxcalculator.api.TuxCalculator;
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public abstract class GraphicalFrontend extends DesktopFrontend {
 
-    @Nullable
-    private Consumer<Callable<Void>> executor;
-    
-    @Nullable
-    private TuxCalculator calc;
+    @Nullable private Consumer<Callable<Void>> executor;
+    @Nullable private TuxCalculator calc;
+    @Nullable private CalculatorHistory history;
     
     private String lastInput = "";
     private int arrowIdx = -1;
     private String current = "";
-    private final List<String> historyBuffer = new ArrayList<>();
     
     @Nullable
     private List<String> tabList = null;
@@ -48,8 +43,9 @@ public abstract class GraphicalFrontend extends DesktopFrontend {
     
     @Override
     @OverridingMethodsMustInvokeSuper
-    public void run(TuxCalculator calc, Consumer<Callable<Void>> executor) throws IOException {
+    public void run(TuxCalculator calc, CalculatorHistory history, Consumer<Callable<Void>> executor) throws IOException {
         this.calc = calc;
+        this.history = history;
         this.executor = executor;
     }
 
@@ -83,23 +79,29 @@ public abstract class GraphicalFrontend extends DesktopFrontend {
     }
     
     private void incrHist() {
+        CalculatorHistory history = this.history;
+        if (history == null) return;
+        
         if (this.arrowIdx < 0) {
             this.current = this.getCurrentText();
         }
 
-        this.arrowIdx = this.clamp(this.arrowIdx + 1, -1, this.historyBuffer.size());
-        String newText = this.arrowIdx < 0 ? this.current : this.historyBuffer.get(this.arrowIdx);
+        this.arrowIdx = this.clamp(this.arrowIdx + 1, -1, history.length());
+        String newText = this.arrowIdx < 0 ? this.current : history.get(this.arrowIdx);
         this.setCurrentText(newText);
         this.placeCursorAt(newText.length());
     }
 
     private void decrHist() {
+        CalculatorHistory history = this.history;
+        if (history == null) return;
+        
         if (this.arrowIdx < 0) {
             this.current = this.getCurrentText();
         }
         
-        this.arrowIdx = this.clamp(this.arrowIdx - 1, -1, this.historyBuffer.size());
-        String newText = this.arrowIdx < 0 ? this.current : this.historyBuffer.get(this.arrowIdx);
+        this.arrowIdx = this.clamp(this.arrowIdx - 1, -1, history.length());
+        String newText = this.arrowIdx < 0 ? this.current : history.get(this.arrowIdx);
         this.setCurrentText(newText);
         this.placeCursorAt(newText.length());
     }
@@ -115,8 +117,8 @@ public abstract class GraphicalFrontend extends DesktopFrontend {
         else this.lastInput = term;
         if (term.isBlank()) return;
 
-        if (this.historyBuffer.isEmpty() || !Objects.equals(term, this.historyBuffer.getFirst())) {
-            this.historyBuffer.addFirst(term);
+        if (this.history != null) {
+            this.history.add(term);
         }
         this.arrowIdx = -1;
 

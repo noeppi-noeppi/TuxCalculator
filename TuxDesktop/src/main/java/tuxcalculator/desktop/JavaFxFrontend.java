@@ -85,8 +85,8 @@ public class JavaFxFrontend extends GraphicalFrontend {
     }
 
     @Override
-    public void run(TuxCalculator calc, Consumer<Callable<Void>> executor) throws IOException {
-        super.run(calc, executor);
+    public void run(TuxCalculator calc, CalculatorHistory history, Consumer<Callable<Void>> executor) throws IOException {
+        super.run(calc, history, executor);
         
         URL res = JavaFxFrontend.class.getResource("/tuxcalculator/desktop/fx_window.fxml");
         if (res == null) throw new IOException("JavaFX window definition not found");

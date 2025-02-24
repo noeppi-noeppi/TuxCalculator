@@ -14,6 +14,7 @@ import tuxcalculator.api.TuxCalculator;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -35,9 +36,9 @@ public final class TextFrontEnd extends DesktopFrontend {
     }
 
     @Override
-    public void run(TuxCalculator calc, Consumer<Callable<Void>> executor) throws IOException {
+    public void run(TuxCalculator calc, CalculatorHistory history, Consumer<Callable<Void>> executor) throws IOException {
         if (System.console() != null) {
-            runJLine(calc);
+            runJLine(calc, history);
         } else {
             runText(calc);
         }
@@ -54,7 +55,7 @@ public final class TextFrontEnd extends DesktopFrontend {
         }
     }
     
-    private void runJLine(TuxCalculator calc) throws IOException {
+    private void runJLine(TuxCalculator calc, CalculatorHistory history) throws IOException {
         Logger.getLogger("org.jline").setLevel(Level.SEVERE);
         TerminalBuilder builder = TerminalBuilder.builder();
         builder.name("TuxCalculator");
@@ -71,7 +72,7 @@ public final class TextFrontEnd extends DesktopFrontend {
             LineReader reader = LineReaderBuilder.builder()
                     .terminal(terminal)
                     .parser(new NothingParser())
-                    .history(new DefaultHistory())
+                    .history(new HistoryWrapper(history))
                     .highlighter(highlighter)
                     .completer(completer)
                     .completionMatcher(completer)
@@ -143,6 +144,24 @@ public final class TextFrontEnd extends DesktopFrontend {
         sb.append(text);
         sb.style(AttributedStyle.DEFAULT);
         return sb.toAnsi();
+    }
+
+    private static final class HistoryWrapper extends DefaultHistory {
+        
+        private final CalculatorHistory history;
+        
+        public HistoryWrapper(CalculatorHistory history) {
+            for (int i = history.length() - 1; i >= 0; i--) {
+                this.add(history.get(i));
+            }
+            this.history = history;
+        }
+
+        @Override
+        protected void internalAdd(Instant time, String line, boolean checkDuplicates) {
+            if (this.history != null && this.first() == 0) this.history.add(line);
+            super.internalAdd(time, line, checkDuplicates);
+        }
     }
 
     private static final class NothingParser implements Parser {

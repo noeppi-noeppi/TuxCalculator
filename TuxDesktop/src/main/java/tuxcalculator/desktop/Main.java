@@ -27,12 +27,15 @@ public class Main {
     
     public static void main(String[] args) throws IOException {
         Path defaultRcFile = Paths.get(System.getProperty("user.home")).resolve(".init.tuxc").toAbsolutePath().normalize();
+        Path defaultHistFile = Paths.get(System.getProperty("user.home")).resolve(".cache/.tuxc_history").toAbsolutePath().normalize();
 
         OptionParser options = new OptionParser(false);
         OptionSpec<Void> specIni = options.accepts("ini", "Run in ini-mode.");
         OptionSpec<String> specFmt = options.accepts("fmt", "Specify format to load.").withRequiredArg().defaultsTo("plain");
         OptionSpec<Void> specNoRc = options.accepts("no-rc", "Don't load the rc-file. Implicitly set by -ini.");
         OptionSpec<Path> specRcFile = options.accepts("rc-file", "The rc-file to load. (default: ~/.init.tuxc)").withRequiredArg().withValuesConvertedBy(new PathConverter());
+        OptionSpec<Integer> specHistSize = options.accepts("history-size", "The size of the history to persist. Zero disables saving the persistent history.").withRequiredArg().ofType(Integer.class).defaultsTo(1000);
+        OptionSpec<Path> specHistFile = options.accepts("history-file", "The file where the history is persisted. (default: ~/.cache/.tuxc_history)").withRequiredArg().withValuesConvertedBy(new PathConverter());
         OptionSpec<Void> specHelp = options.accepts("help", "Show help.").forHelp();
         OptionSpec<Void> specVersion = options.accepts("version", "Print version information and exit.").forHelp();
         OptionSpec<Void> specLicenses = options.accepts("licenses", "Show open source licenses.").forHelp();
@@ -89,8 +92,10 @@ public class Main {
         frontend.init();
         
         TuxCalculator calc;
+        CalculatorHistory history;
         if (set.has(specIni)) {
             calc = TuxCalculatorAPI.get().createINI(frontend);
+            history = new CalculatorHistory();
         } else {
             TuxCalculator.Builder builder;
             if (Objects.equals("plain", set.valueOf(specFmt))) {
@@ -117,6 +122,7 @@ public class Main {
                 return;
             }
             calc = builder.build();
+            history = new CalculatorHistory(set.has(specHistFile) ? set.valueOf(specHistFile) : defaultHistFile, set.valueOf(specHistSize));
         }
         
         Consumer<Callable<Void>> executor = action -> {
@@ -131,8 +137,9 @@ public class Main {
                 System.exit(1);
             }
         };
+        Runtime.getRuntime().addShutdownHook(new Thread(history::save));
         executor.accept(() -> {
-            frontend.run(calc, executor);
+            frontend.run(calc, history, executor);
             return null;
         });
         

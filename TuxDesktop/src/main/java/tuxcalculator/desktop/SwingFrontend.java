@@ -27,8 +27,8 @@ public class SwingFrontend extends GraphicalFrontend {
     }
 
     @Override
-    public void run(TuxCalculator calc, Consumer<Callable<Void>> executor) throws IOException {
-        super.run(calc, executor);
+    public void run(TuxCalculator calc, CalculatorHistory history, Consumer<Callable<Void>> executor) throws IOException {
+        super.run(calc, history, executor);
         
         this.font = selectFont();
 

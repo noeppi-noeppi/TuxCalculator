@@ -50,8 +50,8 @@ public class GtkFrontend extends GraphicalFrontend {
     }
 
     @Override
-    public void run(TuxCalculator calc, Consumer<Callable<Void>> executor) throws IOException {
-        super.run(calc, executor);
+    public void run(TuxCalculator calc, CalculatorHistory history, Consumer<Callable<Void>> executor) throws IOException {
+        super.run(calc, history, executor);
         
         try (InputStream in = GtkFrontend.class.getResourceAsStream("/tuxcalculator/desktop/gtk_window.xml")) {
             if (in == null) throw new IOException("GTK window definition not found");
