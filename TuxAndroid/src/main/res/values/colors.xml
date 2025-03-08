@@ -8,4 +8,12 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="error">#FFCC0000</color>
+    <color name="highlight_number">#FF0000FF</color>
+    <color name="highlight_operator">#FF008000</color>
+    <color name="highlight_reference">#FF006666</color>
+    <color name="highlight_special">#FF8600E6</color>
+    <color name="highlight_error">#FFFF2A26</color>
+    <color name="highlight_command">#FF000080</color>
+    <color name="highlight_construct">#FF660E7A</color>
+    <color name="highlight_comment">#FF808080</color>
 </resources>

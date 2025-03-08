@@ -5,6 +5,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
+import tuxcalculator.android.data.Highlight;
 import tuxcalculator.android.data.TextEntry;
 import tuxcalculator.api.TuxCalculator;
 import tuxcalculator.api.TuxCalculatorAPI;
@@ -120,6 +121,7 @@ public class ApplicationState {
                 this.calcTerm(activity);
                 return true;
             });
+            input.addTextChangedListener(HighlightHelper.createHighlighter(activity, this.calculator));
             
             return null;
         });
@@ -161,14 +163,15 @@ public class ApplicationState {
         String effectiveFinalTerm = term;
         this.executor.execute(() -> {
             try {
+                List<Highlight> inputHighlights = HighlightHelper.computeHighlights(this.calculator, effectiveFinalTerm);
                 TuxCalculator.Result result = this.calculator.parse(effectiveFinalTerm);
                 ContextCompat.getMainExecutor(activity).execute(() -> {
-                    TextEntry inputText = new TextEntry(effectiveFinalTerm, false, true, false, null);
+                    TextEntry inputText = new TextEntry(effectiveFinalTerm, false, true, false, null, inputHighlights);
                     String detail = null;
                     if (result instanceof TuxCalculator.Error err) {
                         detail = err.trace().isEmpty() ? "" : String.join("\n", err.trace());
                     }
-                    TextEntry outputText = new TextEntry(result.toString(), true, true, result instanceof TuxCalculator.Error, detail);
+                    TextEntry outputText = new TextEntry(result.toString(), true, true, result instanceof TuxCalculator.Error, detail, List.of());
 
                     this.text.add(inputText);
                     this.text.add(outputText);

@@ -3,6 +3,7 @@ package tuxcalculator.android;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Spannable;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,6 +22,7 @@ import tuxcalculator.android.data.TextEntry;
 import tuxcalculator.android.dialog.SimpleDialogFragment;
 import tuxcalculator.api.TuxCalculatorAPI;
 
+import java.util.List;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
@@ -86,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout layout = this.findViewById(R.id.text_output);
         layout.removeAllViews();
 
-        this.addTextView(new TextEntry(text, false, false, false, null));
+        this.addTextView(new TextEntry(text, false, false, false, null, List.of()));
     }
 
     public void addTextView(TextEntry entry) {
@@ -107,6 +109,9 @@ public class MainActivity extends AppCompatActivity {
         }
         if (entry.red) {
             view.setTextColor(this.getResources().getColor(R.color.error, this.getTheme()));
+        }
+        if (!entry.highlight.isEmpty() && view.getText() instanceof Spannable spannable) {
+            HighlightHelper.highlight(this, spannable, 0, entry.highlight);
         }
         if (entry.result) {
             view.setTypeface(view.getTypeface(), Typeface.BOLD);

@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="error">#FFFF3333</color>
+    <color name="highlight_number">#FFaFFFFF</color>
+    <color name="highlight_operator">#FF00FF00</color>
+    <color name="highlight_reference">#FFD7D701</color>
+    <color name="highlight_special">#FFFF00ff</color>
+    <color name="highlight_error">#FFFF5F5f</color>
+    <color name="highlight_command">#FFFFAF00</color>
+    <color name="highlight_construct">#FFFAAFFF</color>
+    <color name="highlight_comment">#FF949494</color>
 </resources>
