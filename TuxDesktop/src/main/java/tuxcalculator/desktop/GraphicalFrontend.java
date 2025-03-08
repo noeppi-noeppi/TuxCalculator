@@ -34,12 +34,14 @@ public abstract class GraphicalFrontend extends DesktopFrontend {
         String text = this.getCurrentText();
         return text.substring(Math.min(text.length(), this.getCursorPosition()));
     }
+    protected abstract boolean supportsHighlighting();
     protected abstract void setCurrentText(String text);
+    protected abstract void applyInputHighlighting(List<TuxCalculator.HighlightPart> highlightedText);
     protected abstract void grabInputFocus();
     protected abstract boolean hasSelectedText();
     protected abstract int getCursorPosition();
     protected abstract void placeCursorAt(int cursorPosition);
-    protected abstract void appendLine(String term, TuxCalculator.Result result);
+    protected abstract void appendLine(String term, List<TuxCalculator.HighlightPart> highlightTerm, TuxCalculator.Result result);
     
     @Override
     @OverridingMethodsMustInvokeSuper
@@ -67,6 +69,7 @@ public abstract class GraphicalFrontend extends DesktopFrontend {
                 case TAB_FORWARD -> this.updateTab(false);
                 case TAB_BACKWARD -> this.updateTab(true);
                 case STOP_TAB -> this.delTab();
+                case HIGHLIGHT_INPUT -> this.applyInputHighlighting(this.doHighlight(this.getCurrentText()));
             }
             return null;
         });
@@ -76,6 +79,14 @@ public abstract class GraphicalFrontend extends DesktopFrontend {
         if (value < minI) return minI;
         if (value >= maxE) return maxE - 1;
         return value;
+    }
+    
+    private List<TuxCalculator.HighlightPart> doHighlight(String text) {
+        if (this.supportsHighlighting() && this.calc != null) {
+            return this.calc.highlight(text);
+        } else {
+            return List.of(new TuxCalculator.HighlightPart(TuxCalculator.HighlightType.PLAIN, text));
+        }
     }
     
     private void incrHist() {
@@ -122,8 +133,9 @@ public abstract class GraphicalFrontend extends DesktopFrontend {
         }
         this.arrowIdx = -1;
 
+        List<TuxCalculator.HighlightPart> highlightedTerm = this.doHighlight(term.strip());
         TuxCalculator.Result result = this.calc.parse(term);
-        this.appendLine(term.strip(), result);
+        this.appendLine(term.strip(), highlightedTerm, result);
         this.grabInputFocus();
     }
 
@@ -189,6 +201,7 @@ public abstract class GraphicalFrontend extends DesktopFrontend {
         DECR_HIST,
         TAB_FORWARD,
         TAB_BACKWARD,
-        STOP_TAB
+        STOP_TAB,
+        HIGHLIGHT_INPUT
     }
 }

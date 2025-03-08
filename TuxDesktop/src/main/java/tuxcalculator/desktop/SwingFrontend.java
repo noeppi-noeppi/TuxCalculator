@@ -10,6 +10,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
@@ -139,6 +140,11 @@ public class SwingFrontend extends GraphicalFrontend {
     }
 
     @Override
+    protected boolean supportsHighlighting() {
+        return false;
+    }
+
+    @Override
     protected String getCurrentText() {
         return this.input.getText();
     }
@@ -146,6 +152,11 @@ public class SwingFrontend extends GraphicalFrontend {
     @Override
     protected void setCurrentText(String text) {
         this.input.setText(text);
+    }
+
+    @Override
+    protected void applyInputHighlighting(List<TuxCalculator.HighlightPart> highlightedText) {
+        //
     }
 
     @Override
@@ -169,7 +180,7 @@ public class SwingFrontend extends GraphicalFrontend {
     }
 
     @Override
-    protected void appendLine(String term, TuxCalculator.Result result) {
+    protected void appendLine(String term, List<TuxCalculator.HighlightPart> highlightedTerm, TuxCalculator.Result result) {
         String inputPart = "<div align=\"left\">" + this.makeFontTag(term, null) + "</div>";
         String outputPart;
         if (result instanceof TuxCalculator.Error) {

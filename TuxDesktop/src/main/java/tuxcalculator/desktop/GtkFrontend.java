@@ -4,18 +4,21 @@ import org.gnome.gdk.Keyval;
 import org.gnome.gdk.ModifierType;
 import org.gnome.gdk.Rectangle;
 import org.gnome.gtk.*;
+import org.gnome.pango.Style;
 import org.gnome.pango.Weight;
 import tuxcalculator.api.TuxCalculator;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
@@ -27,8 +30,10 @@ public class GtkFrontend extends GraphicalFrontend {
 
     private TextTag outTag;
     private TextTag outTagError;
+    private Map<TuxCalculator.HighlightType, TextTag> inputHighlightTags = Map.of();
+    private Map<TuxCalculator.HighlightType, TextTag> outputHighlightTags = Map.of();
 
-    private final List<TextTagKey> outputTags = new ArrayList<>();
+    private final List<TextTagKey> textTags = new ArrayList<>();
     
     @Override
     public void init() {
@@ -78,11 +83,16 @@ public class GtkFrontend extends GraphicalFrontend {
             this.outTag = new TextTag(outTable);
             this.outTag.setJustify(Justification.RIGHT);
             this.outTag.setWeight(Weight.BOLD);
+
+            boolean dark = isDarkTheme();
             
             this.outTagError = new TextTag(outTable);
             this.outTagError.setJustify(Justification.RIGHT);
             this.outTagError.setWeight(Weight.BOLD);
-            this.outTagError.setForeground("#CC0000");
+            this.outTagError.setForeground(dark ? "#ef2929" : "#cc0000");
+
+            this.inputHighlightTags = this.createHighlightTags(inTable, dark);
+            this.outputHighlightTags = this.createHighlightTags(outTable, dark);
 
             this.in.connect((Widget.KeyPressEvent) (widget, eventKey) -> {
                 if ((eventKey.getKeyval() == Keyval.Return || eventKey.getKeyval().toString().toLowerCase(Locale.ROOT).contains("kp_enter")) && !eventKey.getState().contains(ModifierType.ALT_MASK)) {
@@ -105,6 +115,7 @@ public class GtkFrontend extends GraphicalFrontend {
                     return false;
                 }
             });
+            this.in.getBuffer().connect((TextBuffer.Changed) buffer -> this.perform(Action.HIGHLIGHT_INPUT));
 
             enter.connect((Button.Clicked) button -> this.perform(Action.SUBMIT));
             this.out.connect((Widget.SizeAllocate) (widget, rectangle) -> this.scrollPane.getVAdjustment().setValue(this.scrollPane.getVAdjustment().getUpper()));
@@ -123,7 +134,7 @@ public class GtkFrontend extends GraphicalFrontend {
                 
                 int cursor = iter.getOffset();
                 String tooltip = null;
-                for (TextTagKey key : this.outputTags) {
+                for (TextTagKey key : this.textTags) {
                     if (key.start < cursor && key.end > cursor) {
                         tooltip = key.tooltip();
                     }
@@ -148,6 +159,11 @@ public class GtkFrontend extends GraphicalFrontend {
     }
 
     @Override
+    protected boolean supportsHighlighting() {
+        return true;
+    }
+
+    @Override
     protected String getCurrentText() {
         return this.in.getBuffer().getText();
     }
@@ -155,6 +171,19 @@ public class GtkFrontend extends GraphicalFrontend {
     @Override
     protected void setCurrentText(String text) {
         this.in.getBuffer().setText(text);
+    }
+
+    @Override
+    protected void applyInputHighlighting(List<TuxCalculator.HighlightPart> highlightedText) {
+        int off = 0;
+        this.in.getBuffer().removeAllTags(this.in.getBuffer().getIterStart(), this.in.getBuffer().getIterEnd());
+        for (TuxCalculator.HighlightPart part : highlightedText) {
+            TextTag tag = this.inputHighlightTags.getOrDefault(part.type(), null);
+            if (tag != null) {
+                this.in.getBuffer().applyTag(tag, this.in.getBuffer().getIter(off), this.in.getBuffer().getIter(off + (int) part.content().codePoints().count()));
+            }
+            off += (int) part.content().codePoints().count();
+        }
     }
 
     @Override
@@ -188,32 +217,108 @@ public class GtkFrontend extends GraphicalFrontend {
     }
 
     @Override
-    protected void appendLine(String term, TuxCalculator.Result result) {
-        if (this.out.getBuffer().getText().isEmpty()) {
-            this.out.getBuffer().setText(term);
-        } else {
-            this.out.getBuffer().setText(this.out.getBuffer().getText() + "\n" + term);
+    protected void appendLine(String term, List<TuxCalculator.HighlightPart> highlightedTerm, TuxCalculator.Result result) {
+        StringBuilder termBuilder = new StringBuilder();
+        int off = this.out.getBuffer().getCharCount();
+        if (off != 0) {
+            termBuilder.append("\n");
+            off += 1;
+        }
+        for (TuxCalculator.HighlightPart part : highlightedTerm) {
+            TextTag tag = this.outputHighlightTags.getOrDefault(part.type(), null);
+            if (tag != null) {
+                this.textTags.add(new TextTagKey(off, off + (int) part.content().codePoints().count(), "", tag));
+            }
+            termBuilder.append(part.content());
+            off += (int) part.content().codePoints().count();
         }
         
-        int start = this.out.getBuffer().getCharCount();
+        this.out.getBuffer().setText(this.out.getBuffer().getText() + termBuilder);
+        
+        int resultStart = this.out.getBuffer().getCharCount();
         this.out.getBuffer().setText(this.out.getBuffer().getText() + "\n" + result);
-        int end = this.out.getBuffer().getCharCount();
+        int resultEnd = this.out.getBuffer().getCharCount();
         
         if (result instanceof TuxCalculator.Error err) {
             String tooltip = null;
             if (!err.trace().isEmpty()) tooltip = String.join("\n", err.trace());
-            this.outputTags.add(new TextTagKey(start, end, tooltip, this.outTagError));
+            this.textTags.add(new TextTagKey(resultStart, resultEnd, tooltip, this.outTagError));
         } else {
-            this.outputTags.add(new TextTagKey(start, end, null, this.outTag));
+            this.textTags.add(new TextTagKey(resultStart, resultEnd, null, this.outTag));
         }
         
         this.out.getBuffer().removeAllTags(this.out.getBuffer().getIterStart(), this.out.getBuffer().getIterEnd());
-        for (TextTagKey tag : this.outputTags) {
+        for (TextTagKey tag : this.textTags) {
             this.out.getBuffer().applyTag(tag.tag(), this.out.getBuffer().getIter(tag.start()), this.out.getBuffer().getIter(tag.end()));
         }
 
         this.scrollPane.getVAdjustment().setValue(this.scrollPane.getVAdjustment().getUpper());
     }
 
+    private static boolean isDarkTheme() {
+        boolean dark = false;
+        String envTheme = System.getenv("GTK_THEME");
+        if (envTheme != null) {
+            dark = envTheme.toLowerCase(Locale.ROOT).contains("dark");
+        } else try {
+            Settings settings = Gtk.getSettings();
+            Class<?> gObject = Class.forName("org.gnome.glib.Object");
+            Method propBool = gObject.getDeclaredMethod("getPropertyBoolean", String.class);
+            propBool.setAccessible(true);
+            Method propString = gObject.getDeclaredMethod("getPropertyString", String.class);
+            propString.setAccessible(true);
+            String settingsTheme = (String) propString.invoke(settings, "gtk-theme-name");
+            dark = settingsTheme.toLowerCase(Locale.ROOT).contains("dark");
+            dark = dark || (boolean) propBool.invoke(settings, "gtk-application-prefer-dark-theme");
+        } catch (Exception e) {
+            //
+        }
+        return dark;
+    }
+    
+    private Map<TuxCalculator.HighlightType, TextTag> createHighlightTags(TextTagTable table, boolean dark) {
+        TextTag number = new TextTag(table);
+        number.setForeground(dark ? "#afffff" : "#0000ff");
+        
+        TextTag global = new TextTag(table);
+        global.setStyle(Style.OBLIQUE);
+        
+        TextTag operator = new TextTag(table);
+        operator.setForeground(dark ? "#00ff00" : "#008000");
+        operator.setWeight(dark ? Weight.NORMAL : Weight.SEMIBOLD);
+        
+        TextTag reference = new TextTag(table);
+        reference.setForeground(dark ? "#d7d701" : "#006666");
+        reference.setWeight(dark ? Weight.NORMAL : Weight.SEMIBOLD);
+        
+        TextTag special = new TextTag(table);
+        special.setForeground(dark ? "#ff00ff" : "#8600e6");
+        
+        TextTag error = new TextTag(table);
+        error.setForeground(dark ? "ff5f5f" : "#ff2a26");
+        
+        TextTag command = new TextTag(table);
+        command.setForeground(dark ? "#ffaf00" : "#000080");
+        command.setWeight(Weight.BOLD);
+        
+        TextTag construct = new TextTag(table);
+        construct.setForeground(dark ? "#faafff" : "#660e7a");
+        
+        TextTag comment = new TextTag(table);
+        comment.setForeground(dark ? "#949494" : "#808080");
+        
+        return Map.of(
+                TuxCalculator.HighlightType.NUMBER, number,
+                TuxCalculator.HighlightType.GLOBAL, global,
+                TuxCalculator.HighlightType.OPERATOR, operator,
+                TuxCalculator.HighlightType.REFERENCE, reference,
+                TuxCalculator.HighlightType.SPECIAL, special,
+                TuxCalculator.HighlightType.ERROR, error,
+                TuxCalculator.HighlightType.COMMAND, command,
+                TuxCalculator.HighlightType.CONSTRUCT, construct,
+                TuxCalculator.HighlightType.COMMENT, comment
+        );
+    }
+    
     private record TextTagKey(int start, int end, @Nullable String tooltip, TextTag tag) {}
 }

@@ -20,6 +20,7 @@ import tuxcalculator.api.TuxCalculator;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -150,6 +151,11 @@ public class JavaFxFrontend extends GraphicalFrontend {
     }
 
     @Override
+    protected boolean supportsHighlighting() {
+        return false;
+    }
+
+    @Override
     protected String getCurrentText() {
         return this.in.getText();
     }
@@ -157,6 +163,11 @@ public class JavaFxFrontend extends GraphicalFrontend {
     @Override
     protected void setCurrentText(String text) {
         this.in.setText(text);
+    }
+
+    @Override
+    protected void applyInputHighlighting(List<TuxCalculator.HighlightPart> highlightedText) {
+        //
     }
 
     @Override
@@ -180,7 +191,7 @@ public class JavaFxFrontend extends GraphicalFrontend {
     }
 
     @Override
-    protected void appendLine(String term, TuxCalculator.Result result) {
+    protected void appendLine(String term, List<TuxCalculator.HighlightPart> highlightedTerm, TuxCalculator.Result result) {
         Label input = new Label(term);
         input.setAlignment(Pos.BASELINE_LEFT);
         input.setTextAlignment(TextAlignment.LEFT);
