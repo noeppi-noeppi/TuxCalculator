@@ -1,6 +1,7 @@
 package tuxcalculator.android;
 
 import android.app.Activity;
+import android.view.KeyEvent;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import androidx.annotation.Nullable;
@@ -118,7 +119,9 @@ public class ApplicationState {
             input.setText(this.termInput);
             input.setAdapter(new TabCompletionAdapter(activity, calculator, input));
             input.setOnEditorActionListener((v, actionId, event) -> {
-                this.calcTerm(activity);
+                if (event == null || (event.getAction() == KeyEvent.ACTION_DOWN)) {
+                    this.calcTerm(activity);
+                }
                 return true;
             });
             input.addTextChangedListener(HighlightHelper.createHighlighter(activity, this.calculator));
