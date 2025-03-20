@@ -81,9 +81,9 @@ class ResolutionTable(private val calc: Calculator) {
     MathError(message)
   }
   
-  def let(name: String, value: MathValue): MathValue = {
-    variables(name) = value
-    value
+  def let(name: String, value: MathValue): MathValue = value match {
+    case _: MathError => value
+    case _ => variables(name) = value; value
   }
   
   def define(target: Ast.DefTarget, sig: Ast.Signature, expr: Ast.Expression): MathValue = target match {
