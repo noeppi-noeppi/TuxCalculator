@@ -57,10 +57,10 @@ object TabCompleter {
       }
 
       val rawMatchIdx: Int = codePoints.lastIndexWhere(codePoint => !catcodes.contains(calc.lexer.catCode(codePoint))) match {
-        case -1 => -1
+        case -1 if commandEnd <= 0 => -1
         // Inner catcodes may not on the beginning (on the end they are fine though).
         // Treat inner catcodes at the start of the match string as not belonging to the match string
-        case outerMatchIdx => codePoints.indexWhere(codePoint => !innerCatcodes.contains(calc.lexer.catCode(codePoint)), outerMatchIdx + 1) match {
+        case outerMatchIdx => codePoints.indexWhere(codePoint => !innerCatcodes.contains(calc.lexer.catCode(codePoint)), commandEnd `max` (outerMatchIdx + 1)) match {
           case -1 => codePoints.length - 1 // If all catcodes are inner catcodes, behave as if we have an empty match string
           case idx => idx - 1
         }
@@ -76,11 +76,16 @@ object TabCompleter {
       Option(startsWith) match {
         case Some(startCode) if spaceSkipped < 0 || calc.lexer.catCode(codePoints(spaceSkipped)) != startCode => None
         case startOption =>
+          val hasSkippedAnySpace = (matchIdx - spaceSkipped) > 0
+          val hasPrecedingNonSpace = spaceSkipped >= 0 && codePoints.nonEmpty
           // If there is a start cat code or we follow a tight cat code, skip the entire space.
           // Otherwise keep a single space if present
-          val spaceToSkipNoCommand = if ((matchIdx - spaceSkipped) <= 0 || startOption.isDefined || TightCatCodes.contains(calc.lexer.catCode(codePoints(spaceSkipped)))) spaceSkipped else spaceSkipped + 1
+          val spaceToSkipNoCommand = if (!hasSkippedAnySpace || startOption.isDefined || (hasPrecedingNonSpace && TightCatCodes.contains(calc.lexer.catCode(codePoints(spaceSkipped))))) spaceSkipped else spaceSkipped + 1
           // Make sure we don't go back before commandEnd in space skipping
-          val spaceToSkip = spaceToSkipNoCommand `max` (commandEnd - 1)
+          val spaceToSkip = spaceToSkipNoCommand `max` (commandEnd - 1) match {
+            case `spaceToSkipNoCommand` if !hasPrecedingNonSpace => -1 // There are only spaces up to line start, skip them all
+            case n => n
+          }
           Some(Prefix(Util.makeString(codePoints.take(spaceToSkip + 1)), Util.makeString(codePoints.drop(spaceToSkip + 1)), Util.makeString(codePoints.drop(matchIdx + 1))))
       }
     }
@@ -117,7 +122,7 @@ object TabCompleter {
     }
 
     // Format codes
-    findPrefix(SpacedIdentifier, command = calc.commands.Set, subCommands = calc.commands.Fmt :: Nil, allowNonCommandPrefix = false) match {
+    findPrefix(SpacedIdentifier, innerCatcodes = JustSpace, command = calc.commands.Set, subCommands = calc.commands.Fmt :: Nil, allowNonCommandPrefix = false) match {
       case Some(Prefix(prefix, completionString, matchString)) =>
         return Result(prefix, completionString, findMatches(matchString, FmtCode.values.map(_.toString)), isIdentifier = false)
       case _ =>
