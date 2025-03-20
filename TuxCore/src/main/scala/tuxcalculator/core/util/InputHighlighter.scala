@@ -90,6 +90,7 @@ object InputHighlighter {
             advance(content.length, highlight)
             false
         }
+      case CharacterMapping(catCode, _) if NumberStart.contains(catCode) => // This is not an identifier but a number. Do not advance.
       case _ => advanceWhile(lookahead, highlight, cat => !cat.exists(stopAt.contains) && cat.exists(Identifier.contains))
     }
     def maybeAdvanceCommand(commands: Set[String]): Option[String] = commands.map(Util.decomposeString).find((cmd: Vector[Int]) => codePoints.drop(idx).startsWith(cmd)) match {
