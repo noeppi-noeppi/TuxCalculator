@@ -2,6 +2,7 @@ package tuxcalculator.core.value
 
 import ch.obermuhlner.math.big.BigComplex
 import tuxcalculator.core.Calculator
+import tuxcalculator.core.util.Util
 
 // All arguments must always be normalized (the last element may not be zero)
 object PolynomialOps {
@@ -59,7 +60,16 @@ object PolynomialOps {
     val newHighestExp = pol1.length - pol2.length
     val firstTermPol: Vector[MathNumber] = normalize(Vector.fill(newHighestExp)(MathNumber.Zero) ++ Vector(divNum(pol1.last, pol2.last)))
     val fullSubtractPol = doMul(calc, firstTermPol, pol2)
-    val remainderToDivide = doSub(calc, pol1, fullSubtractPol)
+    val remainderToDivideUnsafe = doSub(calc, pol1, fullSubtractPol)
+    
+    // Safe-guard against infinite loops because the polynomial does not shrink
+    val remainderToDivide = doSub(calc, pol1, fullSubtractPol) match {
+      case Vector() => Vector()
+      case rem =>
+        val normScale = Util.safeStripTrailingZeros(remainderToDivideUnsafe.last.num.abs(calc.mathContext)).scale()
+        if (normScale < calc.precision * 100) rem.init else rem
+    }
+
     doDivMod(calc, remainderToDivide, pol2) match {
       case Left((quot, rem)) => Left((doAdd(calc, firstTermPol, quot), rem))
       case Right(err) => Right(err)
