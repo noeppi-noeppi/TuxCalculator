@@ -99,10 +99,11 @@ object TabCompleter {
       matchingPriority ++ matchingRegular
     }
 
-    def escapeIdentifierIfRequired(identifier: String): String = {
+    def escapeIdentifierIfRequired(additionalDisallowed: Set[String] = Set())(identifier: String): String = {
       if (escapingDelimiter.isEmpty) return identifier
       val decomposed: Vector[Int] = Util.decomposeString(identifier)
       def needsEscaping: Boolean = {
+        if (additionalDisallowed.contains(identifier)) return true
         var pos = 0
         val lookahead: Lookahead[Int] = ahead => decomposed.drop(pos + ahead).headOption
         while (true) calc.lexer.lookup(lookahead) match {
@@ -144,27 +145,27 @@ object TabCompleter {
 
     findPrefix(Identifier, startsWith = CatCode.Special) match {
       case Some(Prefix(prefix, completionString, matchString)) =>
-        return Result(prefix, completionString, findMatches(matchString, calc.specials.keys).map(escapeIdentifierIfRequired), isIdentifier = false)
+        return Result(prefix, completionString, findMatches(matchString, calc.specials.keys).map(escapeIdentifierIfRequired()), isIdentifier = false)
       case None =>
     }
 
     findPrefix(Reference, startsWith = CatCode.Reference) match {
       case Some(Prefix(prefix, completionString, matchString)) =>
         val operatorMatches = findMatches(matchString, calc.resolution.tabCompleteReferenceOperator)
-        val functionMatches = findMatches(matchString, calc.resolution.tabCompleteReferenceFunction).map(escapeIdentifierIfRequired)
+        val functionMatches = findMatches(matchString, calc.resolution.tabCompleteReferenceFunction).map(escapeIdentifierIfRequired())
         return Result(prefix, completionString, operatorMatches ++ functionMatches, isIdentifier = false)
       case None =>
     }
 
     findPrefix(Identifier) match {
       case Some(Prefix(prefix, completionString, matchString)) =>
-        val baseMatches: Vector[String] = findMatches(matchString, calc.resolution.tabCompleteIdentifier).map(escapeIdentifierIfRequired)
+        val baseMatches: Vector[String] = findMatches(matchString, calc.resolution.tabCompleteIdentifier)
         val matches: Vector[String] = if (prefix.isEmpty) {
           val commands: Set[String] = CalculatorCommands.commands(calc)
           val commandMatches: Vector[String] = findMatches(matchString, commands)
-          commandMatches ++ baseMatches.filter(str => !commands.contains(str))
+          commandMatches ++ baseMatches.map(escapeIdentifierIfRequired(additionalDisallowed = commands))
         } else {
-          baseMatches
+          baseMatches.map(escapeIdentifierIfRequired())
         }
         return Result(prefix, completionString, matches, isIdentifier = true)
       case None =>
