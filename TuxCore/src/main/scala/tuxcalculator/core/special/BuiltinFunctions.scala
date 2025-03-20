@@ -151,8 +151,10 @@ object BuiltinFunctions {
     override protected def result(calc: Calculator, args: Vector[MathValue]): MathValue = ValueHelper.run(calc) {
       val precisionVal = ValueHelper.realInt(args(1))
       if (!precisionVal.isValidInt) ValueHelper.error("Invalid precision: " + precisionVal)
+      def roundNumber(num: MathNumber): MathNumber = MathNumber(num.num.re.setScale(precisionVal.toInt, mode), num.num.im.setScale(precisionVal.toInt, mode))
       ValueHelper.get(args(0)) match {
-        case MathComplexNumeric(real, imag) => MathNumber(real.setScale(precisionVal.toInt, mode), imag.setScale(precisionVal.toInt, mode))
+        case MathNumeric(num) => roundNumber(MathNumber(num))
+        case MathPolynomic(coefficients) => MathPolynomial(coefficients.map(roundNumber))
         case v => MathError("Can't " + name + ": " + calc.format(v))
       }
     }
