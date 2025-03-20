@@ -337,8 +337,9 @@ def count(n,f) = count(1,n,f)
 def deg(x) = x * 180 / #pi
 def rad(x) = x * #pi / 180
 
-let temp = \b,n,l->#rev(#fill(l,\idx->#mod(#tdiv(n,#pow(b,idx)),b)))
-let temp = \[(b,n):#eq(b,1)->#fill(n,\idx->0);(b,n):#lt(b,1)->'Invalid digit base.';(b,n):#if(#lt(0,n),#f,#t)->'Can only get digits of positive integers.';(b,n):#eq(n,0)->[];(b,n)->temp(b,#abs(n),#tdiv(#ln(#mul(b,#abs(n))),#ln(b)))]
+let temp = \l->drop(l,#idx(l,0,\elem->#if(#eq(0,elem),#f,#t)))
+let temp = \b,n,l->temp(#rev(#fill(l,\idx->#mod(#tdiv(n,#pow(b,idx)),b))))
+let temp = \[(b,n):#eq(b,1)->#fill(n,\idx->0);(b,n):#lt(b,1)->'Invalid digit base.';(b,n):#lt(n,0)->'Can only get digits of positive integers.';(b,n):#eq(n,0)->[];(b,n)->temp(b,#abs(n),#add(1,#tdiv(#ln(#mul(b,#abs(n))),#ln(b))))]
 def digits(b,n) = temp(b,n)
 def digits(n) = temp(10,n)
 def dsum(b,n) = #fold(digits(b,n),0,#add)
