@@ -17,6 +17,7 @@ object ComputationLogic {
       case Ast.SplattedArgument(listExpr) => normalize(process(listExpr)) match {
         case MathList(values) => values
         case MathMatrix(values) if values.length == 1 => values.head
+        case MathVoid => MathVoid :: Nil
         case res: MathError => res :: Nil
         case res => MathError("Can't splat value: '" + calc.format(res) + "'") :: Nil
       }
