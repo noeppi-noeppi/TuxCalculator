@@ -870,6 +870,7 @@
         $ \mathrm{exists}(l, f) $                  & Gets whether the function $ f $ yields \verb|true| for at least one element of the list or matrix $ l $. If $ l $ is neither a list nor a matrix, the result is \verb|false|. \tabgap
         $ \mathrm{range}(n) $                      & Creates a list with all integers in the interval $ [1;n] $. \\
         $ \mathrm{range}(a, b) $                   & Creates a list with all integers in the interval $ [a;b] $. Giving bounds in reverse order causes the order of the elements to be reversed. \\
+        $ \mathrm{range}(a, b, s) $                & $ \mathrm{range}(a, b) $ with step-size $ s $. Negative step-sizes behave as their absolute value. Step size $ 0 $ gives the list containing just the bounds. \\
         $ \mathrm{fill}(n, f) $                    & Equivalent to $ \mathrm{map}(\mathrm{range}(n), f) $ \\
         $ \mathrm{fill}(a, b, f) $                 & Equivalent to $ \mathrm{map}(\mathrm{range}(a, b), f) $ \tabgap
         $ \mathrm{zip}(l_1, l\dots) $              & Takes any non-zero amount of some same-sized lists or matrices and produces a new list or matrix, whose element at index $ i $ is a list of all the elements at index $ i $ in the original lists or matrices. For example $ zip([1,2],[3,4]) $ yields $ [[1,3],[2,4]] $. \\

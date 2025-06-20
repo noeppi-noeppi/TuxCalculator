@@ -316,8 +316,9 @@ let temp = \[(l:#isl,f)->#fold(#map(l,f),false,#or);(l:#ism,f)->#fold(#map(tempM
 def exists(l,f) = temp(l,f)
 rem tempMatrixElems
 
-let temp = \[(a,b):a=b->[a];(a,b):a>b->#rev(#fill(1+a-b,@+_b));(a,b)->#fill(1+b-a,@+_a)]
-def range(a,b) = temp(a,b)
+let temp = \[(a,b,s):a=b->[a];(a,b,s):s=0->[a,b];(a,b,s):a>b->#fill(#tdiv(s+a-b,s),\i->a-i*s);(a,b,s)->#fill(#tdiv(s+b-a,s),\i->a+i*s)]
+def range(a,b,s) = temp(a,b,#abs(s))
+def range(a,b) = temp(a,b,1)
 def range(n) = range(1,n)
 
 def fill(a,b,f) = #map(range(a,b),f)
