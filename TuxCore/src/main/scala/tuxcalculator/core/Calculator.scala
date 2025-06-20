@@ -174,9 +174,12 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
     
     val result: Result[MathValue] = try {
       normalizedLine match {
-        case commands.Let(cmdStr) => lexer.tokenizeAssignment(cmdStr) ~> {
-          case PartialTokenStream(tokens, remaining) => parser.letCommand(tokens) ~> {
+        case commands.Let(cmdStr) => lexer.maybeTokenizeAssignment(cmdStr) ~> {
+          case Some(PartialTokenStream(tokens, remaining)) => parser.letCommand(tokens) ~> {
             case Ast.LetCommand(name: String) => lexer.continue(remaining) ~> compute ~ (value => resolution.let(name, value))
+          }
+          case None => lexer.continue(cmdStr) ~> parser.letCommand ~ {
+            case Ast.LetCommand(name: String) => resolution.let(name, answer)
           }
         }
         case commands.Def(cmdStr) => lexer.tokenizeAssignment(cmdStr) ~> {

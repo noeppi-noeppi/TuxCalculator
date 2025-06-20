@@ -71,17 +71,21 @@ class Lexer {
     tokenizePart(source, Set(), Set()) ~@ source.context ~ (_.tokens)
   }
   
-  def tokenizeAssignment(assignmentText: RemainingText): Result[PartialTokenStream] = tryTokenize {
+  def tokenizeAssignment(assignmentText: RemainingText): Result[PartialTokenStream] = {
+    maybeTokenizeAssignment(assignmentText).flatten(Result.Error("Input ended prematurely, expected an assignment token."))
+  }
+
+  def maybeTokenizeAssignment(assignmentText: RemainingText): Result[Option[PartialTokenStream]] = tryTokenize {
     val source: CharacterSource = new CharacterSource(Util.decomposeString(assignmentText.string), assignmentText.offset)
     val result = tokenizePart(source, Set(), Set(), tokenizeAssignment = true)
-    result ~@ source.context ~ (_.tokens) ~ (tokens => PartialTokenStream(tokens, source.remaining))
+    result ~@ source.context ~ (result => result.assignToken.map(_ => result.tokens)) ~ (opt => opt.map(tokens => PartialTokenStream(tokens, source.remaining)))
   }
   
   def splitAssignment(assignmentText: RemainingText): Result[SplitText] = tryTokenize {
     val decomposed = Util.decomposeString(assignmentText.string)
     val source: CharacterSource = new CharacterSource(decomposed, assignmentText.offset)
     val result = tokenizePart(source, Set(), Set(), tokenizeAssignment = true)
-    result ~@ source.context ~ (result => {
+    (result ~@ source.context).filter(_.assignToken.isDefined, "Input ended prematurely, expected an assignment token.") ~ (result => {
       val before: RemainingText = source.consumed match {
         case RemainingText(text, offset) => RemainingText(text.dropRight(result.assignToken.getOrElse("").length), offset)
       }
@@ -237,9 +241,7 @@ class Lexer {
     }
     def finish(closingToken: Option[String] = None, assignToken: Option[String] = None): Result[PartTokenizeResult] = {
       CatCodeGrouper.finish()
-      if (tokenizeAssignment && assignToken.isEmpty) {
-        Result.Error("Input ended prematurely, expected an assignment token.")
-      } else if (!tokenizeAssignment && assignToken.isDefined) {
+      if (!tokenizeAssignment && assignToken.isDefined) {
         Result.Error("Invalid catcode configuration.")
       } else {
         Result.Value(PartTokenizeResult(TokenStream(tokens.toVector), closingToken, assignToken))
