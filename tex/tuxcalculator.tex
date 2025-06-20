@@ -427,8 +427,8 @@
     See section~\ref{sec:calculator-properties} for details.
     The \texttt{set} command is also used to set \textit{formatting properties} described in section~\ref{subsec:format-codes}.
     
-    \subsection{\texttt{cat} \& \texttt{tok}}\label{subsec:cmd-cat-tok}
-    Commands to manipulate catcodes.
+    \subsection{\texttt{cat}}\label{subsec:cmd-cat}
+    The \verb|cat| command can manipulate catcodes.
     See section~\ref{subsec:catcodes} for more information.
     
     \subsection{\texttt{dump}}\label{subsec:cmd-dump}
@@ -518,9 +518,8 @@
     
     \subsection{Catcodes}\label{subsec:catcodes}
     When the calculator is parsing input, it reads the text character by character, assigning each character a \TeX-inspired \textit{catcode}.
-    TuxCalculator also knows the concept of a \textit{tokcode} which assigns a catcode to a sequence of characters.
-    Tokcodes are matched before catcodes.
-    If multiple tokcodes match, the longest one will be taken.
+    TuxCalculator can also assign a catcode to a sequence of characters.
+    When reading input, always the longest matching catcode is used.
     TuxCalculator knows about the following catcodes:
     \begin{longtable}{p{0.2\textwidth}p{\dimexpr0.8\textwidth-3\tabcolsep\relax}}
         \verb|letter|          & Part of an identifier. \\
@@ -558,17 +557,16 @@
     \end{longtable}
     Catcodes are frozen once a statement has been typed in.
     All changes made to the catcodes will only affect later lines.
-    Changing catcodes in accomplished by the \verb|cat| and \verb|tok| commands.
-    They have the following syntax:
+    Changing catcodes in accomplished by the \verb|cat| command.
+    It has the following syntax:
     \begin{code}
-        cat '\argument{character}' = \argument{catcode} \\
-        tok '\argument{sequence}' = \argument{catcode}
+        cat '\argument{character}' = \argument{catcode}
     \end{code}
     Note that actually the commands, like all the other language constructs expect an error and an assignment token, so with different catcodes, they may look different.
     Also note that it is easily possible to lock yourself out of the calculator, for example by removing the \verb|error| catcode from \verb|'| without setting a replacement as it won't be possible to change catcodes any longer.
     
-    While each character always has a catcode (if nothing was set, its \verb|invalid|), only specific sequences of characters have a tokcode.
-    A tokcode can be unset by assigning it the \verb|invalid| catcode.
+    While each single character always has a catcode (if nothing was set, its \verb|invalid|), only specific longer sequences of characters have a dedicated catcode.
+    The catcode of a longer sequence of characters can be unset by assigning it the \verb|invalid| catcode.
 
     \subsection{Format codes}\label{subsec:format-codes}
     Whereas catcodes determine how TuxCalculator interprets input, format codes determine, how TuxCalculator \textit{displays} things.
@@ -621,9 +619,9 @@
     Only simple variables can be interpolated, no complex expressions or references.
     The specific rules for interpolation are outlined below:
     \begin{itemize}
-        \item If the error token appears in a \verb|cat|, \verb|tok| or \verb|dump| command, no interpolation is performed.
+        \item If the error token appears in a \verb|cat| or \verb|dump| command, no interpolation is performed.
         \item Whenever a token with the \verb|interpolate| catcode is found that is not escaped by a backslash and immediately followed by a token with \verb|letter| or \verb|exp| catcode, the longest sequence of tokens with \verb|letter|, \verb|digit| or \verb|exp| catcodes is used as the name for a variable to interpolate.
-              If instead the \verb|interpolate| token is followed by a token with the \verb|escape| catcode, an escaped identifier is read using the standard escaping rules with the exception that no error token may occur between the delimiting escape tokens.
+              If instead the \verb|interpolate| token is followed by a token with the \verb|escape| catcode, an escaped identifier is read using the standard escaping rules with the exception that every error token between the delimiting escape tokens must be escaped with a backslash.
         \item If the token after the last token in the variable name has the \verb|space| catcode, it is ignored.
               To get an actual space after the interpolation sequence, it has to be duplicated or escaped using a backslash.
               These spacing rules do not apply, if the identifier is delimited by \verb|escape| tokens.
@@ -688,7 +686,7 @@
         cat '.'  = invalid
         cat ','  = decimal sep
         cat ';'  = element sep
-        tok ';;' = group sep
+        cat ';;' = group sep
     \end{verbatim}
     To get output that is consistent with the input, one should also change the format codes like this:
     \begin{verbatim}

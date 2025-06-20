@@ -228,16 +228,12 @@ class Calculator(val frontend: TuxFrontend, val ini: Boolean) extends ParsingCon
         }
         case commands.Cat(cmdStr) => lexer.tokenizeAssignment(cmdStr) ~> {
           case PartialTokenStream(tokens, remaining) => parser.catCommand(tokens) ~> {
-            case Ast.CatCommand(codePoint) => CatCode.byName(remaining.string) match {
-              case Some(catCode) => lexer.catCode(codePoint, catCode); Result.Value(MathVoid)
-              case None => Result.Error("Unknown catcode: '" + remaining.string.strip() + "'")
-            }
-          }
-        }
-        case commands.Tok(cmdStr) => lexer.tokenizeAssignment(cmdStr) ~> {
-          case PartialTokenStream(tokens, remaining) => parser.tokCommand(tokens) ~> {
-            case Ast.TokCommand(token) => CatCode.byName(remaining.string) match {
-              case Some(catCode) => lexer.tokCode(token, catCode); Result.Value(MathVoid)
+            case Ast.CatCommand(token) => CatCode.byName(remaining.string) match {
+              case Some(catCode) => token.codePoints().toArray match {
+                case Array() => Result.Error("expected a token, got empty string")
+                case Array(codePoint) => lexer.catCode(codePoint, catCode); Result.Value(MathVoid)
+                case _ => lexer.tokCode(token, catCode) ; Result.Value(MathVoid)
+              }
               case None => Result.Error("Unknown catcode: '" + remaining.string.strip() + "'")
             }
           }

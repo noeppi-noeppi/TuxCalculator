@@ -1,9 +1,8 @@
 package tuxcalculator.core.parser
 
-import org.apache.commons.text.StringEscapeUtils
 import tuxcalculator.core.expression.Ast
 import tuxcalculator.core.lexer.{ContextualToken, Token, TokenStream}
-import tuxcalculator.core.util.{Result, Util}
+import tuxcalculator.core.util.Result
 import tuxcalculator.core.value.MathValue
 
 import scala.util.parsing.combinator.Parsers
@@ -30,7 +29,6 @@ class Parser(val ctx: ParsingContext) {
   def remCommand(tokens: TokenStream): Result[Ast.RemCommand] = wrap(parsers.parseTokens(parsers.cmd_rem, tokens))
   def setCommand(tokens: TokenStream): Result[Ast.SetCommand] = wrap(parsers.parseTokens(parsers.cmd_set, tokens))
   def catCommand(tokens: TokenStream): Result[Ast.CatCommand] = wrap(parsers.parseTokens(parsers.cmd_cat, tokens))
-  def tokCommand(tokens: TokenStream): Result[Ast.TokCommand] = wrap(parsers.parseTokens(parsers.cmd_tok, tokens))
   def dumpCommand(tokens: TokenStream): Result[Ast.DumpCommand] = wrap(parsers.parseTokens(parsers.cmd_dump, tokens))
   
   def errorToken(tokens: TokenStream): Result[String] = wrap(parsers.parseTokens(parsers.tk_error, tokens))
@@ -245,25 +243,19 @@ class CalculatorParsers(val ctx: ParsingContext) extends Parsers  {
     case Token.Application(tokens) => parseTokens(signature, tokens)
   }) ^^ { case priority ~ name ~ sig => Ast.DefCommand(name, priority, sig) }
   
-  def cmd_cat: this.Parser[Ast.CatCommand] = flatAcceptMatch("character", {
-    case Token.Error(msg, _, _) => Util.decomposeString(msg) match {
-      case Vector(codePoint) => Success(codePoint, TokenReader.Empty)
-      case _ => Failure("expected a single character, got '" + StringEscapeUtils.escapeJava(msg) + "'", TokenReader.Empty)
-    }
-  }) ^^ (codePoint => Ast.CatCommand(codePoint))
-  def cmd_tok: this.Parser[Ast.TokCommand] = flatAcceptMatch("token", {
+  def cmd_cat: this.Parser[Ast.CatCommand] = flatAcceptMatch("token", {
     case Token.Error(msg, _, _) => msg match {
       case "" => Failure("expected a token, got empty string", TokenReader.Empty)
       case _ => Success(msg, TokenReader.Empty)
     }
-  }) ^^ (token => Ast.TokCommand(token))
+  }) ^^ (codePoint => Ast.CatCommand(codePoint))
   def cmd_dump: this.Parser[Ast.DumpCommand] = flatAcceptMatch("file name", {
     case Token.Error(msg, _, _) => msg match {
       case "" => Failure("expected a file name, got empty string", TokenReader.Empty)
       case _ => Success(msg, TokenReader.Empty)
     }
   }) ^^ (token => Ast.DumpCommand(token))
-  
+
   def tk_error: this.Parser[String] = flatAcceptMatch("string", {
     case Token.Error(msg, _, _) => Success(msg, TokenReader.Empty)
   })

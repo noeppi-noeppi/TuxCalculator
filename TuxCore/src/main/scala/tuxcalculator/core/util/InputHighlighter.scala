@@ -173,7 +173,9 @@ object InputHighlighter {
             if (commandName.contains("cat") || commandName.contains("tok")) {
               advanceToEnd(leftOver => if (CatCode.byName(leftOver.strip()).isDefined) HighlightType.CONSTRUCT else HighlightType.PLAIN)
             }
-          case CatCode.Operator | CatCode.Sign | CatCode.Post | CatCode.Assign => advance(content.length, HighlightType.OPERATOR)
+          case CatCode.Operator | CatCode.Assign => advanceWhile(lookahead, HighlightType.OPERATOR, cat => cat.contains(CatCode.Operator) || cat.contains(CatCode.Assign))
+          case CatCode.Post => advanceWhile(lookahead, HighlightType.OPERATOR, cat => cat.contains(CatCode.Post))
+          case CatCode.Sign => advance(content.length, HighlightType.OPERATOR)
           case CatCode.Reference =>
             advance(content.length, HighlightType.REFERENCE) // Also updates the lookahead
             skipSpace()

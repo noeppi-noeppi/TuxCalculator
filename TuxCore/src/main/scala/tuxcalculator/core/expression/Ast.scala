@@ -48,12 +48,8 @@ object Ast {
     def string(calc: Calculator): String = "set " + name
   }
   
-  case class CatCommand(codePoint: Int) extends Command {
-    def string(calc: Calculator): String = "cat '" + StringEscapeUtils.escapeJava(Character.toString(codePoint)) + "'"
-  }
-  
-  case class TokCommand(token: String) extends Command {
-    def string(calc: Calculator): String = "tok '" + StringEscapeUtils.escapeJava(token) + "'"
+  case class CatCommand(token: String) extends Command {
+    def string(calc: Calculator): String = "cat '" + StringEscapeUtils.escapeJava(token) + "'"
   }
   
   case class SetFmtCommand(name: String) extends Command {

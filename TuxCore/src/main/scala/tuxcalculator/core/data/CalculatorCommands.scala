@@ -6,9 +6,9 @@ import tuxcalculator.core.util.Util
 
 object CalculatorCommands {
   
-  private val BaseCommands: Set[String] = Set("let", "def", "rem", "set", "cat", "tok")
+  private val BaseCommands: Set[String] = Set("let", "def", "rem", "set", "cat")
   private val IniCommands: Set[String] = BaseCommands | Set("dump")
-  private val AssignmentCommands: Set[String] = Set("let", "def", "set", "cat", "tok")
+  private val AssignmentCommands: Set[String] = Set("let", "def", "set", "cat")
   
   def commands(calc: Calculator): Set[String] = if (calc.ini) IniCommands else BaseCommands
   def isAssignmentCommand(cmd: String): Boolean = AssignmentCommands.contains(cmd)
@@ -40,7 +40,6 @@ class CalculatorCommands(private val lexer: Lexer) {
   val Rem: Command = new Command("rem")
   val Set: Command = new Command("set")
   val Cat: Command = new Command("cat")
-  val Tok: Command = new Command("tok")
   val Dump: Command = new Command("dump")
   
   val Fmt: SubCommand = new SubCommand("fmt")

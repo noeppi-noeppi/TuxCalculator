@@ -137,7 +137,7 @@ object TabCompleter {
     }
 
     // Catcodes
-    findPrefix(SpacedIdentifier, innerCatcodes = JustSpace, command = calc.commands.Cat).orElse(findPrefix(SpacedIdentifier, innerCatcodes = JustSpace, command = calc.commands.Tok)) match {
+    findPrefix(SpacedIdentifier, innerCatcodes = JustSpace, command = calc.commands.Cat) match {
       case Some(Prefix(prefix, completionString, matchString)) if calc.lexer.catCode(prefix.strip().codePoints().toArray.last) == CatCode.Assign =>
         return Result(prefix, completionString, findMatches(matchString, CatCode.values.map(_.toString)), isIdentifier = false)
       case _ =>
