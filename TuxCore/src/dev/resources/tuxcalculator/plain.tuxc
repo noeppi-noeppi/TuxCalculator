@@ -399,6 +399,9 @@ def stirling2(n,k) = temp(n,k)
 let temp = #memoize(\n->#rd(#fold(#fill(n+1,\k->(k!)*stirling2(n,k)),0,#add),0))
 def fubini(n) = temp(n)
 
+let temp = #y(#memoize(\[(f,n):#eq(n,0)->1;(f,n):#eq(n,1)->X;(f,n:#isc)->(2*X*f(n-1))-f(n-2);(f,n)->'Can\'t get §n th chebyshev-polynomial']))
+def chebyshev(n) = temp(n)
+
 def ln(x) = #ln(x)
 def W(x) = #w(x)
 def ld(x) = #ln(x) / #ln(2)
