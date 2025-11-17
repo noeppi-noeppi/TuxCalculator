@@ -296,28 +296,36 @@ class Lexer {
                   case result => return result
                 }
             }
-          case CatCode.StartPrimary => this.tokenizePart(source, Set(CatCode.End, CatCode.EndMatch), Set()) match {
-            case Result.Value(PartTokenizeResult(bracketTokens: TokenStream, _, _)) if bracketTokens.tokens.nonEmpty && lastTokenOption.contains(Token.Reference) => return Result.Error("Bracket reference can't contain elements.")
-            case Result.Value(PartTokenizeResult(bracketTokens: TokenStream, Some(closingToken: String), _)) => emit(Token.PrimaryBracket(Util.makeString(content), closingToken, bracketTokens))
-            case Result.Value(_) => return Result.Error("Could not tokenize input: Closed expression was gobbled without an end token when parsing primary. This should not happen.")
-            case result => return result
-          }
-          case CatCode.StartSecondary => this.tokenizePart(source, Set(CatCode.End, CatCode.EndMatch), Set()) match {
-            case Result.Value(PartTokenizeResult(bracketTokens: TokenStream, _, _)) if bracketTokens.tokens.nonEmpty && lastTokenOption.contains(Token.Reference) => return Result.Error("Bracket reference can't contain elements.")
-            case Result.Value(PartTokenizeResult(bracketTokens: TokenStream, Some(closingToken: String), _)) => emit(Token.SecondaryBracket(Util.makeString(content), closingToken, bracketTokens))
-            case Result.Value(_) => return Result.Error("Could not tokenize input: Closed expression was gobbled without an end token when parsing secondary. This should not happen.")
-            case result => return result
-          }
-          case CatCode.StartTertiary => this.tokenizePart(source, Set(CatCode.End, CatCode.EndMatch), Set()) match {
-            case Result.Value(PartTokenizeResult(bracketTokens: TokenStream, _, _)) if bracketTokens.tokens.nonEmpty && lastTokenOption.contains(Token.Reference) => return Result.Error("Bracket reference can't contain elements.")
-            case Result.Value(PartTokenizeResult(bracketTokens: TokenStream, Some(closingToken: String), _)) => emit(Token.TertiaryBracket(Util.makeString(content), closingToken, bracketTokens))
-            case Result.Value(_) => return Result.Error("Could not tokenize input: Closed expression was gobbled without an end token when parsing tertiary. This should not happen.")
-            case result => return result
-          }
-          case CatCode.StartMatch => this.tokenizePart(source, Set(CatCode.EndMatch), Set(), canEmitFollow = true) match {
-            case Result.Value(PartTokenizeResult(matchTokens: TokenStream, _, _)) => emit(Token.Match(matchTokens))
-            case result => return result
-          }
+          case CatCode.StartPrimary =>
+            CatCodeGrouper.finish()
+            this.tokenizePart(source, Set(CatCode.End, CatCode.EndMatch), Set()) match {
+              case Result.Value(PartTokenizeResult(bracketTokens: TokenStream, _, _)) if bracketTokens.tokens.nonEmpty && lastTokenOption.contains(Token.Reference) => return Result.Error("Bracket reference can't contain elements.")
+              case Result.Value(PartTokenizeResult(bracketTokens: TokenStream, Some(closingToken: String), _)) => emit(Token.PrimaryBracket(Util.makeString(content), closingToken, bracketTokens))
+              case Result.Value(_) => return Result.Error("Could not tokenize input: Closed expression was gobbled without an end token when parsing primary. This should not happen.")
+              case result => return result
+            }
+          case CatCode.StartSecondary =>
+            CatCodeGrouper.finish()
+            this.tokenizePart(source, Set(CatCode.End, CatCode.EndMatch), Set()) match {
+              case Result.Value(PartTokenizeResult(bracketTokens: TokenStream, _, _)) if bracketTokens.tokens.nonEmpty && lastTokenOption.contains(Token.Reference) => return Result.Error("Bracket reference can't contain elements.")
+              case Result.Value(PartTokenizeResult(bracketTokens: TokenStream, Some(closingToken: String), _)) => emit(Token.SecondaryBracket(Util.makeString(content), closingToken, bracketTokens))
+              case Result.Value(_) => return Result.Error("Could not tokenize input: Closed expression was gobbled without an end token when parsing secondary. This should not happen.")
+              case result => return result
+            }
+          case CatCode.StartTertiary =>
+            CatCodeGrouper.finish()
+            this.tokenizePart(source, Set(CatCode.End, CatCode.EndMatch), Set()) match {
+              case Result.Value(PartTokenizeResult(bracketTokens: TokenStream, _, _)) if bracketTokens.tokens.nonEmpty && lastTokenOption.contains(Token.Reference) => return Result.Error("Bracket reference can't contain elements.")
+              case Result.Value(PartTokenizeResult(bracketTokens: TokenStream, Some(closingToken: String), _)) => emit(Token.TertiaryBracket(Util.makeString(content), closingToken, bracketTokens))
+              case Result.Value(_) => return Result.Error("Could not tokenize input: Closed expression was gobbled without an end token when parsing tertiary. This should not happen.")
+              case result => return result
+            }
+          case CatCode.StartMatch =>
+            CatCodeGrouper.finish()
+            this.tokenizePart(source, Set(CatCode.EndMatch), Set(), canEmitFollow = true) match {
+              case Result.Value(PartTokenizeResult(matchTokens: TokenStream, _, _)) => emit(Token.Match(matchTokens))
+              case result => return result
+            }
           case CatCode.Close | CatCode.End | CatCode.EndMatch if closingCatCodes.isEmpty => return Result.Error("Dangling token: " + code)
           case CatCode.Close | CatCode.End | CatCode.EndMatch => return Result.Error("Wrong closing token, expected one of " + closingCatCodes.mkString(", ") + ", got " + code)
           case CatCode.Lambda => this.tokenizePart(source, Set(CatCode.Follow), Set()) match {
