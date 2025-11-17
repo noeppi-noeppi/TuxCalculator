@@ -49,6 +49,7 @@ set fmt partial = '_'
 set fmt answer = '?'
 set fmt variable = 'X'
 set fmt imaginary = 'i'
+set fmt self reference = 'Y '
 set fmt angle = '∠'
 set fmt degree = '°'
 set fmt truncate = '⋯'
@@ -108,10 +109,9 @@ def conj(x) = temp(x)
 def polar(r,a) = #polar(r,a)
 
 " Basic functions for dealing with functions
-let temp=\f->(\x->x(x))(\x->f(\y...->x(x)(y...)))
-def Y(f)=temp(\s->\a...->f(s,a...))
+def Y(f) = #y(f)
 let temp = \[(s,n,f):#eq(n,1)->f;(s,n,f):#lt(1,n)->\a->s(#sub(n,1),f_a);(s,n,f)->'Non-positive curry']
-let temp = Y(temp)
+let temp = #y(temp)
 def curry(n,f) = temp(n,f)
 let temp = \[(n,f):#eq(n,1)->f;(n,f):#lt(1,n)->\[(l...):#eq(#len(l),n)->#fold(l,f,\sf,a->sf(a))];(n,f)->'Non-positive uncurry']
 def uncurry(n,f) = temp(n,f)
@@ -419,11 +419,9 @@ def prime(n) = temp(n)
 let temp = \[(n:#isr):n<=0->0;(n)->count(n,\d->#eq(gcd(n,d),1))]
 def totient(n) = temp(n)
 
-let temp = \[(f,n,a,b):#eq(n,0)->#add(b,1);(f,n,a,b):#eq(n,1)->#add(a,b);(f,n,a,b):#eq(n,2)->#mul(a,b);(f,n,a,b):#eq(n,3)->#pow(a,b);(f,n:#isc,a:#isc,b:#isc):#eq(b,0)->1;(f,n:#isc,a:#isc,b:#isc)->f(n-1,a,f(n,a,b-1));(f,n,a,b)->'The hyper-operator can\'t be generalized to non-natural numbers beyond n=3']
-let temp = Y(temp)
+let temp = #y(\[(f,n,a,b):#eq(n,0)->#add(b,1);(f,n,a,b):#eq(n,1)->#add(a,b);(f,n,a,b):#eq(n,2)->#mul(a,b);(f,n,a,b):#eq(n,3)->#pow(a,b);(f,n:#isc,a:#isc,b:#isc):#eq(b,0)->1;(f,n:#isc,a:#isc,b:#isc)->f(n-1,a,f(n,a,b-1));(f,n,a,b)->'The hyper-operator can\'t be generalized to non-natural numbers beyond n=3'])
 def hyper(n,a,b) = temp(n,a,b)
-let temp = \[(f,n,a,b):#eq(n,0)->#sub(b,1);(f,n,a,b):#eq(n,1)->#sub(b,a);(f,n,a,b):#eq(n,2)->#div(b,a);(f,n,a,b):#eq(n,3)->#ln(b)/#ln(a);(f,n,a,b):#if(#isc(n),#f,#t)->'The §n-hyperlog is undefined.';(f,n,a:#isr,b:#isr):#and(#lt(1,a),#lt(1,b))->1+f(n,a,f(n-1,a,b));(f,n,a:#isr,b:#isr):#lt(1,a)->0;(f,n,a,b)->'Invalid hyperlog argument or base.']
-let temp = Y(temp)
+let temp = #y(\[(f,n,a,b):#eq(n,0)->#sub(b,1);(f,n,a,b):#eq(n,1)->#sub(b,a);(f,n,a,b):#eq(n,2)->#div(b,a);(f,n,a,b):#eq(n,3)->#ln(b)/#ln(a);(f,n,a,b):#if(#isc(n),#f,#t)->'The §n-hyperlog is undefined.';(f,n,a:#isr,b:#isr):#and(#lt(1,a),#lt(1,b))->1+f(n,a,f(n-1,a,b));(f,n,a:#isr,b:#isr):#lt(1,a)->0;(f,n,a,b)->'Invalid hyperlog argument or base.'])
 def hyperlog(n,a,b) = temp(n,a,b)
 def itlog(n,x) = hyperlog(4,n,x)
 

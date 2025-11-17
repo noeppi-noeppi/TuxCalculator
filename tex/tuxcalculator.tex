@@ -1060,6 +1060,7 @@
         \verb|#w|         & The lambert $ W $ function. \\
         \verb|#wd|        & Takes a matrix and returns its width. \\
         \verb|#xor|       & A function that computes logic or bitwise \verb|XOR| of two booleans or integers. \\
+        \verb|#y|         & Enables recursion by transforming a function $ f(s,a\dots) $ into a function $ g(a\dots) $ that calls $ f $ with the parameter $ s $ being equivalent to the function $ g $ itself. \\
         \verb|#zip|       & $ \mathrm{zip}(l,f) $ takes a list of same-sized lists or matrices $ l $, matches up elements between those depending on their index, applies $ f $ to these matched up elements and produces a new list or matrix containing all the results.
                           For example, $ \mathrm{zip}([[u,x],[v,y],[w,z]],f) = [f(u, v, w), f(x, y, z)] $ \\
     \end{longtable}

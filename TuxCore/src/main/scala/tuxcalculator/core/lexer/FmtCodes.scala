@@ -34,6 +34,7 @@ object FmtCode extends Enumeration {
   val Answer: FmtCode = Value(CatCode.Answer)
   val Variable: FmtCode = Value("variable")
   val Imaginary: FmtCode = Value("imaginary")
+  val SelfReference: FmtCode = Value("self reference")
   val Angle: FmtCode = Value("angle")
   val Degree: FmtCode = Value("degree")
   val Truncate: FmtCode = Value("truncate")

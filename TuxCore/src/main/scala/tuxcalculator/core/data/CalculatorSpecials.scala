@@ -84,6 +84,7 @@ class CalculatorSpecials(private val calc: PropertyAccess) {
     LogicOperators.And,
     LogicOperators.Or,
     LogicOperators.Xor,
+    FunctionOperators.Y,
     FunctionOperators.Memoize
   ).map(special => special.name -> special).toMap
   

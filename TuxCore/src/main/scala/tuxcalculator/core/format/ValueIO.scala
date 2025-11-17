@@ -136,6 +136,7 @@ object ValueIO {
       val defCode = ctx.ast.get(in.readInt())
       new MatchFunction(entries.toVector, defCode)
     case 8 => new MemoizedFunction(ctx.functions.get(in.readInt()))
+    case 9 => new SelfReferenceFunction(ctx.values.get(in.readInt()))
     case b => throw new InvalidFormatException("Corrupted format: Unknown function type: " + b)
   }
   
@@ -194,6 +195,8 @@ object ValueIO {
       out.writeInt(ctx.ast.add(matched.definitionCode))
     case memoized: MemoizedFunction => out.writeByte(8)
       out.writeInt(ctx.functions.add(memoized.function))
+    case selfReference: SelfReferenceFunction => out.writeByte(9)
+      out.writeInt(ctx.values.add(selfReference.value))
     case _ => throw new IllegalStateException("Can't dump function: " + func + " (this is a bug!)")
   }
 }
