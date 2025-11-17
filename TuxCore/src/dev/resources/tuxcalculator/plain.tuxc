@@ -102,6 +102,7 @@ def im(x) = #im(x)
 def ℜ(x) = #re(x)
 def ℑ(x) = #im(x)
 let temp = \x->#sub(#re(x),#mul(#i,#im(x)))
+let temp = \[(x:#isp)->#pol(#map(#coeff(x),temp));(x)->'conj on a non-number']
 let temp = \[(x:#ism)->#map(x,temp);(x)->temp(x)]
 def conj(x) = temp(x)
 def polar(r,a) = #polar(r,a)
