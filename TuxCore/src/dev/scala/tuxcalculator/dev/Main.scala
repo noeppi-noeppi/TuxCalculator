@@ -1,6 +1,5 @@
 package tuxcalculator.dev
 
-import org.apache.commons.io.file.PathUtils
 import tuxcalculator.api.{TuxCalculatorAPI, TuxFrontend}
 import tuxcalculator.core.Calculator
 import tuxcalculator.core.format.FileLoader
@@ -8,6 +7,7 @@ import tuxcalculator.core.format.FileLoader
 import java.io.OutputStream
 import java.nio.file.{Files, Path, Paths, StandardOpenOption}
 import java.util.Objects
+import scala.jdk.CollectionConverters._
 
 object Main {
   
@@ -18,9 +18,9 @@ object Main {
     val version = System.getProperty("tuxcalculator.dev.version")
     if (version == null) throw new IllegalStateException("Dev version not set.")
     if (version != TuxCalculatorAPI.VERSION) throw new IllegalStateException("Project version does not match source version.")
-    
-    if (Files.isDirectory(target)) PathUtils.deleteDirectory(target)
-    
+
+    if (Files.isDirectory(target.resolve("tuxcalculator"))) Files.list(target.resolve("tuxcalculator")).toList.asScala.foreach(path => Files.delete(path))
+
     val calc = new Calculator(DevFrontend, ini = true)
     calc.resolution.produceFrontendErrorOnUnboundValue()
     val errors = FileLoader.load(calc, source.resolve("tuxcalculator/plain.tuxc"))

@@ -10,7 +10,6 @@ public class LicensePrinter {
         printLicense("scala", "NOTICE-scala", "LICENSE-scala");
         printLicense("scala-parser-combinators", "NOTICE-scala-parser-combinators", "LICENSE-scala-parser-combinators");
         printLicense("commons-lang", "NOTICE-commons-lang", "LICENSE-commons-lang");
-        printLicense("commons-io", "NOTICE-commons-io", "LICENSE-commons-io");
         printLicense("commons-text", "NOTICE-commons-text", "LICENSE-commons-text");
         printLicense("jsr305", "LICENSE-jsr305");
         printLicense("big-math", "LICENSE-big-math");
