@@ -1,5 +1,6 @@
 package tuxcalculator.desktop;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -26,7 +27,7 @@ public class CalculatorHistory {
         this.newLines = new ArrayList<>();
     }
     
-    public CalculatorHistory(Path path, int persistentSize) {
+    public CalculatorHistory(@Nonnull Path path, int persistentSize) {
         List<String> oldLines = new ArrayList<>();
         try {
             if (Files.isRegularFile(path)) {

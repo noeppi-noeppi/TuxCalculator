@@ -9,6 +9,7 @@ import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 import org.jline.utils.InfoCmp;
+import org.jline.widget.AutosuggestionWidgets;
 import tuxcalculator.api.TuxCalculator;
 
 import java.io.BufferedReader;
@@ -102,6 +103,8 @@ public final class TextFrontEnd extends DesktopFrontend {
                 }
             });
             reader.getKeyMaps().get(LineReader.MAIN).bind(new Reference("tuxc-show-trace"), KeyMap.ctrl('t'));
+            new AutosuggestionWidgets(reader).enable();
+
             terminal.writer().println(Main.title());
             terminal.writer().flush();
             String lastInput = "";
@@ -245,16 +248,6 @@ public final class TextFrontEnd extends DesktopFrontend {
                 sb.styled(style, part.content());
             }
             return sb.toAttributedString();
-        }
-
-        @Override
-        public void setErrorPattern(Pattern errorPattern) {
-            //
-        }
-
-        @Override
-        public void setErrorIndex(int errorIndex) {
-            //
         }
     }
     

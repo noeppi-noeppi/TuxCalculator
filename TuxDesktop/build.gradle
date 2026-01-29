@@ -17,6 +17,7 @@ dependencies {
     api 'org.jline:jline-terminal:3.30.6'
     api 'org.jline:jline-terminal-jni:3.30.6'
     api 'org.jline:jline-reader:3.30.6'
+    api 'org.jline:jline-console:3.30.6'
     compileOnly 'net.sourceforge.java-gnome:java-gnome:4.1.3'
 }
 
