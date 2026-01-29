@@ -42,7 +42,7 @@ public abstract class DesktopFrontend implements TuxFrontend {
     }
     
     public static DesktopFrontend auto() {
-        if (GraphicsEnvironment.isHeadless()) {
+        if (GraphicsEnvironment.isHeadless() || System.console() != null) {
             return get("text");
         } else try {
             Class.forName("org.gnome.gtk.Gtk");
