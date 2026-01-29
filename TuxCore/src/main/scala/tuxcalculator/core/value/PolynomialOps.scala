@@ -66,8 +66,8 @@ object PolynomialOps {
     val remainderToDivide = doSub(calc, pol1, fullSubtractPol) match {
       case Vector() => Vector()
       case rem =>
-        val normScale = Util.safeStripTrailingZeros(remainderToDivideUnsafe.last.num.abs(calc.mathContext)).scale()
-        if (normScale < calc.precision * 100) rem.init else rem
+        val normScale: Int = Util.safeStripTrailingZeros(remainderToDivideUnsafe.last.num.absSquare(calc.mathContext)).scale() / 2
+        if (normScale > calc.precision * 100) rem.init else rem
     }
 
     doDivMod(calc, remainderToDivide, pol2) match {

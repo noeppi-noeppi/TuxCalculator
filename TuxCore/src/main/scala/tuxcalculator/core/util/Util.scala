@@ -32,7 +32,6 @@ object Util {
   def doSafeRound(num: BigDec, mc: MathContext): (BigDec, MathContext) = {
     val scaleDrop: Long = num.precision().toLong - mc.getPrecision.toLong
     if ((num.scale().toLong - scaleDrop).isValidInt) return (num.round(mc), mc)
-    println("S=" + num.scale() + " P=" + num.precision() + " R=" + mc.getPrecision + " D=" + scaleDrop + " O=" + (num.scale().toLong - scaleDrop) + " M=" + (Int.MinValue - num.scale().toLong + scaleDrop))
     val raisedPrecision: Int = (Int.MinValue - num.scale().toLong + num.precision().toLong).toInt
     val raisedMc: MathContext = new MathContext(raisedPrecision, mc.getRoundingMode)
     (num.round(raisedMc), raisedMc)
