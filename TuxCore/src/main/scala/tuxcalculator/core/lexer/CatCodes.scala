@@ -61,13 +61,13 @@ class CatCodes {
   private[this] val escapeCharacters: mutable.Set[Int] = mutable.Set()
   
   for (i <- '0' to '9') this.catCodes(i) = CatCode.Digit
-  this.catCodes('\'') = CatCode.Error
+  this.catCodes('"') = CatCode.Error
   this.catCodes('#') = CatCode.Special
   this.catCodes('=') = CatCode.Assign
   
   private def defaultCatCode(codePoint: Int): CatCode = codePoint match {
     case _ if codePoint >= '0' && codePoint <= '9' => CatCode.Digit
-    case '\'' => CatCode.Error
+    case '"' => CatCode.Error
     case '#' => CatCode.Special
     case '=' => CatCode.Assign
     case _ if Character.isLetter(codePoint) => CatCode.Letter

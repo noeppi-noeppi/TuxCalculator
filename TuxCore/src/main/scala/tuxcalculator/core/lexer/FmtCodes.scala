@@ -52,12 +52,12 @@ class FmtCodes {
   private[this] val fmtCodes: mutable.Map[FmtCode, String] = mutable.Map()
   private[this] var escape: CharSequenceTranslator = this.escapeTranslator
 
-  this.fmtCodes(FmtCode.Error) = "'"
+  this.fmtCodes(FmtCode.Error) = "\""
   this.fmtCodes(FmtCode.Special) = "#"
   this.fmtCodes(FmtCode.Assign) = "="
 
   private def defaultFmtCode(code: FmtCode): String = code match {
-    case FmtCode.Error => "'"
+    case FmtCode.Error => "\""
     case FmtCode.Special => "#"
     case FmtCode.Assign => "="
     case _ => ""

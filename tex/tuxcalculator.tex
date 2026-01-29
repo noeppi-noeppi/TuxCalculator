@@ -160,7 +160,7 @@
     
     \subsection{Error handling}\label{subsec:error-handling}
     To support error handling, there is a type of value called \textsl{error}.
-    An error value can be created by placing arbitrary text between single quotation marks.
+    An error value can be created by placing arbitrary text between double quotation marks.
     The error text supports the same escape sequences as identifier character escaping.
     Any expression that contains an error value will have that error value as a result, so the error propagates down and causes the whole expression to result in an error.
     This also includes \verb|void| expressions, expressions containing both \verb|void| and an error value will yield the error value.
@@ -496,9 +496,9 @@
     
     \subsection{\texttt{normalization}}\label{subsec:normalization}
     \verb|normalization| controls, how TuxCalculator should normalize its input.
-    Possible values are an empty error token for no normalization, \verb|'nfc'| or \verb|'nfd'| for the respective normalisation forms defined in the unicode standard.
+    Possible values are an empty error token for no normalization, \verb|"nfc"| or \verb|"nfd"| for the respective normalisation forms defined in the unicode standard.
     The default is \verb|nfc|.
-    Although there is probably no practical use for it, TuxCalculator also allows the compatibility decomposition to be used (via \verb|'nfkc'| or \verb|'nfkd'|).
+    Although there is probably no practical use for it, TuxCalculator also allows the compatibility decomposition to be used (via \verb|"nfkc"| or \verb|"nfkd"|).
     
     \subsection{\texttt{highlight}}\label{subsec:highlight}
     \verb|highlight| controls, whether the calculator should report highlighting data to the frontend.
@@ -507,9 +507,9 @@
     
     \subsection{\texttt{polar}}\label{subsec:polar}
     \verb|polar| controls, how complex numbers are formatted.
-    It defaults to \verb|''| (complex numbers are formatted as $ a + bi $).
-    It can also take values \verb|'rad'| and \verb|'deg'| for formatting complex numbers in polar form with the angle given in radians or degrees respectively.
-    If assigned to a non-error value, a \textsl{true} value is treated as \verb|'rad'|, a \textsl{false} value is treated as \verb|''|.
+    It defaults to \verb|""| (complex numbers are formatted as $ a + bi $).
+    It can also take values \verb|"rad"| and \verb|"deg"| for formatting complex numbers in polar form with the angle given in radians or degrees respectively.
+    If assigned to a non-error value, a \textsl{true} value is treated as \verb|"rad"|, a \textsl{false} value is treated as \verb|""|.
     
     \subsection{\texttt{autoref}}\label{subsec:autoref}
     \verb|autoref| controls whether references to undefined variables are automatically converted into function references.
@@ -562,10 +562,10 @@
     Changing catcodes in accomplished by the \verb|cat| command.
     It has the following syntax:
     \begin{code}
-        cat '\argument{character}' = \argument{catcode}
+        cat "\argument{character}" = \argument{catcode}
     \end{code}
     Note that actually the commands, like all the other language constructs expect an error and an assignment token, so with different catcodes, they may look different.
-    Also note that it is easily possible to lock yourself out of the calculator, for example by removing the \verb|error| catcode from \verb|'| without setting a replacement as it won't be possible to change catcodes any longer.
+    Also note that it is easily possible to lock yourself out of the calculator, for example by removing the \verb|error| catcode from \verb|"| without setting a replacement as it won't be possible to change catcodes any longer.
     
     While each single character always has a catcode (if nothing was set, its \verb|invalid|), only specific longer sequences of characters have a dedicated catcode.
     The catcode of a longer sequence of characters can be unset by assigning it the \verb|invalid| catcode.
@@ -611,13 +611,13 @@
     \end{longtable}
     Changing format codes in accomplished by the \verb|set fmt| command with the following syntax:
     \begin{code}
-        set fmt \argument{format code} = '\argument{format string}' \\
+        set fmt \argument{format code} = "\argument{format string}" \\
     \end{code}
     The value assigned to a formatting code may be the empty string in which case nothing is displayed.
 
     \subsection{Error interpolation}\label{subsec:errinterp}
     The \verb|interpolate| catcode allows interpolating values from the calculator into error messages.
-    By default, there is no character assigned to this catcode but if you for example assigned the \verb|interpolate| to \verb|$|, you could write \verb|'$a'| to get an error which contains the value of the variable $ a $ as a string.
+    By default, there is no character assigned to this catcode but if you for example assigned the \verb|interpolate| to \verb|$|, you could write \verb|"$a"| to get an error which contains the value of the variable $ a $ as a string.
     Only simple variables can be interpolated, no complex expressions or references.
     The specific rules for interpolation are outlined below:
     \begin{itemize}
@@ -643,7 +643,7 @@
             \verb|letter|  & All unicode letters.                \\
             \verb|space|   & All unicode space characters.       \\
             \verb|digit|   & The digits \verb|0| to \verb|9|     \\
-            \verb|error|   & The single quotation mark \verb|'|. \\
+            \verb|error|   & The double quotation mark \verb|"|. \\
             \verb|assign|  & The equals sign \verb|=|.           \\
             \verb|special| & The hash symbol \verb|#|.           \\
         \end{tabular}
@@ -658,9 +658,9 @@
             \verb|output|        & $ 0 $        \\
             \verb|truncate|      & $ 0 $        \\
             \verb|eager|         & \verb|false| \\
-            \verb|normalization| & \verb|''|    \\
+            \verb|normalization| & \verb|""|    \\
             \verb|highlight|     & \verb|false| \\
-            \verb|polar|         & \verb|''|    \\
+            \verb|polar|         & \verb|""|    \\
             \verb|autoref|       & \verb|false| \\
         \end{tabular}
     \end{center}
@@ -685,16 +685,16 @@
     However, if comma is assigned the decimal separator, a new character is needed for the element separator.
     A possible solution looks like this:
     \begin{verbatim}
-        cat '.'  = invalid
-        cat ','  = decimal sep
-        cat ';'  = element sep
-        cat ';;' = group sep
+        cat "."  = invalid
+        cat ","  = decimal sep
+        cat ";"  = element sep
+        cat ";;" = group sep
     \end{verbatim}
     To get output that is consistent with the input, one should also change the format codes like this:
     \begin{verbatim}
-        set fmt decimal sep = ','
-        set fmt element sep = '; '
-        set fmt group sep   = ' ;; '
+        set fmt decimal sep = ","
+        set fmt element sep = "; "
+        set fmt group sep   = " ;; "
     \end{verbatim}
     
     \subsection{Defining new operators}\label{subsec:new-operators}
@@ -702,7 +702,7 @@
     For example, the hash sign has catcode \verb|invalid| by default.
     It can easily be turned into an operator:
     \begin{verbatim}
-        cat '#' = operator
+        cat "#" = operator
         def #(a, b) = a %% b
     \end{verbatim}
 
